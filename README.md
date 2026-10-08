@@ -1,35 +1,39 @@
 # 🛡️ AgentSafe — Autonomous AI Agent Budget & Security Vault
 
-> **Projeto desenvolvido para o Hackathon Crypto World’s Fair (Colosseum)**  
-> **Trilha:** Solana Ecosystem / Agentic Payments  
-> **Aceleradora:** Colosseum Pre-Seed Program ($250k)
+> **"The Brex for AI Agents on Solana"**  
+> Hackathon Submission: **Crypto World’s Fair (Colosseum)** — Track: *Solana / Agentic Payments*
 
 ---
 
-## 📌 Sobre o Projeto
+## 📌 Visão Geral
 
-O **AgentSafe** é o "Brex para Agentes de IA na Solana": uma infraestrutura de **Cofres Inteligentes com Políticas de Gastos Programáveis** que permite delegar orçamentos controlados a agentes de software autônomos sem o risco de drenagem de fundos por alucinações, loops ou prompt injection.
-
-### Principais Funcionalidades:
-- ⏱️ **Teto Diário & por Transação:** Limites dinâmicos renováveis a cada 24 horas.
-- 📋 **Whitelist de Fornecedores:** Agentes só transferem fundos para contratos e APIs pré-autorizados.
-- 🚨 **Kill Switch Instantâneo (Botão de Pânico):** Congelamento em sub-segundos de qualquer robô suspeito.
-- ⚡ **Velocidade Solana:** Confirmações de liquidação em menos de 1 segundo e microtaxas na rede Solana Devnet.
+O **AgentSafe** é um protocolo e dashboard de **Cofres Inteligentes com Políticas de Gastos Programáveis** construído na rede de alta performance da Solana. Ele resolve o dilema de segurança na economia de agentes de IA: conceder autonomia financeira a robôs autônomos sem expor a carteira mestre do usuário a riscos de drenagem (prompt injection, loops de execução ou alucinações).
 
 ---
 
-## 📚 Documentação do Projeto
+## ⚡ Principais Funcionalidades
 
-- 📄 **[PRD Completo (Product Requirements Document)](docs/prd.md)** — Requisitos funcionais, não-funcionais, regras de negócio e fluxos Mermaid.
-- 📋 **[Quadro Oficial no Trello](https://trello.com/b/0g2r9BfM/agentsafe-hackathon-crypto-worlds-fair)** — Acompanhamento etapa por etapa das tarefas do hackathon.
+- 💰 **Cofre Delegado Segregado:** Os agentes nunca recebem a chave privada mestre da carteira.
+- ⏱️ **Teto Diário & Teto por Transação:** Limites máximos configuráveis com renovação contínua a cada 24h.
+- 🎯 **Whitelist de Fornecedores:** Restrição de pagamentos exclusivamente para prestadores de serviço autorizados (APIs, oráculos, nós de GPU).
+- 🛑 **Kill Switch Instantâneo (Botão de Pânico):** Congelamento em tempo real de um ou todos os agentes com 1 clique.
+- 🔍 **Audit Trail Onchain:** Todas as transferências aprovadas geram hash auditável na Solana Devnet em ~400ms.
+- 🚀 **Simulador de Pitch (3 Minutos):** Painel interativo para demonstração ao vivo para a banca avaliadora.
 
 ---
 
-## 👥 Organização do Repositório
+## 🏛️ Arquitetura
 
-```
-├── .memoria/       # Registro histórico de decisões e sessões dos agentes
-├── docs/
-│   └── prd.md      # Requisitos oficiais e casos de uso do produto
-└── README.md       # Visão geral do repositório
-```
+- **Frontend:** React 19 + Vite + Tailwind CSS + Solana Wallet Adapter (Phantom)
+- **Backend:** Node.js + Express + TypeScript + Zod
+- **Banco de Dados:** SQLite (Better-SQLite3)
+- **Web3 Engine:** `@solana/web3.js` conectado à **Solana Devnet**
+
+---
+
+## 📚 Documentação
+
+- [Product Requirements Document (PRD)](./docs/prd.md)
+- [Arquitetura do Sistema (ARCHITECTURE.md)](./docs/architecture/ARCHITECTURE.md)
+- [Checklist Backend (Story 01)](./docs/stories/01-backend.md)
+- [Checklist Frontend (Story 02)](./docs/stories/02-frontend.md)

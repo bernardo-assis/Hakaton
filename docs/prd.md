@@ -2,7 +2,7 @@
 
 **Versão:** 1.1 (Revisada & Enriquecida)  
 **Data:** 08 de Outubro de 2026  
-**Status:** Pronto para Aprovação (Fase 1 - Item 1 Concluído)  
+**Status:** Aprovado (Fase 1 - Item 1 Concluído)  
 **Hackathon:** Crypto World’s Fair (Colosseum) — Track Solana / Agentic Payments  
 **Autor:** @pm (O Estrategista) & @analyst (O Cartógrafo)
 
@@ -34,7 +34,7 @@ Ele permite que humanos financiem um cofre mestre e deleguem orçamentos control
 | :--- | :--- |
 | **Venture Scale ($250k Pre-seed Colosseum)** | Infraestrutura essencial (B2B SaaS + Protocolo) para qualquer empresa ou desenvolvedor que utilize agentes de IA no mundo. |
 | **Workshop Oficial da Solana Foundation** | Resposta direta e prática à trilha *"Solana Agentic Payments"* apresentada por Ludo (Solana Foundation). |
-| **Vantagens Técnicas da Solana** | Tempo de bloco de ~400ms e taxas de \$0.00025 tornam viáveis microtransações contínuas de \$0.05 a \$5.00 entre agentes. |
+| **Vantagens Técnicas da Solana** | Tempo de bloco de ~400ms e taxas de $0.00025 tornam viáveis microtransações contínuas de $0.05 a $5.00 entre agentes. |
 | **Pitch & Demo de 3 Minutos** | Visualmente impactante: demonstração de uma IA realizando pagamentos válidos e sendo travada em tempo real ao tentar burlar o limite. |
 
 ---
@@ -44,7 +44,7 @@ Ele permite que humanos financiem um cofre mestre e deleguem orçamentos control
 ### Persona 1: Matheus, Engenheiro de IA / Desenvolvedor Autônomo
 * **Cenário:** Matheus criou um agente que pesquisa dados de mercado e compra relatórios pagos via API.
 * **Dor:** Não quer deixar sua carteira principal conectada ao script da IA, com medo de um loop infinito gastar centenas de dólares.
-* **Solução com AgentSafe:** Ele cria o agente no dashboard, define um teto de \$10/dia e máximo de \$2/compra. O script da IA roda tranquilo sem risco de estourar a verba.
+* **Solução com AgentSafe:** Ele cria o agente no dashboard, define um teto de $10/dia e máximo de $2/compra. O script da IA roda tranquilo sem risco de estourar a verba.
 
 ### Persona 2: Camila, Head de Produto em uma Startup de IA
 * **Cenário:** O time da Camila gerencia uma frota de 15 agentes de IA operando tarefas de atendimento, automação e geração de conteúdo.

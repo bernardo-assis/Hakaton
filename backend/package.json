@@ -1,0 +1,37 @@
+{
+  "name": "agentsafe-backend",
+  "version": "1.0.0",
+  "description": "AgentSafe Backend - Autonomous AI Agent Budget & Security Vault with Solana Settlement",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "ts-node src/server.ts",
+    "test": "ts-node src/test-vault.ts"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.95.8",
+    "better-sqlite3": "^11.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.13.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  },
+  "keywords": [
+    "solana",
+    "agents",
+    "security-vault",
+    "colosseum",
+    "express"
+  ],
+  "author": "AIO Dev Team",
+  "license": "MIT"
+}
