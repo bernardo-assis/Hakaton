@@ -1,0 +1,179 @@
+<svg width="1440" height="960" viewBox="0 0 1440 960" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1440" height="960" rx="24" fill="#F4F5F6"/>
+  
+  <!-- Left Sidebar Dock -->
+  <rect x="24" y="24" width="72" height="912" rx="20" fill="#FFFFFF"/>
+  <rect x="40" y="44" width="40" height="40" rx="12" fill="#B6F03F"/>
+  <path d="M52 64L68 64M60 56L68 64L60 72" stroke="#111827" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Sidebar Icons -->
+  <circle cx="60" cy="130" r="16" fill="#F4F5F6"/>
+  <circle cx="60" cy="180" r="16" fill="#F4F5F6"/>
+  <rect x="48" y="228" width="24" height="24" rx="6" fill="#111827"/>
+  <rect x="48" y="276" width="24" height="24" rx="6" fill="#F4F5F6"/>
+  <rect x="48" y="324" width="24" height="24" rx="6" fill="#F4F5F6"/>
+  <rect x="48" y="372" width="24" height="24" rx="6" fill="#F4F5F6"/>
+  
+  <!-- Header Navbar -->
+  <rect x="120" y="24" width="1296" height="72" rx="20" fill="#FFFFFF"/>
+  <text x="144" y="67" font-family="Inter, sans-serif" font-size="22" font-weight="800" fill="#111827">AgentSafe</text>
+  <rect x="260" y="50" width="8" height="8" rx="4" fill="#B6F03F"/>
+  <text x="274" y="60" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#15803D">SOLANA DEVNET</text>
+  
+  <!-- Navigation Pills -->
+  <rect x="420" y="36" width="440" height="48" rx="24" fill="#F4F5F6"/>
+  <rect x="424" y="40" width="96" height="40" rx="20" fill="#111827"/>
+  <text x="444" y="65" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#FFFFFF">Overview</text>
+  <text x="540" y="65" font-family="Inter, sans-serif" font-size="13" font-weight="500" fill="#6B7280">AI Agents</text>
+  <text x="630" y="65" font-family="Inter, sans-serif" font-size="13" font-weight="500" fill="#6B7280">Policies</text>
+  <text x="710" y="65" font-family="Inter, sans-serif" font-size="13" font-weight="500" fill="#6B7280">Audit Logs</text>
+  <text x="795" y="65" font-family="Inter, sans-serif" font-size="13" font-weight="500" fill="#6B7280">Simulador</text>
+
+  <!-- Connect Wallet Pill -->
+  <rect x="1190" y="38" width="206" height="44" rx="22" fill="#111827"/>
+  <circle cx="1214" cy="60" r="7" fill="#B6F03F"/>
+  <text x="1232" y="65" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#FFFFFF">Phantom: 7xK2...9pQe</text>
+
+  <!-- Welcome Banner -->
+  <text x="120" y="140" font-family="Inter, sans-serif" font-size="28" font-weight="800" fill="#111827">Agent Fleet Control Room</text>
+  <text x="120" y="165" font-family="Inter, sans-serif" font-size="14" font-weight="500" fill="#6B7280">Enforce cryptographic budgets and protect AI agent liquidity on Solana.</text>
+
+  <!-- CARD 1: Master Vault Balance -->
+  <rect x="120" y="195" width="400" height="230" rx="20" fill="#FFFFFF"/>
+  <text x="144" y="235" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#6B7280">MASTER VAULT BALANCE</text>
+  <text x="144" y="285" font-family="Inter, sans-serif" font-size="36" font-weight="800" fill="#111827">248.50 SOL</text>
+  <text x="144" y="315" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#10B981">≈ $37,275.00 USD (Devnet)</text>
+  
+  <rect x="144" y="350" width="165" height="50" rx="16" fill="#B6F03F"/>
+  <text x="175" y="381" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#111827">+ Deposit SOL</text>
+  
+  <rect x="320" y="350" width="176" height="50" rx="16" fill="#F4F5F6"/>
+  <text x="355" y="381" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#111827">Emergency Pause</text>
+
+  <!-- 4 KPI CARDS (CENTER) -->
+  <g transform="translate(540, 195)">
+    <!-- KPI 1 (Gradient Green) -->
+    <rect x="0" y="0" width="180" height="105" rx="18" fill="url(#green_grad)"/>
+    <text x="18" y="32" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#FFFFFF">ACTIVE AGENTS</text>
+    <text x="18" y="75" font-family="Inter, sans-serif" font-size="32" font-weight="800" fill="#FFFFFF">6</text>
+    <text x="65" y="75" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#B6F03F">Fleet Online</text>
+
+    <!-- KPI 2 -->
+    <rect x="195" y="0" width="180" height="105" rx="18" fill="#FFFFFF"/>
+    <text x="213" y="32" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#6B7280">SPENT TODAY</text>
+    <text x="213" y="75" font-family="Inter, sans-serif" font-size="30" font-weight="800" fill="#111827">14.2 SOL</text>
+
+    <!-- KPI 3 -->
+    <rect x="0" y="125" width="180" height="105" rx="18" fill="#FFFFFF"/>
+    <text x="18" y="157" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#6B7280">TXS APPROVED</text>
+    <text x="18" y="200" font-family="Inter, sans-serif" font-size="30" font-weight="800" fill="#111827">148</text>
+
+    <!-- KPI 4 -->
+    <rect x="195" y="125" width="180" height="105" rx="18" fill="#FFFFFF"/>
+    <text x="213" y="157" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#EF4444">VIOLATIONS BLOCKED</text>
+    <text x="213" y="200" font-family="Inter, sans-serif" font-size="30" font-weight="800" fill="#EF4444">14 🛡️</text>
+  </g>
+
+  <!-- CARD: Activity Chart (RIGHT) -->
+  <rect x="935" y="195" width="481" height="230" rx="20" fill="#FFFFFF"/>
+  <text x="960" y="235" font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#111827">Hourly Volume: Approved vs Blocked</text>
+  <text x="960" y="258" font-family="Inter, sans-serif" font-size="12" font-weight="500" fill="#6B7280">Real-time throughput on Solana Devnet</text>
+  <!-- Chart Bars -->
+  <rect x="970" y="320" width="22" height="70" rx="6" fill="#B6F03F"/>
+  <rect x="1005" y="300" width="22" height="90" rx="6" fill="#B6F03F"/>
+  <rect x="1040" y="280" width="22" height="110" rx="6" fill="#B6F03F"/>
+  <rect x="1075" y="340" width="22" height="50" rx="6" fill="#111827"/>
+  <rect x="1110" y="290" width="22" height="100" rx="6" fill="#B6F03F"/>
+  <rect x="1145" y="310" width="22" height="80" rx="6" fill="#B6F03F"/>
+  <rect x="1180" y="270" width="22" height="120" rx="6" fill="#B6F03F"/>
+  <rect x="1215" y="350" width="22" height="40" rx="6" fill="#EF4444"/>
+  <rect x="1250" y="305" width="22" height="85" rx="6" fill="#B6F03F"/>
+  <rect x="1285" y="295" width="22" height="95" rx="6" fill="#B6F03F"/>
+  <rect x="1320" y="330" width="22" height="60" rx="6" fill="#111827"/>
+  <rect x="1355" y="285" width="22" height="105" rx="6" fill="#B6F03F"/>
+
+  <!-- FLEET SPENDING LIMIT PROGRESS -->
+  <rect x="120" y="445" width="400" height="95" rx="20" fill="#FFFFFF"/>
+  <text x="144" y="475" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#111827">Fleet Daily Spending Limit</text>
+  <text x="385" y="475" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#15803D">14.2 / 50 SOL</text>
+  <rect x="144" y="495" width="352" height="16" rx="8" fill="#F4F5F6"/>
+  <rect x="144" y="495" width="105" height="16" rx="8" fill="#15803D"/>
+
+  <!-- RECENT ACTIVITIES TABLE -->
+  <rect x="540" y="445" width="876" height="490" rx="20" fill="#FFFFFF"/>
+  <text x="568" y="488" font-family="Inter, sans-serif" font-size="18" font-weight="800" fill="#111827">Recent Autonomous Transactions</text>
+  <rect x="1230" y="465" width="160" height="36" rx="12" fill="#F4F5F6"/>
+  <text x="1255" y="488" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#111827">Search / Filter 🔍</text>
+
+  <!-- Table Header -->
+  <text x="568" y="535" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#6B7280">TX HASH</text>
+  <text x="700" y="535" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#6B7280">AGENT</text>
+  <text x="880" y="535" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#6B7280">RECIPIENT / SERVICE</text>
+  <text x="1090" y="535" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#6B7280">AMOUNT</text>
+  <text x="1240" y="535" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#6B7280">STATUS</text>
+
+  <!-- Row 1 -->
+  <line x1="568" y1="550" x2="1390" y2="550" stroke="#F4F5F6" stroke-width="1.5"/>
+  <text x="568" y="580" font-family="Inter, monospace" font-size="13" font-weight="600" fill="#111827">5xK9...z8Pq</text>
+  <text x="700" y="580" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#111827">Research Agent</text>
+  <text x="880" y="580" font-family="Inter, sans-serif" font-size="13" font-weight="500" fill="#6B7280">OpenAI API (Embeddings)</text>
+  <text x="1090" y="580" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#111827">0.25 SOL</text>
+  <rect x="1240" y="563" width="96" height="24" rx="12" fill="#DCFCE7"/>
+  <text x="1255" y="579" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#15803D">● Approved</text>
+
+  <!-- Row 2 (Blocked Attack Attempt) -->
+  <line x1="568" y1="605" x2="1390" y2="605" stroke="#F4F5F6" stroke-width="1.5"/>
+  <text x="568" y="635" font-family="Inter, monospace" font-size="13" font-weight="600" fill="#EF4444">Rejected</text>
+  <text x="700" y="635" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#111827">Research Agent</text>
+  <text x="880" y="635" font-family="Inter, sans-serif" font-size="13" font-weight="500" fill="#EF4444">Unknown Wallet (Attack)</text>
+  <text x="1090" y="635" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#EF4444">120.00 SOL</text>
+  <rect x="1240" y="618" width="130" height="24" rx="12" fill="#FEE2E2"/>
+  <text x="1255" y="634" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#B91C1C">🛑 BLOCKED (Cap)</text>
+
+  <!-- Row 3 -->
+  <line x1="568" y1="660" x2="1390" y2="660" stroke="#F4F5F6" stroke-width="1.5"/>
+  <text x="568" y="690" font-family="Inter, monospace" font-size="13" font-weight="600" fill="#111827">9tP1...x3Mn</text>
+  <text x="700" y="690" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#111827">DevOps Bot</text>
+  <text x="880" y="690" font-family="Inter, sans-serif" font-size="13" font-weight="500" fill="#6B7280">QuickNode RPC Microfee</text>
+  <text x="1090" y="690" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#111827">0.05 SOL</text>
+  <rect x="1240" y="673" width="96" height="24" rx="12" fill="#DCFCE7"/>
+  <text x="1255" y="689" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#15803D">● Approved</text>
+
+  <!-- Row 4 -->
+  <line x1="568" y1="715" x2="1390" y2="715" stroke="#F4F5F6" stroke-width="1.5"/>
+  <text x="568" y="745" font-family="Inter, monospace" font-size="13" font-weight="600" fill="#111827">3kL7...q9Wv</text>
+  <text x="700" y="745" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#111827">Trading Engine</text>
+  <text x="880" y="745" font-family="Inter, sans-serif" font-size="13" font-weight="500" fill="#6B7280">Meteora DLMM Swap</text>
+  <text x="1090" y="745" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#111827">2.50 SOL</text>
+  <rect x="1240" y="728" width="96" height="24" rx="12" fill="#DCFCE7"/>
+  <text x="1255" y="744" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#15803D">● Approved</text>
+
+  <!-- VIRTUAL AGENT CARDS (BOTTOM LEFT) -->
+  <rect x="120" y="560" width="400" height="375" rx="20" fill="#FFFFFF"/>
+  <text x="144" y="600" font-family="Inter, sans-serif" font-size="16" font-weight="800" fill="#111827">Agent Virtual Cards</text>
+  <text x="144" y="622" font-family="Inter, sans-serif" font-size="12" font-weight="500" fill="#6B7280">Delegated signing keys with onchain caps</text>
+
+  <!-- Dark Metallic Card 1 -->
+  <rect x="144" y="640" width="352" height="135" rx="16" fill="#18181B"/>
+  <text x="168" y="675" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">Research Agent (GPT-4o)</text>
+  <rect x="415" y="662" width="65" height="20" rx="10" fill="#B6F03F"/>
+  <text x="428" y="676" font-family="Inter, sans-serif" font-size="10" font-weight="800" fill="#111827">ACTIVE</text>
+  
+  <text x="168" y="715" font-family="Inter, monospace" font-size="13" font-weight="500" fill="#9CA3AF">sol_key: 4356...9281</text>
+  <text x="168" y="750" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#B6F03F">Daily Cap: 25.0 SOL • Max Tx: 2.0 SOL</text>
+
+  <!-- Dark Metallic Card 2 -->
+  <rect x="144" y="790" width="352" height="125" rx="16" fill="#0F291E"/>
+  <text x="168" y="825" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">Autonomous DevOps Bot</text>
+  <rect x="415" y="812" width="65" height="20" rx="10" fill="#10B981"/>
+  <text x="428" y="826" font-family="Inter, sans-serif" font-size="10" font-weight="800" fill="#FFFFFF">ACTIVE</text>
+  <text x="168" y="865" font-family="Inter, monospace" font-size="13" font-weight="500" fill="#A7F3D0">sol_key: 8812...3341</text>
+  <text x="168" y="895" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#34D399">Daily Cap: 15.0 SOL • Max Tx: 0.5 SOL</text>
+
+  <defs>
+    <linearGradient id="green_grad" x1="0" y1="0" x2="180" y2="105" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#15803D"/>
+      <stop offset="1" stop-color="#052E16"/>
+    </linearGradient>
+  </defs>
+</svg>

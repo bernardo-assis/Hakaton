@@ -1,0 +1,70 @@
+<svg width="1000" height="780" viewBox="0 0 1000 780" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Overlay Backdrop -->
+  <rect width="1000" height="780" rx="24" fill="#0F172A" fill-opacity="0.5"/>
+  
+  <!-- Modal Container -->
+  <rect x="180" y="40" width="640" height="700" rx="24" fill="#FFFFFF"/>
+  
+  <!-- Header -->
+  <text x="220" y="90" font-family="Inter, sans-serif" font-size="22" font-weight="800" fill="#111827">Create New AI Agent Vault</text>
+  <text x="220" y="115" font-family="Inter, sans-serif" font-size="13" font-weight="500" fill="#6B7280">Deploy a dedicated sub-wallet with cryptographic spending policies on Solana.</text>
+  
+  <!-- Close Button -->
+  <circle cx="780" cy="85" r="16" fill="#F4F5F6"/>
+  <path d="M774 79L786 91M786 79L774 91" stroke="#6B7280" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Divider -->
+  <line x1="220" y1="135" x2="780" y2="135" stroke="#F3F4F6" stroke-width="1.5"/>
+
+  <!-- Field 1: Agent Name -->
+  <text x="220" y="170" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#111827">AGENT IDENTIFIER / NAME</text>
+  <rect x="220" y="185" width="560" height="48" rx="14" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5"/>
+  <text x="240" y="215" font-family="Inter, sans-serif" font-size="14" font-weight="500" fill="#111827">Perplexity Research Assistant (Agent-03)</text>
+
+  <!-- Field 2: Agent Keypair / Address -->
+  <text x="220" y="260" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#111827">DELEGATED SOLANA PUBLIC KEY</text>
+  <rect x="220" y="275" width="430" height="48" rx="14" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5"/>
+  <text x="240" y="305" font-family="Inter, monospace" font-size="13" font-weight="500" fill="#64748B">8xMn2B9qKvY...45pWe (Isolated Sub-Account)</text>
+  <rect x="660" y="275" width="120" height="48" rx="14" fill="#111827"/>
+  <text x="682" y="305" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#FFFFFF">Auto-Gen ✨</text>
+
+  <!-- Field 3: Budget Policies -->
+  <text x="220" y="355" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#111827">BUDGET CAPS &amp; LIMITS</text>
+  
+  <!-- Daily Cap Box -->
+  <rect x="220" y="370" width="270" height="85" rx="16" fill="#F4F5F6"/>
+  <text x="240" y="398" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#6B7280">Daily Spending Cap (24h)</text>
+  <text x="240" y="432" font-family="Inter, sans-serif" font-size="22" font-weight="800" fill="#111827">25.00 SOL</text>
+  <text x="360" y="432" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#15803D">≈ $3,750 USD</text>
+
+  <!-- Single Tx Cap Box -->
+  <rect x="510" y="370" width="270" height="85" rx="16" fill="#F4F5F6"/>
+  <text x="530" y="398" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#6B7280">Single Transaction Limit</text>
+  <text x="530" y="432" font-family="Inter, sans-serif" font-size="22" font-weight="800" fill="#111827">2.50 SOL</text>
+  <text x="635" y="432" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#15803D">≈ $375 USD</text>
+
+  <!-- Field 4: Whitelist Enforcement -->
+  <text x="220" y="485" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#111827">AUTHORIZED WHITELIST CONTRACTS</text>
+  <rect x="220" y="500" width="560" height="100" rx="16" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5"/>
+  
+  <!-- Tags -->
+  <rect x="240" y="515" width="115" height="30" rx="15" fill="#DCFCE7"/>
+  <text x="255" y="535" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#15803D">✓ OpenAI API</text>
+
+  <rect x="365" y="515" width="130" height="30" rx="15" fill="#DCFCE7"/>
+  <text x="380" y="535" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#15803D">✓ QuickNode RPC</text>
+
+  <rect x="505" y="515" width="130" height="30" rx="15" fill="#DCFCE7"/>
+  <text x="520" y="535" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#15803D">✓ Meteora DLMM</text>
+
+  <text x="240" y="575" font-family="Inter, sans-serif" font-size="12" font-weight="500" fill="#64748B">+ Add Custom Contract / Recipient Public Key</text>
+
+  <!-- Actions -->
+  <line x1="220" y1="625" x2="780" y2="625" stroke="#F3F4F6" stroke-width="1.5"/>
+
+  <rect x="220" y="650" width="140" height="52" rx="16" fill="#F4F5F6"/>
+  <text x="268" y="682" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#64748B">Cancel</text>
+
+  <rect x="375" y="650" width="405" height="52" rx="16" fill="#B6F03F"/>
+  <text x="445" y="682" font-family="Inter, sans-serif" font-size="15" font-weight="800" fill="#111827">Deploy Agent Vault on Solana Devnet ⚡</text>
+</svg>
