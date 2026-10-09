@@ -1,0 +1,291 @@
+import pool, { query } from "../db/database";
+export class UiRepository {
+  async vaults() {
+    return (
+      await query(
+        `SELECT v.id,v.user_id,v.owner_pubkey,v.vault_pubkey,v.status,v.created_at,v.policies,COALESCE((SELECT SUM(daily_cap_lamports) FROM agents WHERE vault_id=v.id),0)::text daily_cap_lamports,COALESCE((SELECT SUM(t.amount_lamports) FROM transactions t JOIN agents a ON a.id=t.agent_id WHERE a.vault_id=v.id AND t.settlement_status='CONFIRMED' AND t.created_at>=date_trunc('day',NOW() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'),0)::text spent_today_lamports FROM vaults v ORDER BY v.created_at`,
+      )
+    ).rows;
+  }
+  async agents() {
+    return (
+      await query(
+        `SELECT a.*,COALESCE((SELECT SUM((after_state->'result'->>'amount_lamports')::bigint) FROM audit_events WHERE target_id=a.id::text AND action='SIMULATION' AND after_state->'result'->>'decision'='APPROVED' AND created_at>=date_trunc('day',NOW() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'),0)::text simulated_spent_today_lamports,COALESCE((SELECT jsonb_agg(jsonb_build_object('recipient_pubkey',recipient_pubkey,'label',label)) FROM whitelist_recipients WHERE agent_id=a.id),'[]'::jsonb) recipients,COALESCE((SELECT SUM(amount_lamports) FROM transactions WHERE agent_id=a.id AND settlement_status='CONFIRMED' AND created_at>=date_trunc('day',NOW() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'),0)::text spent_today_lamports,(SELECT COUNT(*)::int FROM transactions WHERE agent_id=a.id) transaction_count FROM agents a ORDER BY created_at`,
+      )
+    ).rows;
+  }
+  async events() {
+    return (
+      await query(
+        "SELECT id,vault_id,actor_id,action,target_id,reason,created_at FROM audit_events ORDER BY created_at DESC LIMIT 100",
+      )
+    ).rows;
+  }
+  async simulations() {
+    return (
+      await query(
+        "SELECT after_state->'result' result FROM audit_events WHERE action='SIMULATION' ORDER BY created_at DESC LIMIT 100",
+      )
+    ).rows.map((r) => r.result);
+  }
+  async localVault(pubkey: string) {
+    const c = await pool.connect();
+    try {
+      await c.query("BEGIN");
+      await c.query("SELECT pg_advisory_xact_lock(hashtext($1))", [pubkey]);
+      const existing = (
+        await c.query(
+          "SELECT id,user_id,owner_pubkey,vault_pubkey,status,created_at,policies FROM vaults WHERE vault_pubkey=$1",
+          [pubkey],
+        )
+      ).rows[0];
+      if (existing) {
+        await c.query("COMMIT");
+        return existing;
+      }
+      const user = (
+        await c.query(
+          "INSERT INTO users(email,password_hash,company_name) VALUES($1,'LOCAL_WALLET_NO_LOGIN','Local wallet') ON CONFLICT(email) DO UPDATE SET email=excluded.email RETURNING id",
+          [pubkey + "@local.invalid"],
+        )
+      ).rows[0];
+      const v = (
+        await c.query(
+          "INSERT INTO vaults(user_id,owner_pubkey,vault_pubkey,key_reference) VALUES($1,$2,$2,$3) RETURNING id,user_id,owner_pubkey,vault_pubkey,status,created_at,policies",
+          [user.id, pubkey, "external-wallet:" + pubkey],
+        )
+      ).rows[0];
+      await c.query("COMMIT");
+      return v;
+    } catch (e) {
+      await c.query("ROLLBACK");
+      throw e;
+    } finally {
+      c.release();
+    }
+  }
+  async stats() {
+    return {
+      blocked: Number(
+        (
+          await query(
+            "SELECT COUNT(*) count FROM transactions WHERE decision='BLOCKED'",
+          )
+        ).rows[0].count,
+      ),
+      chart: (
+        await query(
+          "SELECT (created_at AT TIME ZONE 'UTC')::date::text date,COUNT(*) FILTER(WHERE decision='APPROVED')::int approved,COUNT(*) FILTER(WHERE decision='BLOCKED')::int blocked FROM transactions WHERE created_at >= CURRENT_TIMESTAMP - INTERVAL '7 days' GROUP BY 1",
+        )
+      ).rows,
+    };
+  }
+  async transactions() {
+    return (
+      await query(
+        "SELECT t.*,a.name agent_name FROM transactions t JOIN agents a ON a.id=t.agent_id ORDER BY t.created_at DESC LIMIT 100",
+      )
+    ).rows;
+  }
+  async history(id: string) {
+    return {
+      transactions: (
+        await query(
+          "SELECT * FROM transactions WHERE agent_id=$1 ORDER BY created_at DESC LIMIT 100",
+          [id],
+        )
+      ).rows,
+      events: (
+        await query(
+          "SELECT id,action,target_id,reason,created_at FROM audit_events WHERE target_id=$1 ORDER BY created_at DESC LIMIT 100",
+          [id],
+        )
+      ).rows,
+    };
+  }
+  async mutate(
+    kind: "agents" | "vaults",
+    id: string,
+    input: Record<string, unknown>,
+  ) {
+    const c = await pool.connect();
+    try {
+      await c.query("BEGIN");
+      const old = (
+        await c.query(`SELECT * FROM ${kind} WHERE id=$1 FOR UPDATE`, [id])
+      ).rows[0];
+      if (!old) throw Object.assign(new Error("Not found"), { status: 404 });
+      if (
+        kind === "agents" &&
+        BigInt(
+          String(input.single_tx_cap_lamports ?? old.single_tx_cap_lamports),
+        ) > BigInt(String(input.daily_cap_lamports ?? old.daily_cap_lamports))
+      )
+        throw Object.assign(new Error("Single cap must not exceed daily cap"), {
+          status: 400,
+        });
+      const keys = Object.keys(input);
+      const row = (
+        await c.query(
+          `UPDATE ${kind} SET ${keys.map((k, i) => `${k}=$${i + 2}`).join(",")} WHERE id=$1 RETURNING *`,
+          [id, ...Object.values(input)],
+        )
+      ).rows[0];
+      await c.query(
+        "INSERT INTO audit_events(vault_id,actor_id,action,target_id,before_state,after_state) VALUES($1,$2,$3,$4,$5,$6)",
+        [
+          kind === "vaults" ? id : row.vault_id,
+          "local-operator",
+          `${kind.toUpperCase()}_UPDATED`,
+          id,
+          Object.fromEntries(keys.map((key) => [key, old[key]])),
+          Object.fromEntries(keys.map((key) => [key, row[key]])),
+        ],
+      );
+      await c.query("COMMIT");
+      if (kind === "vaults") delete row.key_reference;
+      return row;
+    } catch (e) {
+      await c.query("ROLLBACK");
+      throw e;
+    } finally {
+      c.release();
+    }
+  }
+  async whitelist(id: string, recipients: any[]) {
+    const c = await pool.connect();
+    try {
+      await c.query("BEGIN");
+      const a = (
+        await c.query("SELECT vault_id FROM agents WHERE id=$1 FOR UPDATE", [
+          id,
+        ])
+      ).rows[0];
+      if (!a)
+        throw Object.assign(new Error("Agent not found"), { status: 404 });
+      await c.query("DELETE FROM whitelist_recipients WHERE agent_id=$1", [id]);
+      for (const r of recipients)
+        await c.query(
+          "INSERT INTO whitelist_recipients(agent_id,recipient_pubkey,label) VALUES($1,$2,$3)",
+          [id, r.recipient_pubkey, r.label],
+        );
+      await c.query(
+        "INSERT INTO audit_events(vault_id,actor_id,action,target_id,after_state) VALUES($1,'local-operator','WHITELIST_UPDATED',$2,$3)",
+        [a.vault_id, id, { recipients }],
+      );
+      await c.query("COMMIT");
+      return { recipients };
+    } catch (e) {
+      await c.query("ROLLBACK");
+      throw e;
+    } finally {
+      c.release();
+    }
+  }
+  async panic() {
+    const c = await pool.connect();
+    try {
+      await c.query("BEGIN");
+      const rows = (
+        await c.query(
+          "UPDATE agents SET status='FROZEN' WHERE status='ACTIVE' RETURNING id,vault_id",
+        )
+      ).rows;
+      for (const a of rows)
+        await c.query(
+          "INSERT INTO audit_events(vault_id,actor_id,action,target_id,reason) VALUES($1,'local-operator','PANIC_FREEZE',$2,'Emergency freeze')",
+          [a.vault_id, a.id],
+        );
+      await c.query("COMMIT");
+      return { count: rows.length };
+    } catch (e) {
+      await c.query("ROLLBACK");
+      throw e;
+    } finally {
+      c.release();
+    }
+  }
+  async simulate(
+    input: any,
+    evaluate: (
+      agent: any,
+      policies: any,
+      spent: bigint,
+      listed: boolean,
+    ) => Promise<string | null>,
+  ) {
+    const c = await pool.connect();
+    try {
+      await c.query("BEGIN");
+      const a = (
+        await c.query(
+          "SELECT a.*,v.status vault_status,v.policies,v.vault_pubkey FROM agents a JOIN vaults v ON v.id=a.vault_id WHERE a.id=$1 FOR UPDATE OF a,v",
+          [input.agent_id],
+        )
+      ).rows[0];
+      if (!a)
+        throw Object.assign(new Error("Agent not found"), { status: 404 });
+      const prior = (
+        await c.query(
+          "SELECT after_state FROM audit_events WHERE target_id=$1 AND action='SIMULATION' AND after_state->>'request_id'=$2",
+          [a.id, input.request_id],
+        )
+      ).rows[0]?.after_state;
+      if (prior) {
+        if (
+          Object.keys(input).some((key) => prior.input[key] !== input[key]) ||
+          Object.keys(prior.input).some(
+            (key) => prior.input[key] !== input[key],
+          )
+        )
+          throw Object.assign(
+            new Error("Request ID already used with different payload"),
+            { status: 409 },
+          );
+        await c.query("COMMIT");
+        return prior.result;
+      }
+      const spent = (
+        await c.query(
+          "SELECT COALESCE(SUM((after_state->'result'->>'amount_lamports')::bigint),0)::text spent FROM audit_events WHERE target_id=$1 AND action='SIMULATION' AND after_state->'result'->>'decision'='APPROVED' AND created_at>=date_trunc('day',NOW() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'",
+          [a.id],
+        )
+      ).rows[0].spent;
+      const listed =
+        (
+          await c.query(
+            "SELECT 1 FROM whitelist_recipients WHERE agent_id=$1 AND recipient_pubkey=$2",
+            [a.id, input.recipient_pubkey],
+          )
+        ).rowCount! > 0;
+      const reason = await evaluate(a, a.policies, BigInt(spent), listed);
+      const result = {
+        id: require("crypto").randomUUID(),
+        decision: reason ? "BLOCKED" : "APPROVED",
+        reason: reason ?? "POLICY_PASSED",
+        mode: "SIMULATION",
+        settlement_status: "NOT_SUBMITTED",
+        amount_lamports: input.amount_lamports,
+        agent_id: a.id,
+        created_at: new Date().toISOString(),
+      };
+      await c.query(
+        "INSERT INTO audit_events(id,vault_id,actor_id,action,target_id,reason,after_state) VALUES($1,$2,$3,'SIMULATION',$3,$4,$5)",
+        [
+          result.id,
+          a.vault_id,
+          a.id,
+          result.reason,
+          { request_id: input.request_id, input, result },
+        ],
+      );
+      await c.query("COMMIT");
+      return result;
+    } catch (e) {
+      await c.query("ROLLBACK");
+      throw e;
+    } finally {
+      c.release();
+    }
+  }
+}

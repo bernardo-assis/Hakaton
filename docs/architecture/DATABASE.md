@@ -1,70 +1,217 @@
-# Banco de dados — AgentSafe
+# Modelagem do Banco de Dados (PostgreSQL)
 
-## Estado e fonte de verdade
+**Projeto:** AgentSafe
+**Data:** 08 de Outubro de 2026
+**Motor:** PostgreSQL Puro
+**Autor:** @architect (Jotaf) & Bernardo
 
-O DDL versionado está em [`backend/src/db/schema.sql`](../../backend/src/db/schema.sql). Este documento descreve o contrato a implementar. A existência do schema não significa que os serviços, autenticação, executor ou recuperação estejam prontos. O schema inicial exige SQLite >= 3.38 (tabelas `STRICT`) e aplicação em banco novo; não é uma migração para dados existentes. SQLite é adequado ao MVP local Devnet com um executor controlado; o desenho não valida custódia de fundos reais.
+---
 
-## Entidades
+## 1. Visão Geral da Modelagem (A Fusão)
 
-| Tabela | Finalidade e campos essenciais |
-| :--- | :--- |
-| `vaults` | Dono (`owner_pubkey`), endereço (`vault_pubkey`), referência protegida da chave (`key_reference`) e status `ACTIVE`/`FROZEN`. Sem chave privada em claro. |
-| `agents` | Cofre, identidade pública, nome/papel, status, limites `daily_cap_lamports` e `single_tx_cap_lamports`, whitelist habilitada. |
-| `whitelist_recipients` | Endereço e nome do destinatário, único por agente. |
-| `transactions` | Valor, taxa reservada, decisão, liquidação, chave de idempotência e hash do pedido, assinatura e referência durável da transação assinada, datas de reserva/envio/confirmação/resolução. |
-| `audit_events` | Cofre, ator, ação, alvo, motivo, estado anterior/posterior e data; alterações de limites, whitelist, credenciais e congelamento. |
-| `agent_credentials` | Hash de token, escopo, agente, expiração e revogação. Token bruto revelado uma única vez; nunca gravado em auditoria. |
+Esta modelagem representa a fusão da decisão de infraestrutura do Jotaf (**PostgreSQL + Dupla Autenticação com Email/Senha**) com as diretrizes de segurança transacional e precisão propostas pelo Bernardo (**Inteiros em Lamports, Máquina de Liquidação e Auditoria Estrita**).
 
-Autenticação do proprietário por desafio assinado é uma dependência ainda aberta. Definir armazenamento e consumo único de desafios e sessões, expiração e revogação antes de implementar as rotas administrativas. `owner_pubkey` apenas identifica o dono. Não é prova de autenticação.
+## 2. Diagrama Entidade-Relacionamento (ERD)
 
-## Valores, datas e integridade
+```mermaid
+erDiagram
+    USERS ||--o{ VAULTS : "é dono de"
+    VAULTS ||--o{ AGENTS : "possui"
+    VAULTS ||--o{ AUDIT_EVENTS : "registra histórico"
+    AGENTS ||--o{ AGENT_CREDENTIALS : "autentica via"
+    AGENTS ||--o{ WHITELIST_RECIPIENTS : "restringe pagamentos a"
+    AGENTS ||--o{ TRANSACTIONS : "realiza"
 
-- Valores e taxas são inteiros em lamports. Limites aceitam zero; pagamentos exigem valor positivo. O contrato HTTP usa strings decimais canônicas e máximo `9007199254740991`, validadas com `BigInt`. Não aceitar frações, sinal, zeros à esquerda ou expoentes.
-- O intervalo limita conversões seguras para bibliotecas JavaScript. Somatórios de múltiplas linhas também precisam preservar precisão: usar leitura de inteiros como `BigInt` ou acumulação verificada, evitando conversão implícita insegura e overflow do SQLite.
-- Datas são epoch UTC em segundos inteiros. A janela de 24 horas usa `reserved_at`, e não uma virada de dia local.
-- Cada conexão precisa habilitar `PRAGMA foreign_keys = ON`. Índices cobrem agente/cofre, orçamento e histórico. Unicidade cobre destinatário por agente, chave de idempotência por agente, hash de token e assinatura preenchida.
-- Triggers impedem exclusão de pagamentos, alteração/exclusão de eventos de auditoria, mudança do cofre de um agente e alteração da identidade original do pagamento. Assinatura e referência assinada tornam-se imutáveis depois de preenchidas. Isso protege contra alterações SQL usuais; não torna o arquivo inviolável para alguém com controle do banco.
-- Histórico financeiro não deve desaparecer por exclusão em cascata. Identidades públicas são validadas na aplicação; `TEXT NOT NULL` não valida Base58 nem prova posse de carteira.
-- Não registrar segredo, token ou bytes sensíveis em `before_json`/`after_json`, erros ou telemetria. `key_reference` e `signed_transaction_reference` apontam para armazenamento durável protegido e com acesso restrito ao backend.
+    USERS {
+        uuid id PK
+        varchar email "Login do Gestor"
+        varchar password_hash
+        varchar company_name
+    }
 
-## Decisão e liquidação são diferentes
+    VAULTS {
+        uuid id PK
+        uuid user_id FK
+        varchar owner_pubkey "Carteira Phantom"
+        varchar vault_pubkey "Endereço público do Cofre"
+        varchar key_reference "Referência segura da chave privada"
+        enum status "ACTIVE ou FROZEN"
+    }
 
-O cofre de uma transação é obtido pelo vínculo `transactions.agent_id → agents.vault_id`. A resposta HTTP pode usar `policyDecision`, mapeado do campo SQL `decision`.
+    AGENTS {
+        uuid id PK
+        uuid vault_id FK
+        varchar name
+        varchar role
+        varchar agent_pubkey
+        enum status "ACTIVE ou FROZEN"
+        bigint daily_cap_lamports "Teto diário em Lamports (Inteiro)"
+        bigint single_tx_cap_lamports "Teto por Tx (Inteiro)"
+        boolean whitelist_enabled
+    }
+    
+    AGENT_CREDENTIALS {
+        uuid id PK
+        uuid agent_id FK
+        varchar token_hash "Hash irreversível do token da IA"
+        varchar scope
+        timestamp revoked_at
+    }
 
-`decision` é `APPROVED` ou `BLOCKED`. `settlement_status` é `NOT_SUBMITTED`, `RESERVED`, `SUBMITTED`, `CONFIRMED`, `FAILED` ou `UNKNOWN`.
+    WHITELIST_RECIPIENTS {
+        uuid id PK
+        uuid agent_id FK
+        varchar recipient_pubkey
+        varchar label
+    }
 
-| Situação | Decisão | Liquidação | Impacto na reserva |
-| :--- | :--- | :--- | :--- |
-| Política rejeitada | `BLOCKED` | `NOT_SUBMITTED` | Sem reserva ou assinatura. |
-| Política aceita e orçamento reservado | `APPROVED` | `RESERVED` | Reserva valor e taxa. |
-| Envio realizado/possível | `APPROVED` | `SUBMITTED` / `UNKNOWN` | Conserva reserva. |
-| Confirmação na rede | `APPROVED` | `CONFIRMED` | Valor passa a gasto; saldo observado deve refletir liquidação antes de retirar desconto local. |
-| Falha comprovada | `APPROVED` | `FAILED` | Libera valor; tratar taxa efetivamente cobrada pela rede. |
+    TRANSACTIONS {
+        uuid id PK
+        uuid agent_id FK
+        varchar recipient_pubkey
+        bigint amount_lamports
+        bigint network_fee_lamports
+        enum decision "APPROVED ou BLOCKED"
+        enum settlement_status "RESERVED, SUBMITTED, CONFIRMED..."
+        varchar idempotency_key "Prevenção de duplicidade"
+        varchar solana_signature
+        timestamp reserved_at
+        timestamp confirmed_at
+    }
 
-`RESERVED` permite assinatura e referência já persistidas, sem `submitted_at`. Antes da tentativa de envio, persistir `submitted_at` e mudar estado; após queda nesse intervalo, reconciliar a assinatura antes de qualquer liberação. `CONFIRMED` exige `confirmed_at`; `FAILED` exige `resolved_at` e código de erro.
+    AUDIT_EVENTS {
+        uuid id PK
+        uuid vault_id FK
+        varchar action "Ex: AGENT_LIMIT_CHANGED"
+        jsonb before_state "Estado Anterior"
+        jsonb after_state "Estado Novo"
+    }
+```
 
-A aplicação deve restringir transições, atualizar timestamps e impedir regressão terminal. Constraints do banco não substituem o protocolo do executor.
+---
 
-## Reserva atômica e orçamento
+## 3. Schema SQL Oficial (PostgreSQL)
 
-Dentro de `BEGIN IMMEDIATE`, revalidar dono/vínculo, congelamento global e individual, whitelist, teto por transferência e soma do orçamento. Gravar reserva antes de liberar o lock. Não manter transação SQLite aberta durante RPC.
+```sql
+-- Extensão para UUIDs
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-O gasto computável do agente é a soma de valores em `RESERVED`, `SUBMITTED` e `UNKNOWN` de qualquer idade, mais `CONFIRMED` com `reserved_at` nas últimas 24 horas. As taxas ficam fora dos limites do agente. Reservas nunca expiram automaticamente enquanto o resultado for desconhecido.
+-- Tipos (Enums) de Segurança e Liquidação
+CREATE TYPE vault_status AS ENUM ('ACTIVE', 'FROZEN');
+CREATE TYPE agent_status AS ENUM ('ACTIVE', 'FROZEN');
+CREATE TYPE tx_decision AS ENUM ('APPROVED', 'BLOCKED');
+CREATE TYPE tx_settlement AS ENUM ('NOT_SUBMITTED', 'RESERVED', 'SUBMITTED', 'CONFIRMED', 'FAILED', 'UNKNOWN');
 
-O schema não garante teto diário nem saldo disponível por si só: isso depende do serviço transacional e do executor. Serializar o executor por cofre, inclusive após reinício, e relacionar o saldo RPC ao slot/contexto de observação e às assinaturas reconciliadas. Não descontar novamente uma transação cuja saída já está refletida no saldo observado; também não liberar reserva usando saldo anterior à saída.
+-- 1. Usuários (Autenticação Web2 Tradicional resolvida)
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    company_name VARCHAR(100),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
 
-Para disponibilidade do cofre, considerar valor mais taxa de todas as reservas dos seus agentes. Usar saldo observado com consistência e revalidar imediatamente antes do envio; não reutilizar um saldo antigo para autorizar mais dinheiro após remover uma reserva confirmada. Sincronizar atualizações de saldo e reconciliação sob o mesmo protocolo. Transferências externas e taxas mudam saldo; a reserva local não bloqueia movimentações fora do serviço.
+-- 2. Cofres Mestres
+CREATE TABLE vaults (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    owner_pubkey VARCHAR(44) NOT NULL,
+    vault_pubkey VARCHAR(44) NOT NULL,
+    key_reference VARCHAR(255) NOT NULL, -- Nunca a chave em claro
+    status vault_status DEFAULT 'ACTIVE',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
 
-## Idempotência e recuperação após queda
+-- 3. Fichas dos Agentes (Inteiros BIGINT para Lamports)
+CREATE TABLE agents (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    vault_id UUID NOT NULL REFERENCES vaults(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    role VARCHAR(200) NOT NULL,
+    agent_pubkey VARCHAR(44) NOT NULL,
+    status agent_status DEFAULT 'ACTIVE',
+    daily_cap_lamports BIGINT NOT NULL,   -- BigInt no Postgres suporta até 19 dígitos
+    single_tx_cap_lamports BIGINT NOT NULL,
+    whitelist_enabled BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
 
-A chave por agente é associada a `request_hash` do payload validado e normalizado. Mesma chave e mesmos parâmetros retorna o registro; alteração de valor/destinatário/propósito retorna conflito. Não incluir segredos no hash. Não executar novamente porque o cliente perdeu a resposta.
+-- 4. Credenciais dos Agentes (Segurança contra vazamento de tokens)
+CREATE TABLE agent_credentials (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    agent_id UUID NOT NULL REFERENCES agents(id) ON DELETE CASCADE,
+    token_hash VARCHAR(255) NOT NULL UNIQUE,
+    scope VARCHAR(100),
+    expires_at TIMESTAMP WITH TIME ZONE,
+    revoked_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
 
-Antes do primeiro envio, persistir `solana_signature` e `signed_transaction_reference` recuperável, incluindo bytes assinados, blockhash e validade necessários para reconciliação. A reserva sozinha não resolve uma queda após envio e antes da resposta. O trabalhador recupera a operação existente, consulta a assinatura e, se apropriado, retransmite os mesmos bytes. Não construir outra transação com nova assinatura sem demonstrar que a anterior não liquidou e não poderá liquidar.
+-- 5. Whitelist (Lista Vip)
+CREATE TABLE whitelist_recipients (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    agent_id UUID NOT NULL REFERENCES agents(id) ON DELETE CASCADE,
+    recipient_pubkey VARCHAR(44) NOT NULL,
+    label VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(agent_id, recipient_pubkey) -- Regra do Bernardo: único por agente
+);
 
-Timeout ou falha de consulta vira `UNKNOWN`, mantendo a reserva e apresentando estado incerto ao usuário. Falha definitiva exige evidência da rede/validade e critério documentado de compromisso. Após reiniciar, reconciliar todas as reservas/envios incertos antes de permitir que sejam abandonados. Documentar nível de confirmação exigido na implementação.
+-- 6. Transações com Ciclo de Vida Completo (Reserva e Liquidação)
+CREATE TABLE transactions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    agent_id UUID NOT NULL REFERENCES agents(id) ON DELETE RESTRICT,
+    idempotency_key VARCHAR(100) NOT NULL,
+    request_hash VARCHAR(255) NOT NULL,
+    recipient_pubkey VARCHAR(44) NOT NULL,
+    amount_lamports BIGINT NOT NULL,
+    network_fee_lamports BIGINT DEFAULT 0,
+    
+    decision tx_decision NOT NULL,
+    settlement_status tx_settlement NOT NULL,
+    
+    error_code VARCHAR(100),
+    purpose TEXT,
+    
+    solana_signature VARCHAR(88) UNIQUE,
+    signed_tx_reference TEXT,
+    
+    reserved_at TIMESTAMP WITH TIME ZONE,
+    submitted_at TIMESTAMP WITH TIME ZONE,
+    confirmed_at TIMESTAMP WITH TIME ZONE,
+    resolved_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    UNIQUE(agent_id, idempotency_key)
+);
 
-## Administração e escopo
+-- 7. Log de Auditoria Imutável (Ações de Gestão)
+CREATE TABLE audit_events (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    vault_id UUID NOT NULL REFERENCES vaults(id) ON DELETE CASCADE,
+    actor_id VARCHAR(100) NOT NULL, -- Pode ser UUID do usuário ou da chave
+    action VARCHAR(100) NOT NULL,   -- Ex: LIMIT_UPDATED, FROZEN_AGENT
+    target_id VARCHAR(100) NOT NULL,
+    reason TEXT,
+    before_state JSONB, -- JSONB é excelente no Postgres para auditoria
+    after_state JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
 
-Mudanças administrativas e o evento correspondente devem ser gravados na mesma transação local. Freeze do cofre preserva status individuais e bloqueia novos pagamentos de todos os agentes. Unfreeze global não descongela um agente individualmente congelado. Coordenar o corte do executor: transação já transmitida não é cancelável localmente.
+-- Índices Críticos de Performance
+CREATE INDEX idx_transactions_agent_status ON transactions(agent_id, settlement_status);
+CREATE INDEX idx_transactions_reserved_at ON transactions(reserved_at);
+CREATE INDEX idx_audit_vault ON audit_events(vault_id);
+```
 
-As seis tabelas cobrem o núcleo financeiro planejado do MVP; o armazenamento de desafios/sessões de autenticação permanece pendente e pode exigir tabelas adicionais. Organizações, RBAC complexo, fornecedores independentes, múltiplos tokens e fechamento diário ficam para requisitos posteriores. Bloqueios são auditados localmente; não prometer registro onchain desses eventos sem mecanismo adicional.
+---
+
+## 4. Diretrizes Técnicas do Casamento (Postgres + Solana)
+
+1. **`BIGINT` no Postgres:** A Solana usa `u64` (até 18 quintilhões) para representar Lamports. O Postgres lida com `BIGINT` perfeitamente até esse limite. No Node.js (via `pg`), esses campos retornarão como strings para evitar o limite numérico padrão do JavaScript. Converteremos para `BigInt` nativo no Backend.
+2. **Ciclo de Vida Separado:** A decisão `APPROVED` gera uma liquidação `RESERVED`. Só depois de enviar à rede muda para `SUBMITTED`, e finalmente `CONFIRMED`. Isso elimina falhas silenciosas.
+3. **Auditoria em JSONB:** Aproveitamos o poder do PostgreSQL usando o tipo `JSONB` na tabela de auditoria para salvar o "Antes e Depois" de qualquer alteração de limite do Agente de forma ultra flexível.
+
+## Histórico de modelagem
+
+A versão SQLite anterior está preservada em `DATABASE_SQLITE_LEGACY.md` e `backend/src/db/schema.sql`. A implementação recebida de `dev-jotaf` utiliza PostgreSQL com DDL em `backend/src/db/migrations/0001_initial_schema.sql`; as garantias financeiras anteriores precisam ser verificadas nessa implementação.
