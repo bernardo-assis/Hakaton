@@ -4,6 +4,7 @@ import userRoutes from './routes/userRoutes';
 import vaultRoutes from './routes/vaultRoutes';
 import agentRoutes from './routes/agentRoutes';
 import transactionRoutes from './routes/transactionRoutes';
+import dashboardRoutes from './routes/dashboardRoutes';
 
 import rateLimit from 'express-rate-limit';
 
@@ -27,5 +28,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/vaults', vaultRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 export default app;
+
