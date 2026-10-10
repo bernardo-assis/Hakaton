@@ -20,11 +20,11 @@ Para interromper:
 docker stop agentsafe_frontend_local agentsafe_backend_local agentsafe_pg
 ```
 
-Não execute `backend/setup.js` para testar: ele não é necessário para esta validação e pode sobrescrever código e configuração. Conectar Phantom não autentica usuário; o ambiente atual é um protótipo local sem isolamento multiusuário.
+Não execute `backend/setup.js` para testar: ele não é necessário para esta validação e pode sobrescrever código e configuração. Conectar a extensão sozinho não autentica. Assine a mensagem de login e espere a verificação do servidor antes de acessar as telas; os dados ficam separados por carteira. Veja WALLET_AUTH_MANUAL_TEST.md.
 
 ## 1. Overview
 
-1. Clique Overview. Com banco vazio, confira estado vazio e ausência de transações inventadas.
+1. Entre com assinatura de login verificada e clique Overview. Com banco vazio, confira estado vazio e ausência de transações inventadas.
 2. Cadastre um cofre e um agente nas telas correspondentes. Volte ao Overview e confira os registros.
 3. Compare saldo e histórico com a resposta da API na aba Rede do navegador: os pedidos de dados devem ir para `/api`, nunca diretamente ao banco.
 4. Pesquise um identificador real e depois um texto inexistente; o segundo deve resultar em lista vazia. Teste os filtros.

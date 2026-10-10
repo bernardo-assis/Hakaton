@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { z } from "zod";
 import { BaseController } from "./BaseController";
+import { UiRepository } from "../repositories/UiRepository";
 import { UiService } from "../services/uiService";
 import {
   idSchema,
@@ -10,16 +11,17 @@ import {
   pubkeySchema,
 } from "../validators/ui.schema";
 export class UiController extends BaseController {
-  constructor(private service = new UiService()) {
+  constructor() {
     super();
   }
   async execute(req: Request, res: Response, action: string) {
     try {
+      const service = new UiService(new UiRepository(req.identity!));
       let data;
       const id = () => idSchema.parse(req.params.id);
       switch (action) {
         case "whitelist":
-          data = await this.service.whitelist(
+          data = await service.whitelist(
             id(),
             z
               .object({
@@ -45,39 +47,39 @@ export class UiController extends BaseController {
           );
           break;
         case "local":
-          data = await this.service.localVault(
+          data = await service.localVault(
             z.object({ owner_pubkey: pubkeySchema }).strict().parse(req.body)
               .owner_pubkey,
           );
           break;
         case "vaults":
-          data = await this.service.vaults();
+          data = await service.vaults();
           break;
         case "agents":
-          data = await this.service.agents();
+          data = await service.agents();
           break;
         case "dashboard":
-          data = await this.service.dashboard();
+          data = await service.dashboard();
           break;
         case "events":
-          data = await this.service.events();
+          data = await service.events();
           break;
         case "history":
-          data = await this.service.history(id());
+          data = await service.history(id());
           break;
         case "panic":
           z.object({}).strict().parse(req.body);
-          data = await this.service.panic();
+          data = await service.panic();
           break;
         case "agent":
-          data = await this.service.mutate(
+          data = await service.mutate(
             "agents",
             id(),
             editAgentSchema.parse(req.body),
           );
           break;
         case "vault":
-          data = await this.service.mutate(
+          data = await service.mutate(
             "vaults",
             id(),
             z
@@ -87,19 +89,19 @@ export class UiController extends BaseController {
           );
           break;
         case "policies":
-          data = await this.service.mutate("vaults", id(), {
+          data = await service.mutate("vaults", id(), {
             policies: policiesSchema.parse(req.body),
           });
           break;
         case "optimize":
           z.object({}).strict().parse(req.body);
-          data = await this.service.optimize(id());
+          data = await service.optimize(id());
           break;
         case "simulate":
-          data = await this.service.simulate(simulationSchema.parse(req.body));
+          data = await service.simulate(simulationSchema.parse(req.body));
           break;
         case "simulations":
-          data = await this.service.simulations();
+          data = await service.simulations();
           break;
         default:
           throw new Error("Unknown action");

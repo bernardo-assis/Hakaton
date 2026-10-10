@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import { z } from "zod";
 import { BaseController } from "./BaseController";
+import { UiRepository } from "../repositories/UiRepository";
 import { UiService } from "../services/uiService";
 import { config } from "../config/unifiedConfig";
 export class DashboardController extends BaseController {
-  constructor(private service = new UiService()) {
+  constructor() {
     super();
   }
   async deposit(req: Request, res: Response) {
@@ -30,7 +31,10 @@ export class DashboardController extends BaseController {
         );
       this.handleSuccess(
         res,
-        await this.service.deposit(input.vault_id, input.amountSol),
+        await new UiService(new UiRepository(req.identity!)).deposit(
+          input.vault_id,
+          input.amountSol,
+        ),
       );
     } catch (e) {
       this.handleError(e, res, "deposit");

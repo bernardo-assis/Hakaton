@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS wallet_identities(owner_pubkey VARCHAR(44) PRIMARY KEY,user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+CREATE TABLE IF NOT EXISTS wallet_challenges(id UUID PRIMARY KEY,owner_pubkey VARCHAR(44) NOT NULL,message TEXT NOT NULL,origin TEXT NOT NULL,browser_hash CHAR(64) NOT NULL,expires_at TIMESTAMPTZ NOT NULL,consumed_at TIMESTAMPTZ,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+CREATE TABLE IF NOT EXISTS auth_sessions(token_hash CHAR(64) PRIMARY KEY,user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,owner_pubkey VARCHAR(44) NOT NULL REFERENCES wallet_identities(owner_pubkey),expires_at TIMESTAMPTZ NOT NULL,revoked_at TIMESTAMPTZ,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+CREATE INDEX IF NOT EXISTS auth_sessions_expiry ON auth_sessions(expires_at);

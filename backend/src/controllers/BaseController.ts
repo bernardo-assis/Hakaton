@@ -9,16 +9,14 @@ export class BaseController {
     // Sentry.captureException(error); // Placeholder for Sentry
 
     if (error.name === "ZodError") {
-      res
-        .status(400)
-        .json({
-          success: false,
-          error: "Validation Error",
-          details: error.errors,
-        });
+      res.status(400).json({
+        success: false,
+        error: "Validation Error",
+        details: error.errors,
+      });
       return;
     }
-    if ([400, 404, 409, 501].includes(error.status)) {
+    if ([400, 401, 403, 404, 409, 501].includes(error.status)) {
       res.status(error.status).json({ success: false, error: error.message });
       return;
     }

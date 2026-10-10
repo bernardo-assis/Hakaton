@@ -12,11 +12,34 @@ jest.mock("@solana/web3.js", () => ({
   },
   LAMPORTS_PER_SOL: 1000000000,
 }));
-import request from "supertest";
+import rawRequest from "supertest";
+import { wallet, login, origin } from "../testUtils/walletSession";
 import app from "../app";
 import pool from "../db/database";
-const fixtureWallet =
-  "Test" + require("crypto").randomBytes(20).toString("hex").slice(0, 36);
+const fixture = wallet();
+const fixtureWallet = fixture.pubkey;
+let sessionCookie = "";
+beforeAll(async () => {
+  sessionCookie = (await login(fixture)).cookie;
+});
+function request(_: typeof app) {
+  const base = rawRequest(app);
+  return {
+    get: (p: string) => base.get(p).set("Cookie", sessionCookie),
+    post: (p: string) =>
+      base
+        .post(p)
+        .set("Cookie", sessionCookie)
+        .set("Origin", origin)
+        .set("X-AgentSafe-CSRF", "1"),
+    patch: (p: string) =>
+      base
+        .patch(p)
+        .set("Cookie", sessionCookie)
+        .set("Origin", origin)
+        .set("X-AgentSafe-CSRF", "1"),
+  };
+}
 afterAll(async () => {
   const v = (
     await pool.query("SELECT id,user_id FROM vaults WHERE vault_pubkey=$1", [
@@ -31,8 +54,15 @@ afterAll(async () => {
     );
     await pool.query("DELETE FROM agents WHERE vault_id=$1", [v.id]);
     await pool.query("DELETE FROM vaults WHERE id=$1", [v.id]);
+    await pool.query("DELETE FROM auth_sessions WHERE user_id=$1", [v.user_id]);
+    await pool.query("DELETE FROM wallet_identities WHERE user_id=$1", [
+      v.user_id,
+    ]);
     await pool.query("DELETE FROM users WHERE id=$1", [v.user_id]);
   }
+  await pool.query("DELETE FROM wallet_challenges WHERE owner_pubkey=$1", [
+    fixtureWallet,
+  ]);
   await pool.end();
 });
 test("real transfer endpoint never submits without authenticated authorization", async () => {

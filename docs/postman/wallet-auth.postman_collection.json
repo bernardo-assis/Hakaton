@@ -1,0 +1,698 @@
+{
+  "info": {
+    "name": "AgentSafe — Wallet Authentication and Owner Isolation",
+    "description": "Importar no Postman. Coleção para Tarefa 1: autenticação e isolamento somente; não movimenta fundos. Contrato WALLET_AUTH_API.md. Usar cookie jar automático. Assinatura deve vir de carteira/provider ou fixture local; nenhum segredo nesta coleção. Pastas com pré-condições devem ser executadas manualmente conforme descrições, não em uma única corrida cega. O desafio é vinculado ao cookie HttpOnly agentsafe_login: emitir challenge e verificar no MESMO cookie jar. Não transferir challenge/signature entre outro navegador/jar; deve falhar. A assinatura autentica somente, nunca delega gastos.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "origin",
+      "value": "http://localhost:5173",
+      "type": "string"
+    },
+    {
+      "key": "owner_pubkey",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "challenge_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "message_to_sign",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "signature_base64",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "other_vault_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "other_agent_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Login — executar em ordem com cookie jar",
+      "item": [
+        {
+          "name": "1 — Emitir desafio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-AgentSafe-CSRF",
+                "value": "1"
+              }
+            ],
+            "url": "{{base_url}}/api/auth/challenge",
+            "description": "Assine os bytes UTF-8 exatos de message_to_sign com a carteira/provider. signature_base64 deve ser a assinatura Ed25519 de 64 bytes codificada em base64. Não informe chave privada. Postman usa cookies para vincular desafio e sessão; mantenha o cookie jar habilitado. Esta coleção não consegue acessar a extensão Phantom para produzir a assinatura automaticamente.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"owner_pubkey\": \"{{owner_pubkey}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                  "const result=pm.response.json();",
+                  "pm.test(\"Successful envelope\",()=>pm.expect(result.success).to.eql(true));",
+                  "if(pm.response.code===200){pm.collectionVariables.set(\"challenge_id\",result.data.challenge_id);pm.collectionVariables.set(\"message_to_sign\",result.data.message);}",
+                  "pm.test(\"Message purpose available\",()=>pm.expect(result.data.message).to.be.a(\"string\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2 — Verificar assinatura e criar sessão",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-AgentSafe-CSRF",
+                "value": "1"
+              }
+            ],
+            "url": "{{base_url}}/api/auth/verify",
+            "description": "Preencher signature_base64 obtida da carteira ou fixture local. O backend recebe somente challenge_id e assinatura; não aceita mensagem arbitrária. A resposta não inclui token de sessão: cookie HttpOnly fica no cookie jar.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challenge_id\": \"{{challenge_id}}\",\n  \"signature\": \"{{signature_base64}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                  "const result=pm.response.json();",
+                  "pm.test(\"Successful envelope\",()=>pm.expect(result.success).to.eql(true));",
+                  "pm.test(\"Authenticated\",()=>pm.expect(result.data.authenticated).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3 — Consultar sessão",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/auth/session",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                  "const result=pm.response.json();",
+                  "pm.test(\"Successful envelope\",()=>pm.expect(result.success).to.eql(true));",
+                  "pm.test(\"Authenticated\",()=>pm.expect(result.data.authenticated).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4 — Rejeitar replay do desafio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-AgentSafe-CSRF",
+                "value": "1"
+              }
+            ],
+            "url": "{{base_url}}/api/auth/verify",
+            "description": "Execute somente após verificar com sucesso. Não deve criar nova sessão.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challenge_id\": \"{{challenge_id}}\",\n  \"signature\": \"{{signature_base64}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Consumed challenge rejected\",()=>pm.expect(pm.response.code).to.be.oneOf([400,401,409]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Dados próprios — exige sessão",
+      "item": [
+        {
+          "name": "Dashboard próprio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/dashboard",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                  "const result=pm.response.json();",
+                  "pm.test(\"Successful envelope\",()=>pm.expect(result.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cofres próprios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/vaults",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                  "const result=pm.response.json();",
+                  "pm.test(\"Successful envelope\",()=>pm.expect(result.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Agentes próprios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/agents",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                  "const result=pm.response.json();",
+                  "pm.test(\"Successful envelope\",()=>pm.expect(result.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Notificações próprias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/notifications",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                  "const result=pm.response.json();",
+                  "pm.test(\"Successful envelope\",()=>pm.expect(result.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Simulações próprias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/simulator/history",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                  "const result=pm.response.json();",
+                  "pm.test(\"Successful envelope\",()=>pm.expect(result.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Isolamento — configurar ID de outra carteira",
+      "item": [
+        {
+          "name": "Cofre alheio retorna 404",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-AgentSafe-CSRF",
+                "value": "1"
+              }
+            ],
+            "url": "{{base_url}}/api/vaults/{{other_vault_id}}",
+            "description": "Crie o ID com uma segunda carteira em outro cookie jar/workspace; mantenha sessão da primeira aqui. O teste não deve modificar o cofre alheio.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"FROZEN\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Foreign vault hidden\",()=>pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Agente alheio retorna 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/agents/{{other_agent_id}}/history",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Foreign agent hidden\",()=>pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Legacy user bypass desabilitado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-AgentSafe-CSRF",
+                "value": "1"
+              }
+            ],
+            "url": "{{base_url}}/api/users",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Legacy disabled\",()=>pm.response.to.have.status(501));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Segurança — rejeições",
+      "item": [
+        {
+          "name": "Assinatura incorreta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-AgentSafe-CSRF",
+                "value": "1"
+              }
+            ],
+            "url": "{{base_url}}/api/auth/verify",
+            "description": "Para testar criptografia incorreta em desafio válido, emita desafio novo antes; desafio consumido testa replay.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challenge_id\": \"{{challenge_id}}\",\n  \"signature\": \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Invalid proof rejected\",()=>pm.expect(pm.response.code).to.be.oneOf([400,401,409]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Desafio expirado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-AgentSafe-CSRF",
+                "value": "1"
+              }
+            ],
+            "url": "{{base_url}}/api/auth/verify",
+            "description": "Use desafio emitido há mais de cinco minutos e sua assinatura correspondente. Não executar imediatamente após challenge: seria outro teste.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challenge_id\": \"{{challenge_id}}\",\n  \"signature\": \"{{signature_base64}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expired proof rejected\",()=>pm.expect(pm.response.code).to.be.oneOf([400,401,409]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Origin indevida",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "http://evil.invalid"
+              },
+              {
+                "key": "X-AgentSafe-CSRF",
+                "value": "1"
+              }
+            ],
+            "url": "{{base_url}}/api/auth/challenge",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"owner_pubkey\": \"{{owner_pubkey}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Bad origin rejected\",()=>pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Header CSRF ausente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": "{{base_url}}/api/auth/challenge",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"owner_pubkey\": \"{{owner_pubkey}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Missing CSRF rejected\",()=>pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Logout — executar no final",
+      "item": [
+        {
+          "name": "Revogar sessão",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-AgentSafe-CSRF",
+                "value": "1"
+              }
+            ],
+            "url": "{{base_url}}/api/auth/logout",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                  "const result=pm.response.json();",
+                  "pm.test(\"Successful envelope\",()=>pm.expect(result.success).to.eql(true));",
+                  "pm.test(\"Logged out\",()=>pm.expect(result.data.authenticated).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sessão após logout",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/auth/session",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                  "const result=pm.response.json();",
+                  "pm.test(\"Successful envelope\",()=>pm.expect(result.success).to.eql(true));",
+                  "pm.test(\"Anonymous\",()=>pm.expect(result.data.authenticated).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dashboard anônimo retorna 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/dashboard",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Unauthorized\",()=>pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

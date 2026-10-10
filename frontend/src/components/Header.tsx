@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { request } from "../lib/api";
 import type { AuditEvent } from "../lib/api";
-import { getProvider, connectWallet, disconnectWallet } from "../lib/wallet";
-import type { WalletKey } from "../lib/wallet";
+import { getProvider } from "../lib/wallet";
+import { useWalletAuth } from "./WalletAuth";
 
 interface HeaderProps {
   currentPage?: string;
@@ -13,55 +13,20 @@ export function Header({
   currentPage = "dashboard",
   onNavigate = () => {},
 }: HeaderProps) {
-  const [wallet, setWallet] = useState("");
-  const [busy, setBusy] = useState(false);
+  const auth = useWalletAuth();
+  const wallet = auth.session?.owner_pubkey ?? "";
+  const busy =
+    auth.status === "checking" ||
+    auth.status === "signing" ||
+    auth.status === "revoking";
   const [error, setError] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<AuditEvent[]>([]);
   const [loading, setLoading] = useState(false);
-  useEffect(() => {
-    const provider = getProvider();
-    const changed = (key?: WalletKey | null) => {
-      const address = key?.toString() ?? "";
-      setWallet(address);
-      window.dispatchEvent(
-        new CustomEvent("agentsafe:wallet", { detail: address }),
-      );
-    };
-    const disconnected = () => changed(null);
-    if (provider?.publicKey) changed(provider.publicKey);
-    provider?.on?.("accountChanged", changed);
-    provider?.on?.("connect", changed);
-    provider?.on?.("disconnect", disconnected);
-    return () => {
-      provider?.removeListener?.("accountChanged", changed);
-      provider?.removeListener?.("connect", changed);
-      provider?.removeListener?.("disconnect", disconnected);
-    };
-  }, []);
-  const toggleWallet = async () => {
-    setBusy(true);
+  const toggleWallet = () => {
     setError("");
-    try {
-      const provider = getProvider();
-      if (wallet) {
-        await disconnectWallet(provider);
-        setWallet("");
-        window.dispatchEvent(
-          new CustomEvent("agentsafe:wallet", { detail: "" }),
-        );
-      } else {
-        const address = await connectWallet(provider);
-        setWallet(address);
-        window.dispatchEvent(
-          new CustomEvent("agentsafe:wallet", { detail: address }),
-        );
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Conexão recusada.");
-    } finally {
-      setBusy(false);
-    }
+    if (auth.session || auth.revocationPending) void auth.logout();
+    else void auth.login();
   };
   const toggleNotifications = async () => {
     if (notificationsOpen) {
@@ -139,6 +104,7 @@ export function Header({
       {/* Actions */}
       <div className="flex items-center gap-4 h-11 relative">
         <button
+          disabled={!auth.session || busy}
           aria-label="Notificações"
           aria-expanded={notificationsOpen}
           onClick={() => void toggleNotifications()}
@@ -160,11 +126,13 @@ export function Header({
         </button>
         <button
           disabled={busy}
-          onClick={() => void toggleWallet()}
+          onClick={toggleWallet}
           title={
             wallet
-              ? `Desconectar ${wallet}`
-              : "Conectar carteira (não autentica o usuário)"
+              ? `Carteira autenticada: ${wallet}. Sair da sessão`
+              : auth.connectedWallet
+                ? "Carteira conectada; assine para autenticar"
+                : "Conectar e autenticar com Phantom"
           }
           className="flex items-center gap-2 bg-[#B6F03F] text-[#111827] px-5 h-10 rounded-full text-[13px] font-semibold hover:opacity-90 transition-opacity shadow-sm cursor-pointer"
         >
@@ -181,13 +149,21 @@ export function Header({
               d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
             />
           </svg>
-          {busy
-            ? "Aguardando Phantom..."
-            : wallet
-              ? `${wallet.slice(0, 4)}…${wallet.slice(-4)} · Desconectar`
-              : "Conectar Phantom Wallet"}
+          {auth.status === "checking"
+            ? "Verificando sessão..."
+            : auth.status === "revoking"
+              ? "Encerrando sessão..."
+              : auth.status === "signing"
+                ? "Aguardando assinatura..."
+                : auth.revocationPending
+                  ? "Tentar sair novamente"
+                  : wallet
+                    ? `${wallet.slice(0, 4)}…${wallet.slice(-4)} · Sair`
+                    : auth.connectedWallet
+                      ? "Autenticar Phantom Wallet"
+                      : "Conectar Phantom Wallet"}
         </button>
-        {(notificationsOpen || error) && (
+        {(notificationsOpen || error || auth.error) && (
           <div className="absolute top-14 right-0 bg-white rounded-[22px] p-5 shadow-lg border border-gray-100 z-40 w-[340px] max-h-[420px] overflow-y-auto">
             <div className="flex justify-between mb-3">
               <h3 className="text-[#111827] text-[14px] font-semibold">
@@ -198,15 +174,16 @@ export function Header({
                 onClick={() => {
                   setNotificationsOpen(false);
                   setError("");
+                  auth.clearError();
                 }}
                 className="text-[#777D85]"
               >
                 ×
               </button>
             </div>
-            {error && (
+            {(error || auth.error) && (
               <p role="alert" className="text-[#F04448] text-[12px]">
-                {error}{" "}
+                {error || auth.error}{" "}
                 {!getProvider() && (
                   <a
                     className="underline"
@@ -217,6 +194,12 @@ export function Header({
                     Baixar Phantom
                   </a>
                 )}
+              </p>
+            )}
+            {!auth.session && auth.connectedWallet && (
+              <p className="text-[#777D85] text-[12px] mt-2">
+                Carteira conectada, mas ainda não autenticada. A assinatura
+                confirma sua identidade e não transfere fundos.
               </p>
             )}
             {loading && (

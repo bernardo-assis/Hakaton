@@ -7,9 +7,10 @@ import {
   usagePercent,
 } from "../lib/api";
 import type { Agent, Vault, Policies } from "../lib/api";
-import { getProvider } from "../lib/wallet";
+import { useWalletAuth } from "../components/WalletAuth";
 
 export function VaultBudgets() {
+  const auth = useWalletAuth();
   const [vaults, setVaults] = useState<Vault[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [selected, setSelected] = useState("");
@@ -20,9 +21,7 @@ export function VaultBudgets() {
   const [modal, setModal] = useState<"create" | "policy" | "agent" | null>(
     null,
   );
-  const [owner, setOwner] = useState(
-    getProvider()?.publicKey?.toString() ?? "",
-  );
+  const owner = auth.session?.owner_pubkey ?? "";
   const [editing, setEditing] = useState<Agent | null>(null);
   const [daily, setDaily] = useState("");
   const [single, setSingle] = useState("");
@@ -49,10 +48,6 @@ export function VaultBudgets() {
   };
   useEffect(() => {
     void load();
-    const wallet = (event: Event) =>
-      setOwner((event as CustomEvent<string>).detail);
-    window.addEventListener("agentsafe:wallet", wallet);
-    return () => window.removeEventListener("agentsafe:wallet", wallet);
   }, []);
   const vault = vaults.find((v) => v.id === selected);
   const fleet = agents.filter((a) => a.vault_id === selected);
@@ -287,8 +282,8 @@ export function VaultBudgets() {
       </div>
       {!vault && !loading && !error && (
         <p className="text-[#777D85] text-[13px] mb-4">
-          Cadastre uma carteira pública Devnet. O protótipo acompanha o saldo
-          sem acessar sua chave privada.
+          Cadastre sua carteira autenticada para acompanhar o saldo Devnet. Sua
+          chave privada permanece na Phantom.
         </p>
       )}
       {/* Grid de Métricas do Cofre */}
@@ -619,13 +614,13 @@ export function VaultBudgets() {
                   Endereço público da carteira
                   <input
                     value={owner}
-                    onChange={(e) => setOwner(e.target.value)}
+                    readOnly
                     placeholder="Endereço Solana público"
                     className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 mt-2"
                   />
                   <p className="text-[#777D85] text-[12px] mt-3">
-                    Pode informar o endereço manualmente ou conectar Phantom.
-                    Isso não autentica o usuário nem autoriza saques. Não
+                    Esta é a carteira autenticada pela Phantom. O cadastro
+                    acompanha seu saldo Devnet e não autoriza saques. Não
                     informe chave privada.
                   </p>
                 </label>

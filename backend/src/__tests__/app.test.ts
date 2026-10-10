@@ -10,23 +10,15 @@ afterAll(async () => {
 });
 
 describe("App API Endpoints", () => {
-  let userId: string;
-
   describe("User Endpoints", () => {
-    it("should fail to create user with invalid email", async () => {
+    it("rejects legacy account mutation without origin and CSRF", async () => {
       const res = await request(app)
         .post("/api/users")
         .send({ email: "not-an-email", password: "password123" });
 
-      expect(res.status).toBe(400);
+      expect(res.status).toBe(403);
       expect(res.body.success).toBe(false);
-      expect(res.body.error).toBe("Validation Error");
-    });
-
-    it("should create a user successfully", async () => {
-      // Note: This requires a real DB connection or a mocked DB.
-      // Assuming DB is running or we get 500 if it fails.
-      // TDD: test behavior.
+      expect(res.body.error).toBe("Allowed Origin and CSRF header required");
     });
   });
 });
