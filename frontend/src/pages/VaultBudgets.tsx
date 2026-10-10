@@ -595,13 +595,15 @@ export function VaultBudgets() {
                     : "Configurar pol�tica global"}
               </h2>
               <button
-                aria-label="Fechar"
-                disabled={busy}
-                onClick={() => setModal(null)}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 text-gray-500"
-              >
-                
-              </button>
+                  aria-label="Fechar"
+                  disabled={busy}
+                  onClick={() => setModal(null)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 hover:bg-gray-100 text-gray-500 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
             </div>
             <div className="p-6 overflow-y-auto flex flex-col gap-4">
               {error && (
@@ -611,7 +613,7 @@ export function VaultBudgets() {
               )}
               {modal === "create" ? (
                 <label className="text-[#111827] text-[13px]">
-                  Endereo pblico da carteira
+                  Endere�o p�blico da carteira
                   <input
                     value={owner}
                     readOnly
@@ -619,8 +621,8 @@ export function VaultBudgets() {
                     className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 mt-2"
                   />
                   <p className="text-[#777D85] text-[12px] mt-3">
-                    Esta  a carteira autenticada pela Phantom. O cadastro
-                    acompanha seu saldo Devnet e no autoriza saques. No
+                    Esta � a carteira autenticada pela Phantom. O cadastro
+                    acompanha seu saldo Devnet e n�o autoriza saques. No
                     informe chave privada.
                   </p>
                 </label>
@@ -668,11 +670,18 @@ export function VaultBudgets() {
                 </>
               )}
             </div>
-            <div className="p-6 pt-4 border-t border-gray-100 flex justify-end">
+            <div className="p-6 pt-4 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                disabled={busy}
+                onClick={() => setModal(null)}
+                className="px-6 py-3 rounded-full text-[14px] font-semibold text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                Cancelar
+              </button>
               <button
                 disabled={busy}
                 onClick={() => void save()}
-                className="bg-[#B6F03F] text-[#111827] px-8 py-3 rounded-full text-[14px] font-semibold"
+                className="bg-[#B6F03F] text-[#111827] px-8 py-3 rounded-full text-[14px] font-semibold hover:opacity-90 transition-opacity"
               >
                 {busy ? "Salvando..." : "Salvar"}
               </button>
