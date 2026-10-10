@@ -1,11 +1,19 @@
-import { z } from 'zod';
-
-export const createAgentSchema = z.object({
-  vault_id: z.string().uuid(),
-  name: z.string().min(1).max(100),
-  role: z.string().min(1).max(200),
-  agent_pubkey: z.string().min(32).max(44),
-  daily_cap_lamports: z.union([z.number(), z.string(), z.bigint()]),
-  single_tx_cap_lamports: z.union([z.number(), z.string(), z.bigint()]).optional(),
-  whitelist_enabled: z.boolean().optional()
-});
+import { z } from "zod";
+import { moneySchema, pubkeySchema, idSchema } from "./ui.schema";
+export const createAgentSchema = z
+  .object({
+    vault_id: idSchema,
+    name: z.string().trim().min(1).max(100),
+    role: z.string().trim().min(1).max(200),
+    agent_pubkey: pubkeySchema,
+    daily_cap_lamports: moneySchema,
+    single_tx_cap_lamports: moneySchema.optional(),
+    whitelist_enabled: z.boolean().optional(),
+  })
+  .strict()
+  .refine(
+    (v) =>
+      BigInt(v.single_tx_cap_lamports ?? v.daily_cap_lamports) <=
+      BigInt(v.daily_cap_lamports),
+    "Single cap exceeds daily cap",
+  );

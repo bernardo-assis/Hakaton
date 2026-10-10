@@ -211,3 +211,7 @@ CREATE INDEX idx_audit_vault ON audit_events(vault_id);
 1. **`BIGINT` no Postgres:** A Solana usa `u64` (até 18 quintilhões) para representar Lamports. O Postgres lida com `BIGINT` perfeitamente até esse limite. No Node.js (via `pg`), esses campos retornarão como strings para evitar o limite numérico padrão do JavaScript. Converteremos para `BigInt` nativo no Backend.
 2. **Ciclo de Vida Separado:** A decisão `APPROVED` gera uma liquidação `RESERVED`. Só depois de enviar à rede muda para `SUBMITTED`, e finalmente `CONFIRMED`. Isso elimina falhas silenciosas.
 3. **Auditoria em JSONB:** Aproveitamos o poder do PostgreSQL usando o tipo `JSONB` na tabela de auditoria para salvar o "Antes e Depois" de qualquer alteração de limite do Agente de forma ultra flexível.
+
+## Histórico de modelagem
+
+A versão SQLite anterior está preservada em `DATABASE_SQLITE_LEGACY.md` e `backend/src/db/schema.sql`. A implementação recebida de `dev-jotaf` utiliza PostgreSQL com DDL em `backend/src/db/migrations/0001_initial_schema.sql`; as garantias financeiras anteriores precisam ser verificadas nessa implementação.

@@ -40,3 +40,7 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Local schema validation (Python stdlib)
+__pycache__/
+*.pyc

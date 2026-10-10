@@ -1,9 +1,9 @@
 # PRD: AgentSafe — Autonomous AI Agent Budget & Security Vault
 
-**Versão:** 1.1 (Revisada & Enriquecida)  
-**Data:** 08 de Outubro de 2026  
-**Status:** Aprovado (Fase 1 - Item 1 Concluído)  
-**Hackathon:** Crypto World’s Fair (Colosseum) — Track Solana / Agentic Payments  
+**Versão:** 1.2 (Integridade de pagamentos e modelagem revisadas)
+**Data:** 08 de Outubro de 2026
+**Status:** Escopo aprovado; correções de modelagem solicitadas pelo usuário em 2026-10-08
+**Hackathon:** Crypto World’s Fair (Colosseum) — Track Solana / Agentic Payments
 **Autor:** @pm (O Estrategista) & @analyst (O Cartógrafo)
 
 ---
@@ -18,13 +18,13 @@ Entretanto, as ferramentas financeiras atuais apresentam falhas críticas:
 2. **Incompatibilidade do Sistema Bancário Tradicional:** Cartões corporativos tradicionais (Visa/Mastercard) e contas bancárias exigem KYC humano, possuem latência de dias para liquidação internacional e cobram taxas inviáveis para microtransações de centavos entre robôs.
 
 ### 1.2 A Solução: *AgentSafe* ("O Brex dos Agentes de IA na Solana")
-O **AgentSafe** é um protocolo e dashboard de **Cofres Inteligentes com Políticas de Gastos Programáveis** construído na rede de altíssima velocidade da Solana. 
+O **AgentSafe** é um protocolo e dashboard de **Cofres Inteligentes com Políticas de Gastos Programáveis** construído na rede de altíssima velocidade da Solana.
 Ele permite que humanos financiem um cofre mestre e deleguem orçamentos controlados para sub-contas de agentes de IA com **regras invioláveis de segurança**:
-* **Teto Diário (Daily Cap):** Limite máximo renovável a cada 24 horas.
+* **Teto Diário (Daily Cap):** Limite máximo em janela móvel de 24 horas em UTC, incluindo valores reservados para pagamentos em andamento.
 * **Teto por Transação (Single Tx Cap):** Limite máximo permitido em uma única compra.
 * **Whitelist de Prestadores:** Restrição para transferir fundos apenas para prestadores de serviços pré-autorizados (ex: APIs de dados, oráculos, nós de GPU).
 * **Kill Switch Instantâneo (Botão de Pânico):** Congelamento em sub-segundos de um agente ou de todos os robôs da organização com 1 clique.
-* **Audit Trail Onchain:** Histórico auditável de aprovações e bloqueios gravados na Solana com confirmação em menos de 1 segundo.
+* **Audit Trail Onchain:** Pagamentos confirmados possuem assinatura verificável na Solana; bloqueios e alterações administrativas são registrados localmente. O prazo de confirmação depende da rede.
 
 ---
 
@@ -72,7 +72,7 @@ Ele permite que humanos financiem um cofre mestre e deleguem orçamentos control
 ### 4.2 Requisitos Não-Funcionais (RNF)
 
 * **RNF01 - Latência de Decisão:** O motor de validação de políticas deve avaliar a requisição em menos de 100ms.
-* **RNF02 - Integridade Financeira:** Nenhuma transação pode ser processada se o saldo do cofre for insuficiente ou se o agente estiver congelado.
+* **RNF02 - Integridade Financeira:** Novos envios exigem agente e cofre ativos, orçamento disponível e saldo suficiente para valor, taxas e reservas em andamento. Repetir uma solicitação não pode produzir um segundo pagamento.
 * **RNF03 - Ambiente de Simulação Sem Custo:** Operação 100% em **Solana Devnet** com airdrop de moedas de teste, garantindo custo zero de desenvolvimento.
 * **RNF04 - Separação Estrita de Camadas:** A lógica de negócio e regras de limite residem no backend/dados; o frontend consome via APIs padronizadas.
 
@@ -82,22 +82,31 @@ Ele permite que humanos financiem um cofre mestre e deleguem orçamentos control
 
 ```
 [RN01] STATUS DO AGENTE
-       Se status != 'ACTIVE' (ex: 'FROZEN'), REJEITAR imediatamente com código ERR_AGENT_FROZEN.
+       Se agente ou cofre não estiver ACTIVE, bloquear novo envio com ERR_AGENT_FROZEN ou ERR_VAULT_FROZEN. Pagamentos já enviados não são cancelados pelo congelamento.
 
 [RN02] TETO POR TRANSAÇÃO
-       Se valor_solicitado > single_tx_cap, REJEITAR com código ERR_EXCEEDS_SINGLE_TX_LIMIT.
+       Representar valores em lamports inteiros positivos. Se amount_lamports > single_tx_cap_lamports, REJEITAR com código ERR_EXCEEDS_SINGLE_TX_LIMIT.
 
 [RN03] TETO DIÁRIO (JANELA DE 24H)
-       Se (gastos_ultimas_24h + valor_solicitado) > daily_cap, REJEITAR com código ERR_EXCEEDS_DAILY_BUDGET.
+       Somar confirmados cuja reserva começou nas últimas 24h e todas as reservas ainda em andamento, mesmo mais antigas. Validar e reservar atomicamente; se soma + amount_lamports > daily_cap_lamports, rejeitar com ERR_EXCEEDS_DAILY_BUDGET.
 
 [RN04] POLÍTICA DE WHITELIST
        Se whitelist_ativa == true E destinatario NÃO ESTÁ na lista_permitida, REJEITAR com código ERR_UNAUTHORIZED_RECIPIENT.
 
 [RN05] ATUALIZAÇÃO DO COFRE
-       Apenas transações com status APROVADA deduzem saldo do cofre e geram transferência onchain.
+       APPROVED significa autorização da política, não liquidação. Reservar valor e taxa antes do envio; CONFIRMED exige confirmação da rede. Falha comprovada libera reserva de valor; contabilizar taxas cobradas. Resultado UNKNOWN mantém reserva até conciliação.
 ```
 
 ---
+
+### 5.1 Garantias adicionais do MVP
+
+- Autenticar o proprietário antes de administrar ou consultar cofres. Autenticar o agente por credencial revogável e restringi-lo ao próprio perfil; `agentId` e endereços públicos não são autenticação.
+- Usar chave de idempotência por agente. Repetição com o mesmo conteúdo retorna o pagamento existente; conteúdo diferente com a mesma chave é rejeitado.
+- Persistir assinatura e referência à transação assinada antes do envio. Após reinício ou timeout, consultar e recuperar esse mesmo pagamento antes de decidir sobre novo envio.
+- Registrar autor e antes/depois das mudanças de limites, whitelist, credenciais e congelamento em `audit_events`, sem segredos.
+- Guardar apenas referência ao armazenamento protegido da chave privada no banco. A telemetria nunca expõe chaves, hashes de credenciais ou artefatos assinados.
+- Para o MVP, a carteira identifica o proprietário; gestão de organizações e múltiplos usuários permanece fora do escopo.
 
 ## 6. Fluxos de Usuário & Sistema (Mermaid)
 
@@ -113,9 +122,10 @@ flowchart TD
     F -- Excede --> G[Bloqueio: ERR_EXCEEDS_SINGLE_TX_LIMIT]
     F -- Válido --> H{Gasto 24h + Valor <= Teto Diário?}
     H -- Excede --> I[Bloqueio: ERR_EXCEEDS_DAILY_BUDGET]
-    H -- Válido --> J[Executa Transferência na Solana Devnet]
-    J --> K[Registra Hash no Log Onchain]
-    K --> L[Atualiza Saldo no Dashboard em Tempo Real]
+    H -- Válido --> R[Reserva orçamento e saldo atomicamente]
+    R --> J[Persiste transação assinada e envia para Solana]
+    J --> K[Concilia assinatura e confirmação da rede]
+    K --> L[Atualiza estado e saldo no Dashboard]
     C --> M[Registra Tentativa Bloqueada no Log de Segurança]
     E --> M
     G --> M
@@ -142,4 +152,7 @@ flowchart LR
 - [ ] Teste de transação legítima aprovada com hash real na Solana Devnet.
 - [ ] Teste de transação abusiva rejeitada com alerta visual no dashboard.
 - [ ] Botão de Pânico funcional congelando transações em tempo real.
+- [ ] Repetição após timeout e reinício sem pagamento duplicado.
+- [ ] Requisições simultâneas respeitam orçamento e saldo compartilhado.
+- [ ] Autorização por proprietário/agente e auditoria das mudanças administrativas.
 - [ ] Vídeo demonstrativo de 3 minutos validado para a submissão.

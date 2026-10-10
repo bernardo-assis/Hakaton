@@ -1,11 +1,11 @@
 # ARCHITECTURE.md — AgentSafe (Solana Agentic Vault)
 
-**Versão:** 2.0 (Decoupled: React Vite + Node.js Express)  
-**Data:** 08 de Outubro de 2026  
-**Status:** Aprovado (Fase 1 - Concluída)  
-**Autor:** @architect (O Guardião)  
-**Projeto:** AgentSafe — Autonomous AI Agent Budget & Security Vault  
-**Hackathon Track:** Colosseum / Crypto World's Fair — Solana Agentic Payments  
+**Versão:** 2.1 (Revisão de integridade financeira e persistência)
+**Data:** 08 de Outubro de 2026
+**Status:** Desenho revisado; serviços, autenticação e integração onchain ainda pendentes de implementação e validação
+**Autor:** @architect (O Guardião)
+**Projeto:** AgentSafe — Autonomous AI Agent Budget & Security Vault
+**Hackathon Track:** Colosseum / Crypto World's Fair — Solana Agentic Payments
 
 ---
 
@@ -61,7 +61,7 @@ graph TD
     User -->|Conecta Carteira / Configura Limites| Dashboard
     Dashboard -->|REST API fetch| API
     AIAgent -->|POST /api/v1/vault/pay| API
-    
+
     API --> RateLimit
     RateLimit --> Zod
     Zod --> PolicyEngine
@@ -146,89 +146,57 @@ agentsafe/
 
 ## 5. Modelagem de Dados (`database.sqlite`)
 
-```sql
--- 1. Tabela de Cofres Mestres
-CREATE TABLE IF NOT EXISTS vaults (
-    id TEXT PRIMARY KEY,
-    owner_pubkey TEXT NOT NULL,
-    vault_pubkey TEXT NOT NULL,
-    vault_secret_key TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+O SQL executável é a fonte única em [`backend/src/db/schema.sql`](../../backend/src/db/schema.sql). O contrato de persistência e as decisões estão em [DATABASE.md](DATABASE.md); o roteiro de validação está em [DATABASE_MANUAL_TEST.md](DATABASE_MANUAL_TEST.md). Não manter uma segunda cópia do DDL nesta arquitetura.
 
--- 2. Tabela de Agentes de IA Cadastrados
-CREATE TABLE IF NOT EXISTS agents (
-    id TEXT PRIMARY KEY,
-    vault_id TEXT NOT NULL,
-    name TEXT NOT NULL,
-    role TEXT NOT NULL,
-    agent_pubkey TEXT NOT NULL,
-    status TEXT NOT NULL CHECK(status IN ('ACTIVE', 'FROZEN')),
-    daily_cap_sol REAL NOT NULL,
-    single_tx_cap_sol REAL NOT NULL,
-    whitelist_enabled INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(vault_id) REFERENCES vaults(id)
-);
+O modelo contempla cofres, agentes, destinatários permitidos, credenciais de agentes, pagamentos e eventos administrativos. Valores são inteiros em lamports; segredos do cofre ficam fora do SQLite, referenciados por identificador protegido. Carteiras e IDs públicos não autenticam usuários.
 
--- 3. Tabela de Whitelist de Prestadores
-CREATE TABLE IF NOT EXISTS whitelist_recipients (
-    id TEXT PRIMARY KEY,
-    agent_id TEXT NOT NULL,
-    recipient_pubkey TEXT NOT NULL,
-    label TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(agent_id) REFERENCES agents(id)
-);
+## 6. Motor de Políticas e Liquidação
 
--- 4. Extrato de Auditoria & Telemetria
-CREATE TABLE IF NOT EXISTS transactions (
-    id TEXT PRIMARY KEY,
-    agent_id TEXT NOT NULL,
-    recipient_pubkey TEXT NOT NULL,
-    amount_sol REAL NOT NULL,
-    status TEXT NOT NULL CHECK(status IN ('APPROVED', 'BLOCKED')),
-    error_code TEXT,
-    error_message TEXT,
-    solana_signature TEXT,
-    explorer_url TEXT,
-    purpose TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(agent_id) REFERENCES agents(id)
-);
+1. Autenticar a credencial e verificar vínculo com o agente solicitado; autenticar o proprietário nas operações administrativas.
+2. Resolver idempotência: repetir a mesma chave e payload retorna o pagamento existente; payload diferente retorna conflito.
+3. Obter saldo observado do cofre e estimar taxa, então abrir uma transação SQLite curta (`BEGIN IMMEDIATE`). Revalidar congelamento do cofre/agente, whitelist, teto individual e orçamento.
+4. Serializar o executor por cofre e reconciliar saldo por contexto/slot e assinaturas para evitar saldo antigo ou desconto duplicado. Reservar valor e taxa atomicamente considerando todos os agentes do cofre. O orçamento do agente conta o valor, sem taxa; o saldo disponível do cofre desconta ambas as parcelas.
+5. Confirmar a transação local antes de chamadas RPC. Persistir a transação assinada ou referência durável recuperável, assinatura e validade do blockhash antes de enviar à rede.
+6. Enviar, acompanhar e reconciliar a liquidação. Aprovação da política não significa confirmação onchain. Resultado incerto conserva a reserva em `UNKNOWN`; nunca criar uma nova transferência automaticamente por timeout.
+7. Registrar bloqueios localmente e alterações administrativas em auditoria. Só pagamentos enviados têm assinatura onchain; bloqueios não geram transferência.
+
+A janela do agente é móvel de 24 horas, ancorada no momento da reserva. Pagamentos pendentes ou incertos contam independentemente da idade até reconciliação. Confirmados contam quando `reserved_at` pertence às últimas 24 horas. Falha comprovada libera a reserva; não usar expiração de relógio como prova de ausência de pagamento.
+
+O congelamento global impede novas autorizações e novos envios ainda canceláveis. Uma transação já enviada à Solana não pode ser revogada pelo status local. O instante de corte entre freeze e envio deve ser coordenado e testado no executor.
+
+## 7. Contratos de API Propostos
+
+Estes contratos orientam implementação futura; não indicam endpoints já disponíveis. IDs e endereços não substituem autenticação. Toda resposta omite hashes de credenciais e referências de segredo.
+
+### Autenticação do proprietário
+
+`POST /api/v1/auth/challenge` recebe a carteira e retorna desafio único com nonce, domínio, rede, emissão e validade. `POST /api/v1/auth/verify` verifica a assinatura, consome o desafio uma única vez e estabelece sessão limitada. Persistência de desafios/sessões, transporte, expiração, revogação e proteção contra replay/CSRF devem ser definidos antes da implementação. O modelo atual não representa esses registros. Conectar Phantom visualmente não autentica a API.
+
+### Pagamento
+
+`POST /api/v1/vault/pay`, com credencial de agente e `Idempotency-Key`, recebe:
+
+```json
+{ "agentId": "uuid", "recipient": "base58", "amountLamports": "1000000", "purpose": "Compra de dados" }
 ```
 
----
+`amountLamports` e todos os limites são strings decimais canônicas: pagamentos usam `[1-9][0-9]*`; limites permitem também `0`. Máximo `9007199254740991` lamports; validar usando `BigInt` antes de qualquer conversão para APIs numéricas. Rejeitar sinais, zeros à esquerda, frações e notação científica. Respostas serializam valores monetários como strings. Timestamps usam UTC em segundos inteiros no banco e formato explícito no contrato HTTP.
 
-## 6. Motor de Políticas (Policy Engine: RN01 a RN05)
+A resposta expõe `transactionId`, `policyDecision`, `settlementStatus` e, se existente, `solanaSignature`. Nova autorização pendente retorna 202; bloqueio de política retorna 422; autenticação/autorização retorna 401/403; reutilização conflitante da chave retorna 409. Repetição válida retorna o registro existente sem repetir efeito financeiro. `GET /api/v1/transactions/:id` permite acompanhar resultado autorizado por proprietário ou pelo próprio agente.
 
-O serviço `policyEngine.ts` opera de forma atômica no backend antes de qualquer chamada RPC:
+### Gestão mínima do MVP
 
-1. **[RN01 - Status]:** Se `agent.status !== 'ACTIVE'`, aborta com `ERR_AGENT_FROZEN`.
-2. **[RN04 - Whitelist]:** Se `agent.whitelist_enabled == 1` e `recipient` não estiver na lista permitida, aborta com `ERR_UNAUTHORIZED_RECIPIENT`.
-3. **[RN02 - Teto por Transação]:** Se `amount_sol > agent.single_tx_cap_sol`, aborta com `ERR_EXCEEDS_SINGLE_TX_LIMIT`.
-4. **[RN03 - Teto Diário 24h]:** Calcula soma de `amount_sol` aprovados nas últimas 24 horas. Se `gasto24h + amount_sol > agent.daily_cap_sol`, aborta com `ERR_EXCEEDS_DAILY_BUDGET`.
-5. **[Saldo do Cofre]:** Consulta saldo na Solana Devnet. Se insuficiente, aborta com `ERR_INSUFFICIENT_VAULT_BALANCE`.
-6. **[RN05 - Execução Onchain]:** Dispara transferência na Solana Devnet, extrai a assinatura e grava status `APPROVED`.
+| Operação proposta | Autorização e comportamento |
+| :--- | :--- |
+| `POST /api/v1/vaults`, `GET /api/v1/vaults` | Proprietário autenticado; cria/lista apenas seus cofres. |
+| `POST /api/v1/vaults/:vaultId/agents` | Proprietário do cofre; cadastra agente e limites em lamports. |
+| `PATCH /api/v1/agents/:agentId` | Proprietário; altera nome, papel, limites e whitelist; audita antes/depois. |
+| `GET /api/v1/agents/:agentId/whitelist`, `POST /api/v1/agents/:agentId/whitelist`, `DELETE /api/v1/agents/:agentId/whitelist/:recipientId` | Proprietário; restrição de unicidade por agente/destinatário e auditoria de mudanças. |
+| `POST /api/v1/agents/:agentId/credentials`, `DELETE /api/v1/agents/:agentId/credentials/:credentialId` | Proprietário; revela token novo uma vez, armazena só hash e permite revogação. |
+| `POST /api/v1/vault/panic` | Proprietário; payload `{ agentId, action }` ou `{ vaultId, action }`, exatamente um alvo; `FREEZE`/`UNFREEZE`; audita. |
+| `GET /api/v1/vault/telemetry?vaultId=...` | Proprietário; saldo observado, reservas, agentes, pagamentos e eventos paginados do seu cofre. |
 
----
-
-## 7. Contratos de API REST (Express - Porta 3001)
-
-### `POST /api/v1/vault/pay`
-Consumido pelos scripts das IAs ou pelo Simulador.
-* **Payload:** `{ "agentId": "string", "recipient": "string", "amountSol": number, "purpose": "string" }`
-* **Retorno Aprovado (200):** `{ "success": true, "status": "APPROVED", "solanaSignature": "...", "explorerUrl": "..." }`
-* **Retorno Bloqueado (422/403):** `{ "success": false, "status": "BLOCKED", "errorCode": "...", "errorMessage": "..." }`
-
-### `POST /api/v1/vault/panic`
-Kill switch de congelamento instantâneo.
-* **Payload:** `{ "agentId": "string", "action": "FREEZE" | "UNFREEZE" }`
-* **Retorno (200):** `{ "success": true, "agentId": "...", "status": "FROZEN" }`
-
-### `GET /api/v1/vault/telemetry`
-Extrato completo consumido pelo Dashboard React.
-* **Retorno (200):** `{ "vaultBalanceSol": number, "agents": [...], "transactions": [...] }`
+Não expor exclusão física de cofres/agentes com histórico. Depósitos são transferências da carteira do proprietário para `vault_pubkey`; o saldo é observado na rede, sem criar um segundo saldo contábil autoritativo no SQLite.
 
 ---
 

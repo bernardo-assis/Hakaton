@@ -1,0 +1,1 @@
+ALTER TABLE vaults ADD COLUMN IF NOT EXISTS policies JSONB NOT NULL DEFAULT '{"pause_on_low_balance":false,"low_balance_threshold_lamports":"0","require_human_approval":false,"approval_threshold_lamports":"0","block_unlisted_recipients":false}';

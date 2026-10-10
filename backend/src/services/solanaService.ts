@@ -6,14 +6,23 @@ import {
   Transaction,
   sendAndConfirmTransaction,
   LAMPORTS_PER_SOL,
-} from '@solana/web3.js';
-import { config } from '../config/unifiedConfig';
+} from "@solana/web3.js";
+import { config } from "../config/unifiedConfig";
 
 export class SolanaService {
   private connection: Connection;
 
   constructor() {
-    this.connection = new Connection(config.solana.rpcUrl, 'confirmed');
+    this.connection = new Connection(config.solana.rpcUrl, {
+      commitment: "confirmed",
+      disableRetryOnRateLimit: true,
+      fetch: (url, init) =>
+        fetch(url, { ...init, signal: AbortSignal.timeout(5000) }),
+    });
+  }
+
+  async getBalance(pubkey: string): Promise<string> {
+    return String(await this.connection.getBalance(new PublicKey(pubkey)));
   }
 
   /**
@@ -26,21 +35,26 @@ export class SolanaService {
   /**
    * Requests an airdrop on the Devnet for testing.
    */
-  async requestAirdrop(publicKeyBase58: string, amountSol: number = 1): Promise<string> {
+  async requestAirdrop(
+    publicKeyBase58: string,
+    amountSol: number = 1,
+  ): Promise<string> {
     const pubKey = new PublicKey(publicKeyBase58);
     const signature = await this.connection.requestAirdrop(
       pubKey,
-      amountSol * LAMPORTS_PER_SOL
+      amountSol * LAMPORTS_PER_SOL,
     );
-    
+
     // Confirm the airdrop transaction
     const latestBlockHash = await this.connection.getLatestBlockhash();
-    await this.connection.confirmTransaction({
+    const confirmation = await this.connection.confirmTransaction({
       blockhash: latestBlockHash.blockhash,
       lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
       signature: signature,
     });
-    
+
+    if (confirmation.value.err)
+      throw new Error("Devnet faucet transaction failed");
     return signature;
   }
 
@@ -50,7 +64,7 @@ export class SolanaService {
   async sendLamports(
     senderSecretKey: Uint8Array,
     recipientPublicKeyBase58: string,
-    amountLamports: number
+    amountLamports: number,
   ): Promise<string> {
     const senderKeypair = Keypair.fromSecretKey(senderSecretKey);
     const recipientPubKey = new PublicKey(recipientPublicKeyBase58);
@@ -60,13 +74,13 @@ export class SolanaService {
         fromPubkey: senderKeypair.publicKey,
         toPubkey: recipientPubKey,
         lamports: amountLamports,
-      })
+      }),
     );
 
     const signature = await sendAndConfirmTransaction(
       this.connection,
       transaction,
-      [senderKeypair]
+      [senderKeypair],
     );
 
     return signature;

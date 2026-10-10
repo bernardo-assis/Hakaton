@@ -17,13 +17,14 @@ Criar o dashboard web em React (Vite) + Tailwind CSS + Lucide Icons + Solana Wal
 ### Camada 1: Setup do Projeto & Conexão Web3
 - [ ] **Configuração do Projeto Frontend:** Vite + React + TypeScript + Tailwind CSS v3.4.
 - [ ] **Integração Phantom Wallet:** Configuração do `@solana/wallet-adapter-react` e botão de conexão de carteira.
+- [ ] **Valores e autenticação:** Converter SOL decimal para lamports de forma exata; transportar valores como strings inteiras. Autenticar gestor por assinatura de desafio; não incluir credenciais duradouras de agente no bundle.
 - [ ] **Cliente de API (`src/services/api.ts`):** Funções tipadas para consumir `/api/v1/vault/*`.
 
 ### Camada 2: Componentes do Dashboard
 - [ ] **Navbar & Status da Rede:** Saldo do cofre, status da conexão Solana Devnet e badge da carteira.
 - [ ] **Vault Overview:** Cards de métricas com volume transacionado, total bloqueado e agentes ativos.
 - [ ] **Agent Cards:** Visualização dos agentes de IA com sliders/badges de limites e botão de Kill Switch (`FREEZE`/`UNFREEZE`).
-- [ ] **Extrato de Telemetria (Audit Log):** Tabela em tempo real com status (verde para aprovado com link para o Solana Explorer; vermelho para tentativas bloqueadas com o código de erro).
+- [ ] **Extrato de Telemetria (Audit Log):** Tabela com decisão da política e estado de execução separados: pendente/enviado/resultado desconhecido, confirmado com link ao Explorer, falho ou bloqueado. Aprovação da política não deve ser exibida como pagamento confirmado.
 
 ### Camada 3: Simulador de Pitch (3-Minute Demo)
 - [ ] **Painel Interativo de Simulação:**
