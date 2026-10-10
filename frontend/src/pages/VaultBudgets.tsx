@@ -526,7 +526,7 @@ export function VaultBudgets() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h4 className="text-[#111827] text-[13px] font-medium mb-1">
-                    Exigir aprovao humana
+                    Require human approval
                   </h4>
                   <p className="text-[#777D85] text-[11px] leading-tight">
                     Bloqueia solicitaes acima de{" "}
@@ -535,7 +535,7 @@ export function VaultBudgets() {
                   </p>
                 </div>
                 <button
-                  aria-label="Exigir aprovao humana"
+                  aria-label="Require human approval"
                   role="switch"
                   aria-checked={policies.require_human_approval}
                   disabled={busy || !vault}
@@ -554,14 +554,14 @@ export function VaultBudgets() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h4 className="text-[#111827] text-[13px] font-medium mb-1">
-                    Restringir destinatrios
+                    Restrict recipients
                   </h4>
                   <p className="text-[#777D85] text-[11px] leading-tight">
                     Bloqueia destinatrios fora da lista de cada agente.
                   </p>
                 </div>
                 <button
-                  aria-label="Restringir destinatrios"
+                  aria-label="Restrict recipients"
                   role="switch"
                   aria-checked={policies.block_unlisted_recipients}
                   disabled={busy || !vault}
