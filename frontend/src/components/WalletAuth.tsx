@@ -84,7 +84,7 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
     } catch {
       if (alive.current)
         setError(
-          "Os dados foram ocultados, mas não foi possível encerrar a sessão no servidor. Tente sair novamente antes de entrar.",
+          "Data hidden, but could not end the session on the server. Try logging out again before entering.",
         );
       return false;
     }
@@ -102,7 +102,7 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
     } catch {
       if (revoked)
         setError(
-          "Sessão encerrada. A carteira ainda está conectada à extensão.",
+          "Session ended. The wallet is still connected to the extension.",
         );
     } finally {
       revoking.current = false;
@@ -137,7 +137,7 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
         setError(
           e instanceof Error
             ? e.message
-            : "A assinatura não foi autorizada. Tente novamente.",
+            : "Signature not authorized. Try again.",
         );
         // A verify response can be lost after the server created its cookie.
       }
@@ -181,7 +181,7 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
       if (!identity.current.isCurrent(requestGeneration)) return;
       clearIdentity();
       setStatus("anonymous");
-      setError("Sua sessão expirou. Entre novamente com a Phantom.");
+      setError("Your session expired. Log in again with Phantom.");
     };
     provider?.on?.("connect", changed);
     provider?.on?.("accountChanged", changed);
@@ -210,7 +210,7 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
         if (!provider) {
           clearIdentity();
           setStatus("anonymous");
-          setError("Conecte a Phantom para recuperar sua sessão.");
+          setError("Connect Phantom to recover your session.");
           return;
         }
         const trusted =
@@ -232,7 +232,7 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
           clearIdentity();
           setStatus("anonymous");
           setError(
-            "Não foi possível recuperar a sessão. Conecte a Phantom para entrar.",
+            "Could not recover session. Connect Phantom to enter.",
           );
         }
       }
@@ -253,7 +253,7 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
       () => {
         clearIdentity();
         setStatus("anonymous");
-        setError("Sua sessão expirou. Entre novamente com a Phantom.");
+        setError("Your session expired. Log in again with Phantom.");
       },
       Math.max(0, Date.parse(session.expires_at) - Date.now()),
     );
