@@ -34,20 +34,20 @@ function AuthenticatedApp() {
         <main className="max-w-[1280px] mx-auto w-full px-6 mt-8 pb-12">
           <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100">
             <h1 className="text-[#111827] text-[24px] font-medium mb-3">
-              Conecte sua carteira para entrar
+              Connect your wallet to enter
             </h1>
             <p role="status" className="text-[#777D85] text-[13px]">
               {auth.status === "checking"
-                ? "Verificando sua sessǜo..."
+                ? "Verifying your session..."
                 : auth.status === "signing"
-                  ? "Confirme a assinatura da mensagem na Phantom."
+                  ? "Confirm the message signature in Phantom."
                   : auth.status === "revoking"
-                    ? "Encerrando a sessǜo anterior..."
-                    : "Use Conectar Phantom Wallet e assine a mensagem para acessar seus cofres e agentes."}
+                    ? "Closing previous session..."
+                    : "Use Connect Phantom Wallet and sign the message to access your vaults and agents."}
             </p>
             <p className="text-[#777D85] text-[12px] mt-3">
-              A assinatura autentica sua carteira; nǜo autoriza transferǦncias.
-              Os dados sǜo exibidos somente aps a verificaǜo.
+              The signature authenticates your wallet; it does not authorize transfers.
+              Data is displayed only after verification.
             </p>
           </div>
         </main>
