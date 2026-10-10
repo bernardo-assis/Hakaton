@@ -1,23 +1,55 @@
+let identityGeneration = 0;
+export function setIdentityGeneration(generation: number): void {
+  identityGeneration = generation;
+}
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
 export async function request<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
+  const generation = identityGeneration;
+  const mutation = !["GET", "HEAD"].includes(
+    (options.method ?? "GET").toUpperCase(),
+  );
   const response = await fetch(`/api${path}`, {
     ...options,
-    headers: { "Content-Type": "application/json", ...options.headers },
+    credentials: "same-origin",
+    headers: {
+      "Content-Type": "application/json",
+      ...(mutation ? { "X-AgentSafe-CSRF": "1" } : {}),
+      ...options.headers,
+    },
   });
   const body = (await response.json().catch(() => null)) as {
     success?: boolean;
     data?: T;
     error?: string;
   } | null;
-  if (!response.ok || !body?.success)
-    throw new Error(
+  if (!response.ok || !body?.success) {
+    if (
+      response.status === 401 &&
+      !path.startsWith("/auth/") &&
+      typeof window !== "undefined"
+    )
+      window.dispatchEvent(
+        new CustomEvent("agentsafe:unauthorized", { detail: { generation } }),
+      );
+    throw new ApiError(
       body?.error ||
         `Não foi possível completar a solicitação (${response.status}).`,
+      response.status,
     );
+  }
   return body.data as T;
 }
+
 export function sol(value: number | null | undefined): string {
   return value == null
     ? "Indisponível"

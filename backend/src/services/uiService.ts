@@ -14,8 +14,12 @@ export class UiService {
         : undefined;
     if (!vault)
       throw Object.assign(
-        new Error("Select an existing vault for the Devnet faucet"),
-        { status: 400 },
+        new Error(
+          vaultId
+            ? "Not found"
+            : "Select an existing vault for the Devnet faucet",
+        ),
+        { status: vaultId ? 404 : 400 },
       );
     return {
       signature: await this.solana.requestAirdrop(

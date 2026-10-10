@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { WalletAuthProvider, useWalletAuth } from "./components/WalletAuth";
 import { Header } from "./components/Header";
 import { Dashboard } from "./pages/Dashboard";
 import { AgentFleet } from "./pages/AgentFleet";
@@ -9,6 +10,52 @@ import { Solutions } from "./components/Solutions";
 import { Features } from "./components/Features";
 import { Services } from "./components/Services";
 
+function AuthenticatedApp() {
+  const auth = useWalletAuth();
+  const [currentPage, setCurrentPage] = useState("dashboard");
+
+  return (
+    <div className="min-h-screen bg-[#F3F4F6] font-inter pb-12">
+      <Header
+        key={`header-${auth.generation}`}
+        currentPage={currentPage}
+        onNavigate={setCurrentPage}
+      />
+      {auth.session ? (
+        <div key={`content-${auth.generation}`}>
+          {currentPage === "dashboard" && (
+            <Dashboard onNavigate={setCurrentPage} />
+          )}
+          {currentPage === "fleet" && <AgentFleet />}
+          {currentPage === "simulator" && <Simulator />}
+          {currentPage === "vault" && <VaultBudgets />}
+        </div>
+      ) : (
+        <main className="max-w-[1280px] mx-auto w-full px-6 mt-8 pb-12">
+          <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100">
+            <h1 className="text-[#111827] text-[24px] font-medium mb-3">
+              Conecte sua carteira para entrar
+            </h1>
+            <p role="status" className="text-[#777D85] text-[13px]">
+              {auth.status === "checking"
+                ? "Verificando sua sessǜo..."
+                : auth.status === "signing"
+                  ? "Confirme a assinatura da mensagem na Phantom."
+                  : auth.status === "revoking"
+                    ? "Encerrando a sessǜo anterior..."
+                    : "Use Conectar Phantom Wallet e assine a mensagem para acessar seus cofres e agentes."}
+            </p>
+            <p className="text-[#777D85] text-[12px] mt-3">
+              A assinatura autentica sua carteira; nǜo autoriza transferǦncias.
+              Os dados sǜo exibidos somente aps a verificaǜo.
+            </p>
+          </div>
+        </main>
+      )}
+    </div>
+  );
+}
+
 function App() {
   const [currentPage, setCurrentPage] = useState("landing");
 
@@ -17,7 +64,7 @@ function App() {
       {currentPage === "landing" ? (
         <div className="w-full relative bg-[#060D0C]">
           
-          {/* Fundo de Vídeo (Google Flow / Veo 3.1) - Fixo para todo o site */}
+          {/* Fundo de Vdeo (Google Flow / Veo 3.1) - Fixo para todo o site */}
           <div className="fixed inset-0 w-full h-full z-0 pointer-events-none">
             <video 
               autoPlay 
@@ -35,7 +82,7 @@ function App() {
           <Features />
           <Services />
           
-          {/* Botão flutuante temporário para ir pro App interno */}
+          {/* Botǜo flutuante temporǭrio para ir pro App interno */}
           <button 
             onClick={() => setCurrentPage("dashboard")}
             className="fixed bottom-4 right-4 z-50 bg-white/10 backdrop-blur-md border border-white/20 text-white px-4 py-2 rounded-lg text-sm hover:bg-white/20"
@@ -44,13 +91,9 @@ function App() {
           </button>
         </div>
       ) : (
-        <div className="min-h-screen bg-[#F3F4F6] font-inter pb-12">
-          <Header currentPage={currentPage} onNavigate={setCurrentPage} />
-          {currentPage === "dashboard" && <Dashboard onNavigate={setCurrentPage} />}
-          {currentPage === "fleet" && <AgentFleet />}
-          {currentPage === "simulator" && <Simulator />}
-          {currentPage === "vault" && <VaultBudgets />}
-        </div>
+        <WalletAuthProvider>
+          <AuthenticatedApp />
+        </WalletAuthProvider>
       )}
     </>
   );

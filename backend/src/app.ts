@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import userRoutes from "./routes/userRoutes";
 import vaultRoutes from "./routes/vaultRoutes";
 import agentRoutes from "./routes/agentRoutes";
 import transactionRoutes from "./routes/transactionRoutes";
@@ -10,6 +9,9 @@ import rateLimit from "express-rate-limit";
 
 import { UiController } from "./controllers/UiController";
 import { asyncErrorWrapper } from "./utils/asyncErrorWrapper";
+import authRoutes from "./routes/authRoutes";
+import { originGuard, requireWallet } from "./middleware/walletAuth";
+import { config } from "./config/unifiedConfig";
 const app = express();
 
 const limiter = rateLimit({
@@ -25,11 +27,16 @@ const limiter = rateLimit({
   return this.toString();
 };
 
-app.use(cors());
+app.use(cors({ origin: config.auth.allowedOrigins, credentials: true }));
+app.use(originGuard);
 app.use(express.json());
 app.use(limiter);
 
-app.use("/api/users", userRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api", requireWallet);
+app.use("/api/users", (_req, res) =>
+  res.status(501).json({ success: false, error: "Use wallet authentication" }),
+);
 app.use("/api/vaults", vaultRoutes);
 app.use("/api/agents", agentRoutes);
 app.use("/api/transactions", transactionRoutes);

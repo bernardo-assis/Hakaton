@@ -1,15 +1,8 @@
 import { UiController } from "../controllers/UiController";
 import { Router } from "express";
-import { VaultController } from "../controllers/VaultController";
-import { VaultService } from "../services/vaultService";
-import { VaultRepository } from "../repositories/VaultRepository";
 import { asyncErrorWrapper } from "../utils/asyncErrorWrapper";
 
 const router = Router();
-const vaultController = new VaultController(
-  new VaultService(new VaultRepository()),
-);
-
 const ui = new UiController();
 router.post(
   "/local",
@@ -31,9 +24,10 @@ router.post(
   "/:id/optimize",
   asyncErrorWrapper((req, res) => ui.execute(req, res, "optimize")),
 );
-router.post(
-  "/",
-  asyncErrorWrapper((req, res) => vaultController.createVault(req, res)),
+router.post("/", (_req, res) =>
+  res
+    .status(501)
+    .json({ success: false, error: "Use authenticated wallet vault creation" }),
 );
 
 export default router;
