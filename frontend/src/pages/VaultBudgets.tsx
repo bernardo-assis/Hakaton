@@ -154,7 +154,7 @@ export function VaultBudgets() {
         transferred: false;
       }>(`/vaults/${vault.id}/optimize`, { method: "POST", body: "{}" });
       setMessage(
-        `Recomendao por regras: ${result.recommendation} Nenhuma transferncia realizada.`,
+        `Recomenda��o por regras: ${result.recommendation} Nenhuma transfer�ncia realizada.`,
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro na recomendao.");
@@ -198,7 +198,7 @@ export function VaultBudgets() {
       <div className="flex justify-between items-start mb-8">
         <div className="flex flex-col gap-1.5">
           <h1 className="text-[#111827] text-[30px] font-medium font-inter">
-            Oramentos do Cofre
+            Vault Budgets
           </h1>
           <span className="text-[#777D85] text-[13px] font-normal">
             Allocate capital, manage liquidity, and set global spending rules
@@ -224,7 +224,7 @@ export function VaultBudgets() {
                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"
               />
             </svg>
-            {vault ? "Configurar poltica" : "Cadastrar carteira"}
+            {vault ? "Configurar pol�tica" : "Cadastrar carteira"}
           </button>
           <button
             disabled={busy}
@@ -244,7 +244,7 @@ export function VaultBudgets() {
                 d="M13 10V3L4 14h7v7l9-11h-7z"
               />
             </svg>
-            Recomendao de liquidez
+            Recomenda��o de liquidez
           </button>
         </div>
       </div>
@@ -292,7 +292,7 @@ export function VaultBudgets() {
         <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
           <div className="flex justify-between items-start mb-4">
             <span className="text-[#777D85] text-[13px] font-medium">
-              Liquidez Disponvel
+              Liquidez Dispon�vel
             </span>
             <div className="w-8 h-8 rounded-full bg-[#E6F8F0] flex items-center justify-center">
               <svg
@@ -412,7 +412,7 @@ export function VaultBudgets() {
         <div className="lg:col-span-2">
           <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 h-full">
             <h3 className="text-[#111827] text-[16px] font-semibold mb-6">
-              Distribuio de Oramento por Agente
+              Distribui��o de Or�amento por Agente
             </h3>
 
             <div className="flex flex-col gap-6">
@@ -471,7 +471,7 @@ export function VaultBudgets() {
           </div>
         </div>
 
-        {/* Coluna da Direita: Polticas Globais */}
+        {/* Coluna da Direita: Pol�ticas Globais */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 h-full">
             <div className="flex items-center gap-2 mb-6">
@@ -489,7 +489,7 @@ export function VaultBudgets() {
                 />
               </svg>
               <h3 className="text-[#111827] text-[16px] font-semibold">
-                Polticas Globais (Cofre)
+                Pol�ticas Globais (Cofre)
               </h3>
             </div>
 
@@ -501,7 +501,7 @@ export function VaultBudgets() {
                     Pause fleet on low balance
                   </h4>
                   <p className="text-[#777D85] text-[11px] leading-tight">
-                    Bloqueia a avaliao se o saldo ficar abaixo de{" "}
+                    Bloqueia a avalia��o se o saldo ficar abaixo de{" "}
                     {sol(fromLamports(policies.low_balance_threshold_lamports))}
                     .
                   </p>
@@ -592,7 +592,7 @@ export function VaultBudgets() {
                   ? "Cadastrar carteira Devnet"
                   : modal === "agent"
                     ? "Ajustar limites"
-                    : "Configurar poltica global"}
+                    : "Configurar pol�tica global"}
               </h2>
               <button
                 aria-label="Fechar"
