@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export function Dashboard() {
   const [balance, setBalance] = useState('0.00');
@@ -74,18 +74,18 @@ export function Dashboard() {
   return (
     <div className="max-w-[1280px] mx-auto w-full px-6 mt-8 pb-12">
       
-      {/* SaudaÃ§Ã£o */}
+      {/* Saudao */}
       <div className="flex items-baseline gap-2 mb-8">
         <h1 className="text-[#111827] text-[30px] font-medium font-inter">Good morning, Founder</h1>
-        <span className="text-[#777D85] text-[13px] font-normal">- SeguranÃ§a da Frota & Controle de OrÃ§amento</span>
+        <span className="text-[#777D85] text-[13px] font-normal">- Fleet Security & Budget Control</span>
       </div>
 
       {/* Grid Principal (3 Colunas) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* COLUNA 1: Cofre + Limite DiÃ¡rio */}
+        {/* COLUMN 1: Vault + Daily Limit */}
         <div className="flex flex-col gap-6">
-          {/* CartÃ£o: Total Vault Balance */}
+          {/* Carto: Total Vault Balance */}
           <div className="bg-[#064E3B] rounded-[22px] p-6 shadow-sm flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <span className="text-[#A5C0B4] text-[13px] font-medium">Total Vault Balance</span>
@@ -100,7 +100,7 @@ export function Dashboard() {
               <h2 className="text-white text-[30px] font-normal tracking-tight">${balance}</h2>
             </div>
             <div className="mb-6">
-              <span className="text-[#A5C0B4] text-[12px]">SOL/USDC Â· Solana Devnet</span>
+              <span className="text-[#A5C0B4] text-[12px]">SOL/USDC  Solana Devnet</span>
             </div>
             <div className="flex gap-3 mb-6">
               <button onClick={handleDeposit} className="flex-1 bg-[#B6F03F] text-[#111827] flex items-center justify-center gap-2 py-2.5 rounded-full text-[13px] font-semibold hover:opacity-90 transition-opacity cursor-pointer">
@@ -145,10 +145,10 @@ export function Dashboard() {
             </div>
           </div>
 
-          {/* CartÃ£o: Limite DiÃ¡rio da Frota */}
+          {/* Carto: Fleet Daily Limit */}
           <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
             <div className="flex justify-between items-start mb-6">
-              <h3 className="text-[#111827] text-[15px] font-medium">Limite DiÃ¡rio da Frota</h3>
+              <h3 className="text-[#111827] text-[15px] font-medium">Fleet Daily Limit</h3>
               <span className="text-[#777D85] text-[11px] font-medium bg-gray-50 px-2 py-1 rounded-md border border-gray-100">Hard cap enabled</span>
             </div>
             <div>
@@ -163,7 +163,7 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* COLUNA 2: MÃ©tricas + CartÃµes Virtuais */}
+        {/* COLUMN 2: Metrics + Virtual Cards */}
         <div className="flex flex-col gap-6">
           {/* Grid 2x2 */}
           <div className="grid grid-cols-2 gap-4">
@@ -177,7 +177,7 @@ export function Dashboard() {
               <div>
                 <div className="text-white text-[30px] font-semibold mb-1">{activeAgents}</div>
                 <div className="text-[#A5C0B4] text-[11px] font-medium flex items-center gap-1">
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg> 2 Este mÃªs
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg> 2 This month
                 </div>
               </div>
             </div>
@@ -224,14 +224,14 @@ export function Dashboard() {
             </div>
           </div>
 
-          {/* CartÃµes Virtuais (Agent Cards) */}
+          {/* Virtual Cards (Agent Cards) */}
           <div className="bg-white rounded-[22px] p-5 shadow-sm border border-gray-100 flex-1 flex flex-col">
             <div className="flex justify-between items-center mb-5">
               <div className="flex items-center gap-2">
                 <div className="border border-[#E8EAEC] p-1.5 rounded-full">
                   <svg className="w-4 h-4 text-[#111827]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
                 </div>
-                <h3 className="text-[#111827] text-[15px] font-medium">CartÃµes de Agentes</h3>
+                <h3 className="text-[#111827] text-[15px] font-medium">Agent Cards</h3>
               </div>
               <button className="bg-[#F6F7F7] px-3 py-1.5 rounded-full text-[12px] font-medium flex items-center gap-1 hover:bg-gray-100 transition-colors">
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -248,7 +248,7 @@ export function Dashboard() {
                 </div>
                 <div className="relative z-10 my-4">
                   <div className="text-[#A5C0B4] text-[11px] mb-1">Cap: $50/dia</div>
-                  <div className="text-white text-[15px] font-mono tracking-[0.2em]">â€¢â€¢â€¢â€¢ 6782</div>
+                  <div className="text-white text-[15px] font-mono tracking-[0.2em]"> 6782</div>
                 </div>
                 <button className="bg-[#F04448] hover:bg-red-600 transition-colors text-white text-[11px] py-1.5 rounded-full font-medium w-full flex justify-center items-center gap-1.5 relative z-10 cursor-pointer">
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -260,17 +260,17 @@ export function Dashboard() {
               <div className="min-w-[130px] rounded-[14px] p-4 flex flex-col" style={{ background: 'linear-gradient(135deg, rgba(7, 60, 46, 1) 0%, rgba(40, 102, 72, 1) 50%, rgba(11, 47, 35, 1) 100%)' }}>
                 <span className="text-white text-[13px] font-medium mb-auto">Ops Agent</span>
                 <div className="text-[#A5C0B4] text-[11px] mb-1">Cap: $100/dia</div>
-                <div className="text-white text-[15px] font-mono tracking-[0.2em]">â€¢â€¢â€¢â€¢ 4356</div>
+                <div className="text-white text-[15px] font-mono tracking-[0.2em]"> 4356</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* COLUNA 3: GrÃ¡fico */}
+        {/* COLUMN 3: Grfico */}
         <div className="bg-white rounded-[22px] p-5 shadow-sm flex flex-col border border-gray-100">
           <div className="mb-4">
-            <h3 className="text-[#111827] text-[16px] font-medium mb-1">Volume DiÃ¡rio de TransaÃ§Ãµes</h3>
-            <p className="text-[#777D85] text-[11px]">Atividade da sua frota nos Ãºltimos 7 dias</p>
+            <h3 className="text-[#111827] text-[16px] font-medium mb-1">Volume Dirio de Transaes</h3>
+            <p className="text-[#777D85] text-[11px]">Atividade da sua frota nos ltimos 7 dias</p>
           </div>
           <div className="bg-[#F6F7F7] rounded-[14px] p-4 flex-1 flex flex-col">
             <div className="flex justify-between items-center mb-6">
@@ -331,7 +331,7 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Tabela de Transações */}
+      {/* Tabela de Transactions */}
       <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 mt-6">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-[#111827] text-[16px] font-medium">Recent Transactions</h3>
@@ -357,7 +357,7 @@ export function Dashboard() {
                 <th className="py-3 px-4 text-[#777D85] text-[11px] font-medium w-[40px]"><input type="checkbox" className="rounded-sm border-[#E8EAEC]" /></th>
                 <th className="py-3 px-4 text-[#777D85] text-[11px] font-medium">ID</th>
                 <th className="py-3 px-4 text-[#777D85] text-[11px] font-medium">Agent Name</th>
-                <th className="py-3 px-4 text-[#777D85] text-[11px] font-medium">ServiÃ§o</th>
+                <th className="py-3 px-4 text-[#777D85] text-[11px] font-medium">Servio</th>
                 <th className="py-3 px-4 text-[#777D85] text-[11px] font-medium">Amount</th>
                 <th className="py-3 px-4 text-[#777D85] text-[11px] font-medium">Status</th>
               </tr>

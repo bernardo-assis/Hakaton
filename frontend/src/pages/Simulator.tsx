@@ -6,26 +6,26 @@ export function Simulator() {
   const totalBudget = 5.0; // 5 SOL
 
   const triggerGoodBot = async () => {
-    // Adiciona log de início
+    // Adiciona log de incio
     setLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), type: 'system', text: '[SYSTEM] Analyzing liquidity pools...' }]);
     setTimeout(() => {
       setLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), type: 'action', text: '[ACTION] Requesting 0.5 SOL for swap...' }]);
       setTimeout(() => {
         // Simula Sucesso
         setUsedBudget(prev => prev + 0.5);
-        setLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), type: 'success', text: '[RESPONSE] Transação APROVADA pelo AgentSafe.' }]);
+        setLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), type: 'success', text: '[RESPONSE] Transaction APROVADA pelo AgentSafe.' }]);
       }, 800);
     }, 800);
   };
 
   const triggerGreedyBot = async () => {
-    // Adiciona log de início
+    // Adiciona log de incio
     setLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), type: 'system', text: '[SYSTEM] Massive arbitrage opportunity identified...' }]);
     setTimeout(() => {
       setLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), type: 'action', text: '[ACTION] Requesting 6.0 SOL for massive buy...' }]);
       setTimeout(() => {
         // Simula Bloqueio
-        setLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), type: 'error', text: '[CRITICAL ERROR] Transação BLOQUEADA: Limite Diário Excedido (HTTP 400).' }]);
+        setLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), type: 'error', text: '[CRITICAL ERROR] Transaction BLOQUEADA: Daily Limit Excedido (HTTP 400).' }]);
       }, 800);
     }, 800);
   };
@@ -40,7 +40,7 @@ export function Simulator() {
             <h1 className="text-[#111827] text-[24px] font-medium font-inter">AgentSafe AI Simulator</h1>
             <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[11px] font-semibold tracking-wider">SOLANA DEVNET</span>
           </div>
-          <p className="text-[#777D85] text-[13px]">Veja seu firewall bloquear ações maliciosas em tempo real.</p>
+          <p className="text-[#777D85] text-[13px]">Veja seu firewall bloquear aes maliciosas em tempo real.</p>
         </div>
         <button 
           onClick={() => { setLogs([]); setUsedBudget(0); }}
@@ -63,10 +63,10 @@ export function Simulator() {
             </div>
           </div>
 
-          {/* Cartão de Orçamento Diário */}
+          {/* Carto de Oramento Dirio */}
           <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 flex flex-col">
             <div className="flex justify-between items-start mb-6">
-              <h3 className="text-[#111827] text-[15px] font-medium">Limite Diário: 5 SOL</h3>
+              <h3 className="text-[#111827] text-[15px] font-medium">Daily Limit: 5 SOL</h3>
               <span className="text-[#24865E] text-[11px] font-medium bg-[#E6F8F0] px-2 py-1 rounded-full">Hard cap on</span>
             </div>
             
@@ -83,25 +83,25 @@ export function Simulator() {
             
             <div className="flex justify-between text-[12px] font-medium text-gray-500">
               <span>{(totalBudget - usedBudget).toFixed(1)} SOL remaining</span>
-              <span>Reseta às 00:00 UTC</span>
+              <span>Reseta s 00:00 UTC</span>
             </div>
           </div>
 
-          {/* Botões de Ação para Demo */}
+          {/* Botes de Ao para Demo */}
           <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 flex flex-col">
-            <h3 className="text-[#111827] text-[14px] font-semibold mb-4">Disparar Ações do Agente</h3>
+            <h3 className="text-[#111827] text-[14px] font-semibold mb-4">Disparar Aes do Agente</h3>
             <div className="flex gap-3">
               <button 
                 onClick={triggerGoodBot}
                 className="flex-1 bg-gray-900 text-white py-3 rounded-xl text-[13px] font-semibold hover:bg-gray-800 transition-colors"
               >
-                Robô Comportado (0.5 SOL)
+                Well-Behaved Bot (0.5 SOL)
               </button>
               <button 
                 onClick={triggerGreedyBot}
                 className="flex-1 bg-gray-900 text-white py-3 rounded-xl text-[13px] font-semibold hover:bg-gray-800 transition-colors"
               >
-                Robô Guloso (6.0 SOL)
+                Rob Guloso (6.0 SOL)
               </button>
             </div>
           </div>
@@ -130,7 +130,7 @@ export function Simulator() {
                 </div>
                 <div>
                   <h3 className="text-[13px] font-semibold text-gray-900">Trading Bot</h3>
-                  <p className="text-[11px] text-gray-500">AGT_002 • Session SIM_001</p>
+                  <p className="text-[11px] text-gray-500">AGT_002  Session SIM_001</p>
                 </div>
               </div>
               <span className="bg-green-100 text-green-700 text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider">Bot running</span>

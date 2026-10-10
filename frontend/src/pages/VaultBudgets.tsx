@@ -4,11 +4,11 @@ export function VaultBudgets() {
   return (
     <div className="max-w-[1280px] mx-auto w-full px-6 mt-8 pb-12">
       
-      {/* Cabeçalho */}
+      {/* Cabealho */}
       <div className="flex justify-between items-start mb-8">
         <div className="flex flex-col gap-1.5">
           <h1 className="text-[#111827] text-[30px] font-medium font-inter">
-            Orçamentos do Cofre
+            Oramentos do Vault
           </h1>
           <span className="text-[#777D85] text-[13px] font-normal">
             Allocate capital, manage liquidity, and set global spending rules for the fleet.
@@ -26,12 +26,12 @@ export function VaultBudgets() {
         </div>
       </div>
 
-      {/* Grid de Métricas do Cofre */}
+      {/* Grid de Mtricas do Vault */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Saldo Total */}
         <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
           <div className="flex justify-between items-start mb-4">
-            <span className="text-[#777D85] text-[13px] font-medium">Liquidez Disponível</span>
+            <span className="text-[#777D85] text-[13px] font-medium">Liquidez Disponvel</span>
             <div className="w-8 h-8 rounded-full bg-[#E6F8F0] flex items-center justify-center">
               <svg className="w-4 h-4 text-[#24865E]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
@@ -40,7 +40,7 @@ export function VaultBudgets() {
             <h2 className="text-[#111827] text-[32px] font-semibold tracking-tight">$49,658.00</h2>
             <p className="text-[#24865E] text-[12px] font-medium mt-1 flex items-center gap-1">
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
-              Pronto para alocação
+              Pronto para alocao
             </p>
           </div>
         </div>
@@ -56,7 +56,7 @@ export function VaultBudgets() {
           <div>
             <h2 className="text-[#111827] text-[32px] font-semibold tracking-tight">$342.00</h2>
             <p className="text-[#777D85] text-[12px] font-medium mt-1">
-              Soma dos limites diários atuais
+              Soma dos limites dirios atuais
             </p>
           </div>
         </div>
@@ -83,10 +83,10 @@ export function VaultBudgets() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Coluna da Esquerda: Alocação por Agente */}
+        {/* Coluna da Esquerda: Alocao por Agente */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 h-full">
-            <h3 className="text-[#111827] text-[16px] font-semibold mb-6">Distribuição de Orçamento por Agente</h3>
+            <h3 className="text-[#111827] text-[16px] font-semibold mb-6">Distribuio de Oramento por Agente</h3>
             
             <div className="flex flex-col gap-6">
               {/* Agent 1 */}
@@ -127,12 +127,12 @@ export function VaultBudgets() {
           </div>
         </div>
 
-        {/* Coluna da Direita: Políticas Globais */}
+        {/* Coluna da Direita: Polticas Globais */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 h-full">
             <div className="flex items-center gap-2 mb-6">
               <svg className="w-5 h-5 text-[#24865E]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-              <h3 className="text-[#111827] text-[16px] font-semibold">Políticas Globais (Cofre)</h3>
+              <h3 className="text-[#111827] text-[16px] font-semibold">Polticas Globais (Vault)</h3>
             </div>
             
             <div className="flex flex-col gap-5">
@@ -152,8 +152,8 @@ export function VaultBudgets() {
               {/* Toggle 2 */}
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h4 className="text-[#111827] text-[13px] font-medium mb-1">Exigir Aprovação Humana (2FA)</h4>
-                  <p className="text-[#777D85] text-[11px] leading-tight">Para qualquer transação única que exceda $1,000.</p>
+                  <h4 className="text-[#111827] text-[13px] font-medium mb-1">Exigir Aprovao Humana (2FA)</h4>
+                  <p className="text-[#777D85] text-[11px] leading-tight">Para qualquer transao nica que exceda $1,000.</p>
                 </div>
                 <div className="w-10 h-6 bg-[#064E3B] rounded-full flex items-center p-1 cursor-pointer shrink-0">
                   <div className="w-4 h-4 bg-[#B6F03F] rounded-full translate-x-4 transition-transform"></div>
