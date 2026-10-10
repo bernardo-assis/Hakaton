@@ -532,8 +532,8 @@ export function AgentFleet() {
               Deploy Agent
             </h3>
             <p className="text-[#777D85] text-[12px] max-w-[200px]">
-              Crie um novo agente autnomo e configure suas polticas de
-              segurana.
+              Create a new autonomous agent and configure its policies for
+              security.
             </p>
           </button>
         </div>
@@ -693,7 +693,7 @@ export function AgentFleet() {
                 </div>
               </div>
 
-              {/* Seo 2: Polticas de Segurana */}
+              {/* Seo 2: Policies de Segurana */}
               <div className="bg-[#F6F7F7] rounded-[16px] p-5">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-8 h-8 rounded-full bg-white border border-[#E8EAEC] flex items-center justify-center">
@@ -712,7 +712,7 @@ export function AgentFleet() {
                     </svg>
                   </div>
                   <h3 className="text-[#111827] text-[15px] font-semibold">
-                    Polticas de Segurana
+                    Policies de Segurana
                   </h3>
                   <div className="flex items-center gap-1.5 bg-[#E6F8F0] px-2.5 py-1 rounded-full ml-auto">
                     <div className="w-1.5 h-1.5 bg-[#24865E] rounded-full"></div>
