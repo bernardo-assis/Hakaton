@@ -10,3 +10,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Hide Spline Logo Watermark */
+spline-viewer::part(logo) {
+  display: none !important;
+}

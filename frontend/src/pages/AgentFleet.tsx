@@ -85,9 +85,9 @@ export function AgentFleet() {
       const daily = toLamports(form.daily),
         single = toLamports(form.single);
       if (!form.name.trim() || !form.role.trim() || !form.vault)
-        throw new Error("Preencha nome, função e selecione um cofre.");
+        throw new Error("Preencha nome, funo e selecione um cofre.");
       if (BigInt(single) > BigInt(daily))
-        throw new Error("Limite por transação não pode superar o diário.");
+        throw new Error("Limite por transao no pode superar o dirio.");
       const recipients = [
         ...new Set(
           form.recipients
@@ -104,9 +104,9 @@ export function AgentFleet() {
           (r) => !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(r.recipient_pubkey),
         )
       )
-        throw new Error("Endereço permitido inválido.");
+        throw new Error("Endereo permitido invlido.");
       if (form.whitelist && !recipients.length)
-        throw new Error("Adicione pelo menos um destinatário permitido.");
+        throw new Error("Adicione pelo menos um destinatrio permitido.");
       const body = {
         name: form.name.trim(),
         role: form.role.trim(),
@@ -138,7 +138,7 @@ export function AgentFleet() {
         });
       } catch (e) {
         throw new Error(
-          `Agente salvo. Não foi possível atualizar os destinatários: ${e instanceof Error ? e.message : "tente novamente"}`,
+          `Agente salvo. No foi possvel atualizar os destinatrios: ${e instanceof Error ? e.message : "tente novamente"}`,
         );
       }
       setIsDeployModalOpen(false);
@@ -212,20 +212,20 @@ export function AgentFleet() {
           Nenhum agente encontrado.
         </p>
       )}
-      {/* Primeira Linha: Título e Botões de Ação */}
+      {/* Primeira Linha: Ttulo e Botes de Ao */}
       <div className="flex justify-between items-start mb-8">
-        {/* Título e Subtítulo */}
+        {/* Ttulo e Subttulo */}
         <div className="flex flex-col gap-1.5">
           <h1 className="text-[#111827] text-[30px] font-medium font-inter">
-            Gestão da Frota de Agentes
+            Agent Fleet Management
           </h1>
           <span className="text-[#777D85] text-[13px] font-normal">
-            Gerencie orçamentos, políticas e segurança para sua força de
-            trabalho de IA autônoma
+            Gerencie oramentos, polticas e segurana para sua fora de
+            trabalho de IA autnoma
           </span>
         </div>
 
-        {/* Botões na Coluna da Direita */}
+        {/* Botes na Coluna da Direita */}
         <div className="flex items-center gap-3">
           <button
             disabled={loading || busy}
@@ -266,7 +266,7 @@ export function AgentFleet() {
                 d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            Emergência: Congelar Todos
+            Emergncia: Congelar All
           </button>
         </div>
       </div>
@@ -350,13 +350,13 @@ export function AgentFleet() {
 
       {/* Grade de Agentes */}
       <div>
-        {/* Cabeçalho da Lista */}
+        {/* Cabealho da Lista */}
         <div className="flex items-center gap-3 mb-6">
           <div className="bg-[#111827] text-white px-2.5 py-0.5 rounded-md text-[13px] font-semibold">
-            {loading || (error && agents.length === 0) ? "—" : visible.length}
+            {loading || (error && agents.length === 0) ? "" : visible.length}
           </div>
           <h2 className="text-[#111827] text-[16px] font-medium">
-            Agentes em Operação
+            Agentes em Operao
           </h2>
         </div>
 
@@ -415,7 +415,7 @@ export function AgentFleet() {
                     />
                   </svg>
                   <span className="font-mono">
-                    {agent.agent_pubkey.slice(0, 4)}…
+                    {agent.agent_pubkey.slice(0, 4)}
                     {agent.agent_pubkey.slice(-4)}
                   </span>
                 </div>
@@ -425,7 +425,7 @@ export function AgentFleet() {
               <div className="flex items-center gap-4 mb-5 pb-5 border-b border-gray-100">
                 <div className="flex-1">
                   <span className="block text-[#777D85] text-[11px] font-medium mb-0.5">
-                    Limite Diário
+                    Daily Limit
                   </span>
                   <span className="text-[#111827] text-[14px] font-semibold">
                     {sol(fromLamports(agent.daily_cap_lamports))}
@@ -445,7 +445,7 @@ export function AgentFleet() {
               {/* Whitelist */}
               <div className="mb-5">
                 <span className="block text-[#111827] text-[12px] font-medium mb-2.5">
-                  Serviços Permitidos
+                  Services Permitidos
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {(agent.recipients ?? []).length ? (
@@ -461,8 +461,8 @@ export function AgentFleet() {
                   ) : (
                     <span className="text-[#777D85] text-[11px]">
                       {agent.whitelist_enabled
-                        ? "Nenhum destinatário permitido"
-                        : "Lista de destinatários desativada"}
+                        ? "Nenhum destinatrio permitido"
+                        : "Lista de destinatrios desativada"}
                     </span>
                   )}
                 </div>
@@ -507,7 +507,7 @@ export function AgentFleet() {
               </div>
             </div>
           ))}
-          {/* Card 3: Adicionar Novo Agente (Placeholder) */}
+          {/* Card 3: Adicionar Deploy Agent (Placeholder) */}
           <button
             disabled={loading || busy}
             onClick={() => open()}
@@ -532,14 +532,14 @@ export function AgentFleet() {
               Deploy Agent
             </h3>
             <p className="text-[#777D85] text-[12px] max-w-[200px]">
-              Crie um novo agente autônomo e configure suas políticas de
-              segurança.
+              Crie um novo agente autnomo e configure suas polticas de
+              segurana.
             </p>
           </button>
         </div>
       </div>
 
-      {/* Rodapé de Confiança */}
+      {/* Rodap de Confiana */}
       <div className="mt-16 flex items-center justify-center gap-2 text-[#777D85]">
         <svg
           className="w-4 h-4 text-[#B6F03F]"
@@ -555,7 +555,7 @@ export function AgentFleet() {
           />
         </svg>
         <span className="text-[12px] font-medium tracking-wide uppercase">
-          Cada agente. Cada transação. Protegidos.
+          Every agent. Every transaction. Protected.
         </span>
       </div>
 
@@ -607,7 +607,7 @@ export function AgentFleet() {
                   <option value="">Selecione um cofre</option>
                   {vaults.map((v) => (
                     <option key={v.id} value={v.id}>
-                      {v.vault_pubkey.slice(0, 8)}… · {v.status}
+                      {v.vault_pubkey.slice(0, 8)}  {v.status}
                     </option>
                   ))}
                 </select>
@@ -618,7 +618,7 @@ export function AgentFleet() {
                 </p>
               )}
 
-              {/* Seção 1: Agent Identity */}
+              {/* Seo 1: Agent Identity */}
               <div>
                 <h3 className="text-[#111827] text-[15px] font-semibold mb-4">
                   Agent Identity
@@ -641,10 +641,10 @@ export function AgentFleet() {
                     />
                   </div>
 
-                  {/* Propósito */}
+                  {/* Propsito */}
                   <div>
                     <label className="block text-[#111827] text-[13px] font-medium mb-1.5">
-                      Função / Propósito
+                      Purpose
                     </label>
                     <input
                       value={form.role}
@@ -657,10 +657,10 @@ export function AgentFleet() {
                     />
                   </div>
 
-                  {/* Chave Pública */}
+                  {/* Chave Pblica */}
                   <div>
                     <label className="block text-[#111827] text-[13px] font-medium mb-1.5">
-                      Chave Pública Solana (Wallet)
+                      Solana Public Key (Wallet)
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -685,7 +685,7 @@ export function AgentFleet() {
                           setForm((f) => ({ ...f, pubkey: e.target.value }))
                         }
                         type="text"
-                        placeholder="Cole o endereço da carteira do agente..."
+                        placeholder="Cole o endereo da carteira do agente..."
                         className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] pl-10 pr-4 py-2.5 text-[14px] font-mono text-[#111827] placeholder-[#777D85] outline-none focus:border-[#064E3B] transition-colors"
                       />
                     </div>
@@ -693,7 +693,7 @@ export function AgentFleet() {
                 </div>
               </div>
 
-              {/* Seção 2: Políticas de Segurança */}
+              {/* Seo 2: Polticas de Segurana */}
               <div className="bg-[#F6F7F7] rounded-[16px] p-5">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-8 h-8 rounded-full bg-white border border-[#E8EAEC] flex items-center justify-center">
@@ -712,7 +712,7 @@ export function AgentFleet() {
                     </svg>
                   </div>
                   <h3 className="text-[#111827] text-[15px] font-semibold">
-                    Políticas de Segurança
+                    Polticas de Segurana
                   </h3>
                   <div className="flex items-center gap-1.5 bg-[#E6F8F0] px-2.5 py-1 rounded-full ml-auto">
                     <div className="w-1.5 h-1.5 bg-[#24865E] rounded-full"></div>
@@ -723,10 +723,10 @@ export function AgentFleet() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Cap Diário */}
+                  {/* Daily Cap */}
                   <div>
                     <label className="block text-[#111827] text-[12px] font-medium mb-1.5">
-                      Limite Diário (SOL)
+                      Daily Limit (SOL)
                     </label>
                     <div className="flex items-center bg-white border border-[#E8EAEC] rounded-[10px] overflow-hidden">
                       <span className="pl-3 text-[#777D85] text-[14px] font-medium">
@@ -794,10 +794,10 @@ export function AgentFleet() {
                     </div>
                   </div>
 
-                  {/* Cap por TX */}
+                  {/* Max per TX */}
                   <div>
                     <label className="block text-[#111827] text-[12px] font-medium mb-1.5">
-                      Limite por Transação (SOL)
+                      Per-Transaction Limit (SOL)
                     </label>
                     <div className="flex items-center bg-white border border-[#E8EAEC] rounded-[10px] overflow-hidden">
                       <span className="pl-3 text-[#777D85] text-[14px] font-medium">
@@ -876,10 +876,10 @@ export function AgentFleet() {
                     setForm((f) => ({ ...f, whitelist: e.target.checked }))
                   }
                 />
-                Restringir destinatários
+                Restringir destinatrios
               </label>
               <label className="text-[#777D85] text-[12px]">
-                Endereços permitidos, separados por vírgula
+                Endereos permitidos, separados por vrgula
                 <textarea
                   value={form.recipients}
                   onChange={(e) =>
@@ -890,7 +890,7 @@ export function AgentFleet() {
               </label>
             </div>
 
-            {/* Footer com Botão */}
+            {/* Footer com Boto */}
             <div className="p-6 pt-4 border-t border-gray-100 mt-auto flex justify-end">
               <button
                 disabled={busy}

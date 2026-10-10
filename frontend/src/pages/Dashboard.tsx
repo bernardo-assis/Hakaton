@@ -41,7 +41,7 @@ export function Dashboard({
       setError(
         e instanceof Error
           ? e.message
-          : "Não foi possível carregar o dashboard.",
+          : "No foi possvel carregar o dashboard.",
       );
     } finally {
       setIsLoading(false);
@@ -90,7 +90,7 @@ export function Dashboard({
         },
       );
       setMessage(
-        `Solicitação Devnet: ${result.signature ?? "faucet solicitado"}. Confira o saldo atualizado.`,
+        `Solicitao Devnet: ${result.signature ?? "faucet solicitado"}. Confira o saldo atualizado.`,
       );
       setIsDepositModalOpen(false);
       await load();
@@ -111,7 +111,7 @@ export function Dashboard({
         }),
       });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Saque indisponível.");
+      setError(e instanceof Error ? e.message : "Saque indisponvel.");
     }
   };
   const freeze = async (id: string) => {
@@ -123,7 +123,7 @@ export function Dashboard({
       });
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Não foi possível congelar.");
+      setError(e instanceof Error ? e.message : "No foi possvel congelar.");
     }
   };
 
@@ -136,7 +136,7 @@ export function Dashboard({
       )}
       {error && (
         <p role="alert" className="text-[#F04448] text-[13px] mb-4">
-          {error} {data && <span>Dados da última atualização.</span>}{" "}
+          {error} {data && <span>Dados da ltima atualizao.</span>}{" "}
           <button onClick={() => void load()} className="underline">
             Tentar novamente
           </button>
@@ -155,21 +155,21 @@ export function Dashboard({
           </button>
         </p>
       )}
-      {/* Saudação */}
+      {/* Greeting */}
       <div className="flex items-baseline gap-2 mb-8">
         <h1 className="text-[#111827] text-[30px] font-medium font-inter">
           Good morning, Founder
         </h1>
         <span className="text-[#777D85] text-[13px] font-normal">
-          - Segurança da Frota & Controle de Orçamento
+          - Fleet Security & Budget Control
         </span>
       </div>
 
       {/* Grid Principal (3 Colunas) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* COLUNA 1: Cofre + Limite Diário */}
+        {/* COLUMN 1: Cofre + Daily Limit */}
         <div className="flex flex-col gap-6">
-          {/* Cartão: Total Vault Balance */}
+          {/* Carto: Total Vault Balance */}
           <div className="bg-[#064E3B] rounded-[22px] p-6 shadow-sm flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <span className="text-[#A5C0B4] text-[13px] font-medium">
@@ -201,7 +201,7 @@ export function Dashboard({
             </div>
             <div className="mb-6">
               <span className="text-[#A5C0B4] text-[12px]">
-                SOL · Solana Devnet
+                SOL  Solana Devnet
               </span>
             </div>
             <div className="flex gap-3 mb-6">
@@ -248,7 +248,7 @@ export function Dashboard({
               <div className="text-[#A5C0B4] text-[11px] mb-3 flex items-center gap-1.5">
                 <span>Vaults</span>
                 <span className="text-white/20">|</span>
-                <span>SOL / política / histórico</span>
+                <span>SOL / poltica / histrico</span>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div className="bg-white/5 rounded-xl p-3">
@@ -305,7 +305,7 @@ export function Dashboard({
                     </span>
                   </div>
                   <div className="text-white text-[13px] font-semibold mb-0.5">
-                    {data ? sol(spentToday) : "—"}
+                    {data ? sol(spentToday) : ""}
                   </div>
                   <div className="text-[#B6F03F] text-[9px] font-medium">
                     Devnet
@@ -315,11 +315,11 @@ export function Dashboard({
             </div>
           </div>
 
-          {/* Cartão: Limite Diário da Frota */}
+          {/* Carto: Fleet Daily Limit */}
           <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
             <div className="flex justify-between items-start mb-6">
               <h3 className="text-[#111827] text-[15px] font-medium">
-                Limite Diário da Frota
+                Fleet Daily Limit
               </h3>
               <span className="text-[#777D85] text-[11px] font-medium bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
                 Hard cap enabled
@@ -336,17 +336,17 @@ export function Dashboard({
               </div>
               <div className="flex justify-between items-center text-[12px]">
                 <span className="text-[#111827] font-semibold">
-                  {data ? sol(spentToday) : "—"} spent today
+                  {data ? sol(spentToday) : ""} spent today
                 </span>
                 <span className="text-[#777D85] font-medium">
-                  {data ? sol(dailyLimit) : "—"}
+                  {data ? sol(dailyLimit) : ""}
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* COLUNA 2: Métricas + Cartões Virtuais */}
+        {/* COLUMN 2: Metrics + Virtual Cards */}
         <div className="flex flex-col gap-6">
           {/* Grid 2x2 */}
           <div className="grid grid-cols-2 gap-4">
@@ -373,7 +373,7 @@ export function Dashboard({
               </div>
               <div>
                 <div className="text-white text-[30px] font-semibold mb-1">
-                  {data ? activeAgents : "—"}
+                  {data ? activeAgents : ""}
                 </div>
                 <div className="text-[#A5C0B4] text-[11px] font-medium flex items-center gap-1">
                   <svg
@@ -393,7 +393,7 @@ export function Dashboard({
                     agents.filter((a) => a.created_at.slice(0, 7) === month)
                       .length
                   }{" "}
-                  cadastrados este mês
+                  cadastrados este ms
                 </div>
               </div>
             </div>
@@ -421,7 +421,7 @@ export function Dashboard({
               </div>
               <div>
                 <div className="text-[#111827] text-[30px] font-semibold mb-1">
-                  {data ? sol(spentToday) : "—"}
+                  {data ? sol(spentToday) : ""}
                 </div>
                 <div className="text-[#24865E] text-[11px] font-medium flex items-center gap-1">
                   <svg
@@ -465,7 +465,7 @@ export function Dashboard({
               </div>
               <div>
                 <div className="text-[#111827] text-[30px] font-semibold mb-1">
-                  {data ? blockedTxs : "—"}
+                  {data ? blockedTxs : ""}
                 </div>
                 <div className="text-[#F04448] text-[11px] font-medium">
                   Over-budget attempts
@@ -498,7 +498,7 @@ export function Dashboard({
                 <div className="text-[#111827] text-[30px] font-semibold mb-1">
                   {agents.length
                     ? `${Math.round((activeAgents / agents.length) * 100)}%`
-                    : "—"}
+                    : ""}
                 </div>
                 <div className="text-[#777D85] text-[11px] font-medium">
                   Agentes ativos
@@ -507,7 +507,7 @@ export function Dashboard({
             </div>
           </div>
 
-          {/* Cartões Virtuais (Agent Cards) */}
+          {/* Virtual Cards (Agent Cards) */}
           <div className="bg-white rounded-[22px] p-5 shadow-sm border border-gray-100 flex-1 flex flex-col">
             <div className="flex justify-between items-center mb-5">
               <div className="flex items-center gap-2">
@@ -527,7 +527,7 @@ export function Dashboard({
                   </svg>
                 </div>
                 <h3 className="text-[#111827] text-[15px] font-medium">
-                  Cartões de Agentes
+                  Agent Cards
                 </h3>
               </div>
               <button
@@ -589,7 +589,7 @@ export function Dashboard({
                       Cap: {sol(fromLamports(agent.daily_cap_lamports))}/dia
                     </div>
                     <div className="text-white text-[15px] font-mono tracking-[0.2em]">
-                      {agent.agent_pubkey.slice(0, 4)}…
+                      {agent.agent_pubkey.slice(0, 4)}
                       {agent.agent_pubkey.slice(-4)}
                     </div>
                   </div>
@@ -619,14 +619,14 @@ export function Dashboard({
           </div>
         </div>
 
-        {/* COLUNA 3: Gráfico */}
+        {/* COLUMN 3: Chart */}
         <div className="bg-white rounded-[22px] p-5 shadow-sm flex flex-col border border-gray-100">
           <div className="mb-4">
             <h3 className="text-[#111827] text-[16px] font-medium mb-1">
-              Volume Diário de Transações
+              Daily Transaction Volume
             </h3>
             <p className="text-[#777D85] text-[11px]">
-              Atividade da sua frota nos últimos 7 dias
+              Fleet activity in the last 7 days
             </p>
           </div>
           <div className="bg-[#F6F7F7] rounded-[14px] p-4 flex-1 flex flex-col">
@@ -717,7 +717,7 @@ export function Dashboard({
         </div>
       </div>
 
-      {/* Tabela de Transações */}
+      {/* Tabela de Transaes */}
       <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 mt-6">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-[#111827] text-[16px] font-medium">
@@ -783,7 +783,7 @@ export function Dashboard({
               <tr className="bg-[#F6F7F7] border-b border-[#E8EAEC]">
                 <th className="py-3 px-4 text-[#777D85] text-[11px] font-medium w-[40px]">
                   <input
-                    aria-label="Selecionar todas as transações"
+                    aria-label="Selecionar todas as transaes"
                     type="checkbox"
                     checked={
                       transactions.length > 0 &&
@@ -804,7 +804,7 @@ export function Dashboard({
                   Agent Name
                 </th>
                 <th className="py-3 px-4 text-[#777D85] text-[11px] font-medium">
-                  Serviço
+                  Service
                 </th>
                 <th className="py-3 px-4 text-[#777D85] text-[11px] font-medium">
                   Amount
@@ -832,7 +832,7 @@ export function Dashboard({
                   >
                     <td className="py-3 px-4 w-[40px]">
                       <input
-                        aria-label={`Selecionar transação ${tx.id}`}
+                        aria-label={`Selecionar transao ${tx.id}`}
                         type="checkbox"
                         checked={selected.includes(tx.id)}
                         onChange={(e) =>
@@ -882,7 +882,7 @@ export function Dashboard({
                       >
                         {tx.status}
                         {tx.settlement_status
-                          ? ` · ${tx.settlement_status}`
+                          ? `  ${tx.settlement_status}`
                           : ""}
                       </span>
                     </td>
@@ -936,7 +936,7 @@ export function Dashboard({
                     <option value="">Selecione</option>
                     {data?.vaults.map((v) => (
                       <option key={v.id} value={v.id}>
-                        {v.vault_pubkey.slice(0, 8)}…
+                        {v.vault_pubkey.slice(0, 8)}
                       </option>
                     ))}
                   </select>
@@ -958,7 +958,7 @@ export function Dashboard({
                   />
                 </div>
                 <p className="text-[#777D85] text-[11px] mt-2">
-                  Faucet de teste Devnet. Sujeito à disponibilidade; não
+                  Faucet de teste Devnet. Sujeito  disponibilidade; no
                   deposita dinheiro real.
                 </p>
               </div>

@@ -87,7 +87,7 @@ export function VaultBudgets() {
       });
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro ao salvar política.");
+      setError(e instanceof Error ? e.message : "Erro ao salvar poltica.");
     } finally {
       setBusy(false);
     }
@@ -128,7 +128,7 @@ export function VaultBudgets() {
         const d = toLamports(daily),
           t = toLamports(single);
         if (BigInt(t) > BigInt(d))
-          throw new Error("Limite por transação excede limite diário.");
+          throw new Error("Limite por transao excede limite dirio.");
         await request(`/agents/${editing.id}`, {
           method: "PATCH",
           body: JSON.stringify({
@@ -138,7 +138,7 @@ export function VaultBudgets() {
         });
       }
       setModal(null);
-      setMessage("Configuração salva no backend.");
+      setMessage("Configuration salva no backend.");
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao salvar.");
@@ -159,10 +159,10 @@ export function VaultBudgets() {
         transferred: false;
       }>(`/vaults/${vault.id}/optimize`, { method: "POST", body: "{}" });
       setMessage(
-        `Recomendação por regras: ${result.recommendation} Nenhuma transferência realizada.`,
+        `Recomendao por regras: ${result.recommendation} Nenhuma transferncia realizada.`,
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro na recomendação.");
+      setError(e instanceof Error ? e.message : "Erro na recomendao.");
     } finally {
       setBusy(false);
     }
@@ -188,7 +188,7 @@ export function VaultBudgets() {
       )}
       {error && (
         <p role="alert" className="text-[#F04448] text-[13px] mb-4">
-          {error} {vault && <span>Dados da última atualização.</span>}{" "}
+          {error} {vault && <span>Dados da ltima atualizao.</span>}{" "}
           <button onClick={() => void load()} className="underline">
             Tentar novamente
           </button>
@@ -199,11 +199,11 @@ export function VaultBudgets() {
           {message}
         </p>
       )}
-      {/* Cabeçalho */}
+      {/* Cabealho */}
       <div className="flex justify-between items-start mb-8">
         <div className="flex flex-col gap-1.5">
           <h1 className="text-[#111827] text-[30px] font-medium font-inter">
-            Orçamentos do Cofre
+            Oramentos do Cofre
           </h1>
           <span className="text-[#777D85] text-[13px] font-normal">
             Allocate capital, manage liquidity, and set global spending rules
@@ -229,7 +229,7 @@ export function VaultBudgets() {
                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"
               />
             </svg>
-            {vault ? "Configurar política" : "Cadastrar carteira"}
+            {vault ? "Configurar poltica" : "Cadastrar carteira"}
           </button>
           <button
             disabled={busy}
@@ -249,7 +249,7 @@ export function VaultBudgets() {
                 d="M13 10V3L4 14h7v7l9-11h-7z"
               />
             </svg>
-            Recomendação de liquidez
+            Recomendao de liquidez
           </button>
         </div>
       </div>
@@ -264,7 +264,7 @@ export function VaultBudgets() {
           <option value="">Selecione um cofre</option>
           {vaults.map((v) => (
             <option value={v.id} key={v.id}>
-              {v.vault_pubkey.slice(0, 8)}… · {v.status}
+              {v.vault_pubkey.slice(0, 8)}  {v.status}
             </option>
           ))}
         </select>
@@ -287,17 +287,17 @@ export function VaultBudgets() {
       </div>
       {!vault && !loading && !error && (
         <p className="text-[#777D85] text-[13px] mb-4">
-          Cadastre uma carteira pública Devnet. O protótipo acompanha o saldo
+          Cadastre uma carteira pblica Devnet. O prottipo acompanha o saldo
           sem acessar sua chave privada.
         </p>
       )}
-      {/* Grid de Métricas do Cofre */}
+      {/* Grid de Mtricas do Cofre */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Saldo Total */}
         <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
           <div className="flex justify-between items-start mb-4">
             <span className="text-[#777D85] text-[13px] font-medium">
-              Liquidez Disponível
+              Liquidez Disponvel
             </span>
             <div className="w-8 h-8 rounded-full bg-[#E6F8F0] flex items-center justify-center">
               <svg
@@ -318,7 +318,7 @@ export function VaultBudgets() {
           <div>
             <h2 className="text-[#111827] text-[32px] font-semibold tracking-tight">
               {vault?.balance_lamports == null
-                ? "Indisponível"
+                ? "Indisponvel"
                 : sol(fromLamports(vault.balance_lamports))}
             </h2>
             <p className="text-[#24865E] text-[12px] font-medium mt-1 flex items-center gap-1">
@@ -364,10 +364,10 @@ export function VaultBudgets() {
           </div>
           <div>
             <h2 className="text-[#111827] text-[32px] font-semibold tracking-tight">
-              {vault ? sol(totalCap) : "—"}
+              {vault ? sol(totalCap) : ""}
             </h2>
             <p className="text-[#777D85] text-[12px] font-medium mt-1">
-              Soma dos limites; não representa reserva de saldo
+              Soma dos limites; no representa reserva de saldo
             </p>
           </div>
         </div>
@@ -396,7 +396,7 @@ export function VaultBudgets() {
           </div>
           <div>
             <h2 className="text-white text-[32px] font-semibold tracking-tight">
-              {vault ? sol(spent) : "—"}
+              {vault ? sol(spent) : ""}
             </h2>
             <div className="w-full bg-[#054030] rounded-full h-[6px] mt-3 overflow-hidden">
               <div
@@ -405,7 +405,7 @@ export function VaultBudgets() {
               ></div>
             </div>
             <p className="text-[#A5C0B4] text-[11px] font-medium mt-2">
-              {usagePercent(spent, totalCap).toFixed(0)}% do limite diário
+              {usagePercent(spent, totalCap).toFixed(0)}% do limite dirio
               consumido
             </p>
           </div>
@@ -413,11 +413,11 @@ export function VaultBudgets() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Coluna da Esquerda: Alocação por Agente */}
+        {/* Coluna da Esquerda: Alocao por Agente */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 h-full">
             <h3 className="text-[#111827] text-[16px] font-semibold mb-6">
-              Distribuição de Orçamento por Agente
+              Distribuio de Oramento por Agente
             </h3>
 
             <div className="flex flex-col gap-6">
@@ -476,7 +476,7 @@ export function VaultBudgets() {
           </div>
         </div>
 
-        {/* Coluna da Direita: Políticas Globais */}
+        {/* Coluna da Direita: Polticas Globais */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 h-full">
             <div className="flex items-center gap-2 mb-6">
@@ -494,7 +494,7 @@ export function VaultBudgets() {
                 />
               </svg>
               <h3 className="text-[#111827] text-[16px] font-semibold">
-                Políticas Globais (Cofre)
+                Polticas Globais (Cofre)
               </h3>
             </div>
 
@@ -506,7 +506,7 @@ export function VaultBudgets() {
                     Pause fleet on low balance
                   </h4>
                   <p className="text-[#777D85] text-[11px] leading-tight">
-                    Bloqueia a avaliação se o saldo ficar abaixo de{" "}
+                    Bloqueia a avaliao se o saldo ficar abaixo de{" "}
                     {sol(fromLamports(policies.low_balance_threshold_lamports))}
                     .
                   </p>
@@ -531,16 +531,16 @@ export function VaultBudgets() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h4 className="text-[#111827] text-[13px] font-medium mb-1">
-                    Exigir aprovação humana
+                    Exigir aprovao humana
                   </h4>
                   <p className="text-[#777D85] text-[11px] leading-tight">
-                    Bloqueia solicitações acima de{" "}
+                    Bloqueia solicitaes acima de{" "}
                     {sol(fromLamports(policies.approval_threshold_lamports))};
-                    aprovação ainda indisponível.
+                    aprovao ainda indisponvel.
                   </p>
                 </div>
                 <button
-                  aria-label="Exigir aprovação humana"
+                  aria-label="Exigir aprovao humana"
                   role="switch"
                   aria-checked={policies.require_human_approval}
                   disabled={busy || !vault}
@@ -559,14 +559,14 @@ export function VaultBudgets() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h4 className="text-[#111827] text-[13px] font-medium mb-1">
-                    Restringir destinatários
+                    Restringir destinatrios
                   </h4>
                   <p className="text-[#777D85] text-[11px] leading-tight">
-                    Bloqueia destinatários fora da lista de cada agente.
+                    Bloqueia destinatrios fora da lista de cada agente.
                   </p>
                 </div>
                 <button
-                  aria-label="Restringir destinatários"
+                  aria-label="Restringir destinatrios"
                   role="switch"
                   aria-checked={policies.block_unlisted_recipients}
                   disabled={busy || !vault}
@@ -588,7 +588,7 @@ export function VaultBudgets() {
           <div
             role="dialog"
             aria-modal="true"
-            aria-label="Configuração do cofre"
+            aria-label="Configuration do cofre"
             className="bg-white w-full max-w-[600px] rounded-[24px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
           >
             <div className="flex justify-between items-center p-6 pb-4 border-b border-gray-100">
@@ -597,7 +597,7 @@ export function VaultBudgets() {
                   ? "Cadastrar carteira Devnet"
                   : modal === "agent"
                     ? "Ajustar limites"
-                    : "Configurar política global"}
+                    : "Configurar poltica global"}
               </h2>
               <button
                 aria-label="Fechar"
@@ -605,7 +605,7 @@ export function VaultBudgets() {
                 onClick={() => setModal(null)}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 text-gray-500"
               >
-                ×
+                
               </button>
             </div>
             <div className="p-6 overflow-y-auto flex flex-col gap-4">
@@ -616,23 +616,23 @@ export function VaultBudgets() {
               )}
               {modal === "create" ? (
                 <label className="text-[#111827] text-[13px]">
-                  Endereço público da carteira
+                  Endereo pblico da carteira
                   <input
                     value={owner}
                     onChange={(e) => setOwner(e.target.value)}
-                    placeholder="Endereço Solana público"
+                    placeholder="Endereo Solana pblico"
                     className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 mt-2"
                   />
                   <p className="text-[#777D85] text-[12px] mt-3">
-                    Pode informar o endereço manualmente ou conectar Phantom.
-                    Isso não autentica o usuário nem autoriza saques. Não
+                    Pode informar o endereo manualmente ou conectar Phantom.
+                    Isso no autentica o usurio nem autoriza saques. No
                     informe chave privada.
                   </p>
                 </label>
               ) : modal === "agent" ? (
                 <>
                   <label className="text-[#111827] text-[13px]">
-                    Limite diário (SOL)
+                    Limite dirio (SOL)
                     <input
                       value={daily}
                       onChange={(e) => setDaily(e.target.value)}
@@ -640,7 +640,7 @@ export function VaultBudgets() {
                     />
                   </label>
                   <label className="text-[#111827] text-[13px]">
-                    Limite por transação (SOL)
+                    Limite por transao (SOL)
                     <input
                       value={single}
                       onChange={(e) => setSingle(e.target.value)}
@@ -651,7 +651,7 @@ export function VaultBudgets() {
               ) : (
                 <>
                   <label className="text-[#111827] text-[13px]">
-                    Saldo mínimo (SOL)
+                    Saldo mnimo (SOL)
                     <input
                       value={low}
                       onChange={(e) => setLow(e.target.value)}
@@ -659,7 +659,7 @@ export function VaultBudgets() {
                     />
                   </label>
                   <label className="text-[#111827] text-[13px]">
-                    Valor para exigir aprovação (SOL)
+                    Valor para exigir aprovao (SOL)
                     <input
                       value={approval}
                       onChange={(e) => setApproval(e.target.value)}
@@ -667,8 +667,8 @@ export function VaultBudgets() {
                     />
                   </label>
                   <p className="text-[#777D85] text-[12px]">
-                    Ative as regras nos controles do painel. Solicitações acima
-                    do limite de aprovação serão bloqueadas nesta versão.
+                    Ative as regras nos controles do painel. Solicitaes acima
+                    do limite de aprovao sero bloqueadas nesta verso.
                   </p>
                 </>
               )}

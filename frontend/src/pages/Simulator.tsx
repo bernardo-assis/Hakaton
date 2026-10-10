@@ -37,7 +37,7 @@ export function Simulator() {
       setError(
         e instanceof Error
           ? e.message
-          : "Não foi possível carregar simulações.",
+          : "No foi possvel carregar simulaes.",
       );
     } finally {
       setLoading(false);
@@ -65,7 +65,7 @@ export function Simulator() {
     if (!running || busy) return;
     if (!agentId || !recipient.trim()) {
       setError(
-        "Selecione um agente e informe o destinatário para avaliar as regras.",
+        "Selecione um agente e informe o destinatrio para avaliar as regras.",
       );
       return;
     }
@@ -74,7 +74,7 @@ export function Simulator() {
     const signal = control.begin();
     append(
       "action",
-      `[ACTION] Avaliando ${fromLamports(amount)} SOL — nenhum pagamento será enviado.`,
+      `[ACTION] Avaliando ${fromLamports(amount)} SOL  nenhum pagamento ser enviado.`,
     );
     try {
       const result = await request<Simulation>("/simulator/evaluate", {
@@ -116,8 +116,8 @@ export function Simulator() {
     append(
       "system",
       control.running
-        ? "Simulador iniciado; dispare uma ação para avaliar."
-        : "Simulador parado. Solicitações já recebidas pelo servidor podem permanecer no histórico.",
+        ? "Simulador iniciado; dispare uma ao para avaliar."
+        : "Simulador parado. Solicitaes j recebidas pelo servidor podem permanecer no histrico.",
     );
     if (!control.running) void load();
   };
@@ -136,7 +136,7 @@ export function Simulator() {
             </span>
           </div>
           <p className="text-[#777D85] text-[13px]">
-            Avaliação real de políticas no backend. Simulações não enviam SOL.
+            Avaliao real de polticas no backend. Simulaes no enviam SOL.
           </p>
         </div>
         <button
@@ -204,32 +204,32 @@ export function Simulator() {
                 <option value="">Selecione</option>
                 {agents.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.name} · {a.status}
+                    {a.name}  {a.status}
                   </option>
                 ))}
               </select>
             </label>
             <label className="block text-[#111827] text-[12px] mt-4">
-              Destinatário Solana
+              Destinatrio Solana
               <input
                 disabled={busy}
                 value={recipient}
                 onChange={(e) => setRecipient(e.target.value)}
-                placeholder="Endereço público Devnet"
+                placeholder="Endereo pblico Devnet"
                 className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-3 py-2 mt-2"
               />
             </label>
             {!loading && !error && !agents.length && (
               <p className="text-[#777D85] text-[12px] mt-3">
-                Cadastre um cofre e um agente para começar.
+                Cadastre um cofre e um agente para comear.
               </p>
             )}
           </div>
-          {/* Cartão de Orçamento Diário */}
+          {/* Carto de Oramento Dirio */}
           <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 flex flex-col">
             <div className="flex justify-between items-start mb-6">
               <h3 className="text-[#111827] text-[15px] font-medium">
-                Limite Diário: {agent ? sol(totalBudget) : "—"}
+                Daily Limit: {agent ? sol(totalBudget) : ""}
               </h3>
               <span className="text-[#24865E] text-[11px] font-medium bg-[#E6F8F0] px-2 py-1 rounded-full">
                 Hard cap on
@@ -239,7 +239,7 @@ export function Simulator() {
             <div className="flex justify-between items-end mb-4">
               <div>
                 <span className="text-[#111827] text-[32px] font-semibold tracking-tight">
-                  {agent ? sol(usedBudget) : "—"}{" "}
+                  {agent ? sol(usedBudget) : ""}{" "}
                   <span className="text-[20px]">simulados</span>
                 </span>
               </div>
@@ -257,17 +257,17 @@ export function Simulator() {
 
             <div className="flex justify-between text-[12px] font-medium text-gray-500">
               <span>
-                {agent ? sol(Math.max(0, totalBudget - usedBudget)) : "—"}{" "}
+                {agent ? sol(Math.max(0, totalBudget - usedBudget)) : ""}{" "}
                 remaining
               </span>
-              <span>Reseta às 00:00 UTC</span>
+              <span>Reseta s 00:00 UTC</span>
             </div>
           </div>
 
-          {/* Botões de Ação para Demo */}
+          {/* Botes de Ao para Demo */}
           <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 flex flex-col">
             <h3 className="text-[#111827] text-[14px] font-semibold mb-4">
-              Disparar Ações do Agente
+              Disparar Aes do Agente
             </h3>
             <div className="flex gap-3">
               <button
@@ -275,14 +275,14 @@ export function Simulator() {
                 onClick={triggerGoodBot}
                 className="flex-1 bg-gray-900 text-white py-3 rounded-xl text-[13px] font-semibold hover:bg-gray-800 transition-colors"
               >
-                Robô Comportado (0.5 SOL)
+                Well-Behaved Bot (0.5 SOL)
               </button>
               <button
                 disabled={!running || busy || !agent}
                 onClick={triggerGreedyBot}
                 className="flex-1 bg-gray-900 text-white py-3 rounded-xl text-[13px] font-semibold hover:bg-gray-800 transition-colors"
               >
-                Robô Guloso (6.0 SOL)
+                Rob Guloso (6.0 SOL)
               </button>
             </div>
           </div>
@@ -339,7 +339,7 @@ export function Simulator() {
                   </h3>
                   <p className="text-[11px] text-gray-500">
                     {agent
-                      ? `${agent.id.slice(0, 8)} · SIMULATION`
+                      ? `${agent.id.slice(0, 8)}  SIMULATION`
                       : "Selecione um agente"}
                   </p>
                 </div>
@@ -385,7 +385,7 @@ export function Simulator() {
                 <div className="flex flex-col gap-2">
                   {logs.length === 0 && (
                     <div className="text-gray-600 italic">
-                      Inicie o simulador e dispare uma ação. O histórico é
+                      Inicie o simulador e dispare uma ao. O histrico 
                       preservado no backend.
                     </div>
                   )}
@@ -412,15 +412,15 @@ export function Simulator() {
                     .slice(0, 10)
                     .map((h) => (
                       <div key={h.id} className="text-[11px] text-gray-400">
-                        <time>{new Date(h.created_at).toLocaleString()}</time> ·{" "}
-                        {fromLamports(h.amount_lamports)} SOL · {h.decision} ·{" "}
-                        {h.reason} · NOT_SUBMITTED
+                        <time>{new Date(h.created_at).toLocaleString()}</time> {" "}
+                        {fromLamports(h.amount_lamports)} SOL  {h.decision} {" "}
+                        {h.reason}  NOT_SUBMITTED
                       </div>
                     ))}
                   {/* Cursor piscante falso */}
                   {logs.length > 0 && (
                     <div className="flex gap-3 mt-1">
-                      <span className="text-gray-600">›</span>
+                      <span className="text-gray-600"></span>
                       <span className="w-2 h-4 bg-gray-500 animate-pulse"></span>
                     </div>
                   )}
