@@ -1,4 +1,15 @@
+import { useRef, useEffect } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
+
 export function Pricing() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const featuredCardRef = useRef<HTMLDivElement>(null);
+  const bulletsRef = useRef<(HTMLSpanElement | null)[]>([]);
+
   const plans = [
     {
       name: "Starter",
@@ -50,12 +61,86 @@ export function Pricing() {
     },
   ];
 
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // 1. Entrada suave dos 3 Cards (Stagger Reveal)
+      const validCards = cardsRef.current.filter(Boolean);
+      if (validCards.length && sectionRef.current) {
+        gsap.fromTo(
+          validCards,
+          { y: 50, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.9,
+            stagger: 0.12,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: "top 78%",
+              toggleActions: "play none none reverse",
+            },
+          }
+        );
+      }
+
+      // 2. Spotlight no Card Professional (Acende aura verde neon no centro)
+      if (featuredCardRef.current && sectionRef.current) {
+        gsap.fromTo(
+          featuredCardRef.current,
+          {
+            boxShadow: "0 0 0px rgba(182, 240, 63, 0)",
+            borderColor: "rgba(255, 255, 255, 0.15)",
+          },
+          {
+            boxShadow: "0 0 55px rgba(182, 240, 63, 0.22)",
+            borderColor: "rgba(182, 240, 63, 0.45)",
+            duration: 1.2,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: "top 68%",
+              toggleActions: "play none none reverse",
+            },
+          }
+        );
+      }
+
+      // 3. Cyber Bullets: Acendimento sequencial dos losangos (◆)
+      const validBullets = bulletsRef.current.filter(Boolean);
+      if (validBullets.length && sectionRef.current) {
+        gsap.fromTo(
+          validBullets,
+          { opacity: 0.2, scale: 0.7, filter: "brightness(0.6)" },
+          {
+            opacity: 1,
+            scale: 1,
+            filter: "brightness(1.4) drop-shadow(0 0 6px #B6F03F)",
+            duration: 0.4,
+            stagger: 0.06,
+            ease: "back.out(2)",
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: "top 62%",
+              toggleActions: "play none none reverse",
+            },
+          }
+        );
+      }
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  let bulletCounter = 0;
+
   return (
     <section
       id="pricing"
-      className="relative w-full px-6 lg:px-12 xl:px-20 py-28 text-[#FAFCFA] z-10 bg-[#060D0C]"
+      ref={sectionRef}
+      className="relative w-full px-6 lg:px-12 xl:px-20 py-28 text-[#FAFCFA] z-10 bg-[#060D0C] overflow-hidden"
     >
-      {/* Header Centralizado — Harmonizado com o restante do site */}
+      {/* Header Centralizado */}
       <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-16 lg:mb-20">
         <span className="text-[#B6F03F] text-[14px] md:text-[16px] font-normal tracking-[0.2em] uppercase mb-4">
           Pricing
@@ -65,27 +150,41 @@ export function Pricing() {
         </h2>
       </div>
 
-      {/* Grid de 3 Planos - Fundo Sólido Matte fiel à imagem de referência */}
+      {/* Grid de 3 Planos */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10 max-w-6xl mx-auto items-stretch">
         {plans.map((plan, idx) => (
           <div
             key={idx}
-            className={`flex flex-col justify-between transition-all duration-300 ${
+            ref={(el) => {
+              cardsRef.current[idx] = el;
+              if (plan.featured) {
+                featuredCardRef.current = el;
+              }
+            }}
+            className={`flex flex-col justify-between transition-all duration-300 will-change-transform ${
               plan.featured
-                ? "bg-[#0C1411] border border-white/15 rounded-[24px] p-8 lg:p-10 shadow-2xl relative md:-translate-y-2"
-                : "p-8 lg:p-10 flex flex-col justify-between rounded-[24px]"
+                ? "bg-[#0C1411] border rounded-[24px] p-8 lg:p-10 shadow-2xl relative md:-translate-y-2 z-10"
+                : "p-8 lg:p-10 flex flex-col justify-between rounded-[24px] border border-white/5 bg-[#0C1411]/40 hover:border-white/10"
             }`}
           >
             <div>
               {/* Título e Subtítulo */}
-              <h3 className="text-[#FAFCFA] text-[26px] font-normal tracking-tight">
-                {plan.name}
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-[#FAFCFA] text-[26px] font-normal tracking-tight">
+                  {plan.name}
+                </h3>
+                {plan.featured && (
+                  <span className="text-[11px] font-mono text-[#0C160B] bg-[#B6F03F] px-2.5 py-0.5 rounded-full font-semibold uppercase tracking-wider">
+                    Most Popular
+                  </span>
+                )}
+              </div>
+
               <p className="text-[#FAFCFA]/70 text-[15px] font-normal mt-2 mb-6 leading-relaxed">
                 {plan.description}
               </p>
 
-              {/* Linha divisória fina (Destaque do plano Professional na referência) */}
+              {/* Linha divisória fina */}
               {plan.featured && (
                 <div className="w-full h-px bg-white/10 mb-8" />
               )}
@@ -100,25 +199,37 @@ export function Pricing() {
                 </span>
               </div>
 
-              {/* Lista de Features com Marcador Losango (◆) em Verde Neon */}
+              {/* Lista de Features com Cyber Bullets animados */}
               <ul className="space-y-4 mb-10">
-                {plan.features.map((feature, fIdx) => (
-                  <li key={fIdx} className="flex items-center gap-3 text-[#FAFCFA]/80 text-[15px] font-normal">
-                    <span className="text-[#B6F03F] text-[10px] leading-none select-none">
-                      ◆
-                    </span>
-                    <span>{feature}</span>
-                  </li>
-                ))}
+                {plan.features.map((feature, fIdx) => {
+                  const currentBulletIdx = bulletCounter++;
+                  return (
+                    <li
+                      key={fIdx}
+                      className="flex items-center gap-3 text-[#FAFCFA]/80 text-[15px] font-normal"
+                    >
+                      <span
+                        ref={(el) => {
+                          bulletsRef.current[currentBulletIdx] = el;
+                        }}
+                        className="text-[#B6F03F] text-[11px] leading-none select-none inline-block will-change-transform"
+                      >
+                        ◆
+                      </span>
+                      <span>{feature}</span>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
 
-            {/* Botão de Ação / CTA — Harmonizado com botões do Hero e Solutions */}
-            <button
+            {/* Botão de Ação / CTA */}
+            <a
+              href="#"
               className={`w-full flex items-center justify-center gap-2 cursor-pointer ${plan.buttonClass}`}
             >
               <span>{plan.buttonText}</span>
-            </button>
+            </a>
           </div>
         ))}
       </div>
