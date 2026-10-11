@@ -43,7 +43,7 @@ export async function request<T>(
       );
     throw new ApiError(
       body?.error ||
-        `Não foi possível completar a solicitação (${response.status}).`,
+        `Request could not be completed (${response.status}).`,
       response.status,
     );
   }
@@ -52,7 +52,7 @@ export async function request<T>(
 
 export function sol(value: number | null | undefined): string {
   return value == null
-    ? "Indisponível"
+    ? "Unavailable"
     : `${Number(value).toLocaleString("en-US", { maximumFractionDigits: 9 })} SOL`;
 }
 export function fromLamports(value: string | number | undefined): number {
@@ -60,12 +60,12 @@ export function fromLamports(value: string | number | undefined): number {
 }
 export function toLamports(value: string): string {
   if (!/^\d+(\.\d{1,9})?$/.test(value.trim()))
-    throw new Error("Informe um valor SOL válido, com até 9 casas decimais.");
+    throw new Error("Enter a valid SOL amount with up to 9 decimal places.");
   const [whole, fraction = ""] = value.trim().split(".");
   const amount =
     BigInt(whole) * 1_000_000_000n + BigInt(fraction.padEnd(9, "0"));
   if (amount > BigInt(Number.MAX_SAFE_INTEGER))
-    throw new Error("Valor SOL excede o limite permitido.");
+    throw new Error("SOL amount exceeds maximum allowable limit.");
   return amount.toString();
 }
 export function usagePercent(spent: number, cap: number): number {

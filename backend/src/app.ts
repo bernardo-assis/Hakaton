@@ -27,6 +27,31 @@ const limiter = rateLimit({
   return this.toString();
 };
 
+const transactionLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: {
+    success: false,
+    error: "Too many transaction requests, please wait a moment.",
+  },
+});
+
+app.use((_req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.setHeader("X-Permitted-Cross-Domain-Policies", "none");
+  if (config.auth.production) {
+    res.setHeader(
+      "Strict-Transport-Security",
+      "max-age=31536000; includeSubDomains; preload",
+    );
+  }
+  next();
+});
+
 app.use(cors({ origin: config.auth.allowedOrigins, credentials: true }));
 app.use(originGuard);
 app.use(express.json());
@@ -39,7 +64,7 @@ app.use("/api/users", (_req, res) =>
 );
 app.use("/api/vaults", vaultRoutes);
 app.use("/api/agents", agentRoutes);
-app.use("/api/transactions", transactionRoutes);
+app.use("/api/transactions", transactionLimiter, transactionRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
 const ui = new UiController();

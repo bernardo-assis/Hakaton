@@ -4,7 +4,11 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-export function Pricing() {
+interface PricingProps {
+  onLaunchApp?: () => void;
+}
+
+export function Pricing({ onLaunchApp }: PricingProps = {}) {
   const sectionRef = useRef<HTMLElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
   const featuredCardRef = useRef<HTMLDivElement>(null);
@@ -224,12 +228,12 @@ export function Pricing() {
             </div>
 
             {/* Botão de Ação / CTA */}
-            <a
-              href="#"
-              className={`w-full flex items-center justify-center gap-2 cursor-pointer ${plan.buttonClass}`}
+            <button
+              onClick={onLaunchApp}
+              className={`w-full flex items-center justify-center gap-2 cursor-pointer active:scale-95 ${plan.buttonClass}`}
             >
               <span>{plan.buttonText}</span>
-            </a>
+            </button>
           </div>
         ))}
       </div>

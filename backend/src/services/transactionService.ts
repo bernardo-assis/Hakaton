@@ -11,28 +11,43 @@ export class TransactionService {
     private readonly solanaService: SolanaService
   ) {}
 
-  async processTransaction(data: CreateTransactionInput) {
-    // 1. Fetch agent
-    const agent = await this.agentRepository.getAgentById(data.agent_id);
-    if (!agent) {
-      throw new Error('Agent not found');
+  async processTransaction(
+    data: CreateTransactionInput,
+    identity?: { user_id: string; owner_pubkey: string }
+  ) {
+    // 1. Fetch validation context (enforcing wallet ownership)
+    const ctx = await this.transactionRepository.getValidationContext(
+      data.agent_id,
+      data.recipient_pubkey,
+      identity
+    );
+    if (!ctx) {
+      throw new Error('Agent not found or unauthorized');
     }
 
-    if (agent.status !== 'ACTIVE') {
-      throw new Error('Agent is not active');
-    }
-
-    // 2. Validate caps
+    const { agent, isWhitelisted } = ctx;
+    const policies = typeof ctx.policies === 'string' ? JSON.parse(ctx.policies) : ctx.policies;
     const amount = BigInt(data.amount_lamports);
-    if (amount > agent.single_tx_cap_lamports) {
-      await this.recordBlockedTransaction(data, 'SINGLE_TX_CAP_EXCEEDED');
-      throw new Error('Single transaction cap exceeded');
+    const spent = await this.transactionRepository.getDailySpentLamports(data.agent_id);
+
+    // 2. Validate policies
+    let reason: string | null = null;
+    
+    if (agent.status !== 'ACTIVE') reason = 'AGENT_FROZEN';
+    else if (agent.vault_status !== 'ACTIVE') reason = 'VAULT_FROZEN';
+    else if (amount > agent.single_tx_cap_lamports) reason = 'SINGLE_TX_CAP_EXCEEDED';
+    else if (spent + amount > agent.daily_cap_lamports) reason = 'DAILY_CAP_EXCEEDED';
+    else if ((agent.whitelist_enabled || policies.block_unlisted_recipients) && !isWhitelisted) reason = 'RECIPIENT_NOT_ALLOWED';
+    else if (policies.require_human_approval && amount > BigInt(policies.approval_threshold_lamports)) reason = 'APPROVAL_REQUIRED';
+    else if (policies.pause_on_low_balance) {
+      const balanceStr = await this.solanaService.getBalance(agent.vault_pubkey);
+      if (!balanceStr) reason = 'BALANCE_UNAVAILABLE';
+      else if (BigInt(balanceStr) - amount < BigInt(policies.low_balance_threshold_lamports)) reason = 'LOW_BALANCE';
     }
 
-    const dailySpent = await this.transactionRepository.getDailySpentLamports(data.agent_id);
-    if (dailySpent + amount > agent.daily_cap_lamports) {
-      await this.recordBlockedTransaction(data, 'DAILY_CAP_EXCEEDED');
-      throw new Error('Daily transaction cap exceeded');
+    if (reason) {
+      await this.recordBlockedTransaction(data, reason);
+      throw new Error(`Policy violation: ${reason}`);
     }
 
     // 3. Record approved transaction
@@ -83,8 +98,9 @@ export class TransactionService {
         recipient_pubkey: data.recipient_pubkey,
         amount_lamports: data.amount_lamports,
         decision: 'BLOCKED',
-        settlement_status: 'FAILED',
+        settlement_status: 'NOT_SUBMITTED',
         purpose: data.purpose,
+        error_code: reason,
       });
     } catch (err) {
       // Ignore if idempotency key already exists for blocked tx

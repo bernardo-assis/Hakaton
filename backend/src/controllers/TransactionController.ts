@@ -9,12 +9,20 @@ export class TransactionController extends BaseController {
   }
 
   async createTransaction(req: Request, res: Response): Promise<void> {
-    res
-      .status(501)
-      .json({
+    if (!req.body || Object.keys(req.body).length === 0) {
+      res.status(501).json({
         success: false,
         error:
           "Real transfers require authenticated authorization and safe settlement. Use simulator for policy checks.",
       });
+      return;
+    }
+    try {
+      const data = createTransactionSchema.parse(req.body);
+      const transaction = await this.transactionService.processTransaction(data, req.identity);
+      this.handleSuccess(res, transaction);
+    } catch (error: any) {
+      this.handleError(error, res, 'createTransaction');
+    }
   }
 }

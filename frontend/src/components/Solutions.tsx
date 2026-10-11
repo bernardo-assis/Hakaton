@@ -4,7 +4,12 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-export function Solutions() {
+interface SolutionsProps {
+  onLaunchApp?: () => void;
+  onOpenDocs?: () => void;
+}
+
+export function Solutions({ onLaunchApp, onOpenDocs }: SolutionsProps = {}) {
   const sectionRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const mockupWrapperRef = useRef<HTMLDivElement>(null);
@@ -85,21 +90,21 @@ export function Solutions() {
 
             <div className="flex flex-col sm:flex-row gap-4">
               {/* Botão Get Started com Efeito Shimmer a cada 5s */}
-              <a
-                href="#pricing"
-                className="relative overflow-hidden bg-[#FAFCFA] text-[#0C160B] text-[16px] font-normal rounded-[11px] px-8 py-3.5 hover:bg-gray-200 transition-colors whitespace-nowrap inline-flex items-center justify-center group cursor-pointer shadow-sm"
+              <button
+                onClick={onLaunchApp}
+                className="relative overflow-hidden bg-[#FAFCFA] text-[#0C160B] text-[16px] font-medium rounded-[11px] px-8 py-3.5 hover:bg-gray-200 transition-colors whitespace-nowrap inline-flex items-center justify-center group cursor-pointer shadow-sm active:scale-95"
               >
                 {/* Feixe dinâmico de luz (Shimmer) cruzando a cada 5 segundos */}
                 <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-black/20 to-transparent skew-x-[-25deg] animate-shimmer pointer-events-none" />
                 <span className="relative z-10">Get Started &gt;</span>
-              </a>
+              </button>
 
-              <a
-                href="#features"
-                className="bg-[#202A29]/50 backdrop-blur-[12px] border border-white/10 text-[#FAFCFA] text-[16px] font-normal rounded-[11px] px-8 py-3.5 hover:bg-white/10 transition-colors whitespace-nowrap text-center"
+              <button
+                onClick={onOpenDocs}
+                className="bg-[#202A29]/50 backdrop-blur-[12px] border border-white/10 text-[#FAFCFA] text-[16px] font-normal rounded-[11px] px-8 py-3.5 hover:bg-white/10 transition-colors whitespace-nowrap text-center cursor-pointer active:scale-95"
               >
-                View Demo
-              </a>
+                View Architecture Docs
+              </button>
             </div>
           </div>
 

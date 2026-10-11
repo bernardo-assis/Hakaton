@@ -41,7 +41,7 @@ export function Dashboard({
       setError(
         e instanceof Error
           ? e.message
-          : "No foi possvel carregar o dashboard.",
+          : "Could not load dashboard.",
       );
     } finally {
       setIsLoading(false);
@@ -73,7 +73,7 @@ export function Dashboard({
   };
   const submitDeposit = async () => {
     if (!Number.isFinite(Number(depositAmount)) || Number(depositAmount) <= 0) {
-      setError("Informe um valor SOL positivo.");
+      setError("Please enter a positive SOL amount.");
       return;
     }
     setIsLoading(true);
@@ -90,12 +90,12 @@ export function Dashboard({
         },
       );
       setMessage(
-        `Solicitao Devnet: ${result.signature ?? "faucet solicitado"}. Confira o saldo atualizado.`,
+        `Devnet Request: ${result.signature ?? "faucet requested"}. Check updated balance.`,
       );
       setIsDepositModalOpen(false);
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Falha no faucet Devnet.");
+      setError(e instanceof Error ? e.message : "Devnet faucet failed.");
     } finally {
       setIsLoading(false);
     }
@@ -111,7 +111,7 @@ export function Dashboard({
         }),
       });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Saque indisponvel.");
+      setError(e instanceof Error ? e.message : "Withdrawals currently unavailable.");
     }
   };
   const freeze = async (id: string) => {
@@ -123,7 +123,7 @@ export function Dashboard({
       });
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "No foi possvel congelar.");
+      setError(e instanceof Error ? e.message : "Could not freeze agent.");
     }
   };
 
@@ -131,14 +131,14 @@ export function Dashboard({
     <div className="max-w-[1280px] mx-auto w-full px-6 mt-8 pb-12">
       {isLoading && (
         <p role="status" className="text-[#777D85] text-[13px] mb-4">
-          Carregando dados...
+          Loading data...
         </p>
       )}
       {error && (
         <p role="alert" className="text-[#F04448] text-[13px] mb-4">
-          {error} {data && <span>Dados da ltima atualizao.</span>}{" "}
-          <button onClick={() => void load()} className="underline">
-            Tentar novamente
+          {error} {data && <span>Data from last update.</span>}{" "}
+          <button onClick={() => void load()} className="underline cursor-pointer">
+            Try again
           </button>
         </p>
       )}
@@ -149,9 +149,9 @@ export function Dashboard({
       )}
       {data && !data.vaultId && (
         <p className="text-[#777D85] text-[13px] mb-4">
-          Nenhum cofre cadastrado.{" "}
-          <button onClick={() => onNavigate("vault")} className="underline">
-            Cadastrar carteira Devnet
+          No vault registered.{" "}
+          <button onClick={() => onNavigate("vault")} className="underline cursor-pointer">
+            Register Devnet Vault
           </button>
         </p>
       )}
@@ -170,7 +170,7 @@ export function Dashboard({
         {/* COLUMN 1: Cofre + Daily Limit */}
         <div className="flex flex-col gap-6">
           {/* Carto: Total Vault Balance */}
-          <div className="bg-[#064E3B] rounded-[22px] p-6 shadow-sm flex flex-col">
+          <div className="bg-[#064E3B] rounded-[22px] p-6 shadow-sm flex flex-col hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             <div className="flex justify-between items-center mb-4">
               <span className="text-[#A5C0B4] text-[13px] font-medium">
                 Total Vault Balance
@@ -207,7 +207,7 @@ export function Dashboard({
             <div className="flex gap-3 mb-6">
               <button
                 onClick={handleDeposit}
-                className="flex-1 bg-[#B6F03F] text-[#111827] flex items-center justify-center gap-2 py-2.5 rounded-full text-[13px] font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+                className="flex-1 bg-[#B6F03F] text-[#111827] flex items-center justify-center gap-2 py-2.5 rounded-full text-[13px] font-semibold hover:opacity-95 hover:shadow-sm active:scale-[0.98] transition-all duration-200 ease-out cursor-pointer"
               >
                 <svg
                   className="w-4 h-4"
@@ -226,7 +226,7 @@ export function Dashboard({
               </button>
               <button
                 onClick={handleWithdraw}
-                className="flex-1 bg-white/10 text-white flex items-center justify-center gap-2 py-2.5 rounded-full text-[13px] font-semibold hover:bg-white/20 transition-colors cursor-pointer"
+                className="flex-1 bg-white/10 text-white flex items-center justify-center gap-2 py-2.5 rounded-full text-[13px] font-semibold hover:bg-white/20 hover:shadow-sm active:scale-[0.98] transition-all duration-200 ease-out cursor-pointer"
               >
                 <svg
                   className="w-4 h-4"
@@ -248,7 +248,7 @@ export function Dashboard({
               <div className="text-[#A5C0B4] text-[11px] mb-3 flex items-center gap-1.5">
                 <span>Vaults</span>
                 <span className="text-white/20">|</span>
-                <span>SOL / poltica / histrico</span>
+                <span>SOL / policies / history</span>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div className="bg-white/5 rounded-xl p-3">
@@ -275,7 +275,7 @@ export function Dashboard({
                       </span>
                     </div>
                     <span className="text-[#A5C0B4] text-[11px] font-medium">
-                      Limite
+                      Limit
                     </span>
                   </div>
                   <div className="text-white text-[13px] font-semibold mb-0.5">
@@ -301,7 +301,7 @@ export function Dashboard({
                       />
                     </svg>
                     <span className="text-[#A5C0B4] text-[11px] font-medium">
-                      Gasto
+                      Spent
                     </span>
                   </div>
                   <div className="text-white text-[13px] font-semibold mb-0.5">
@@ -316,7 +316,7 @@ export function Dashboard({
           </div>
 
           {/* Carto: Fleet Daily Limit */}
-          <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+          <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             <div className="flex justify-between items-start mb-6">
               <h3 className="text-[#111827] text-[15px] font-medium">
                 Fleet Daily Limit
@@ -328,7 +328,7 @@ export function Dashboard({
             <div>
               <div className="w-full bg-[#F6F7F7] rounded-full h-[10px] mb-3 overflow-hidden">
                 <div
-                  className="bg-[#064E3B] h-full rounded-full"
+                  className="bg-[#064E3B] h-full rounded-full transition-all duration-500 ease-out"
                   style={{
                     width: `${dailyLimit > 0 ? Math.min((spentToday / dailyLimit) * 100, 100) : 0}%`,
                   }}
@@ -350,7 +350,7 @@ export function Dashboard({
         <div className="flex flex-col gap-6">
           {/* Grid 2x2 */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-[#064E3B] rounded-[14px] p-5 shadow-sm flex flex-col justify-between">
+            <div className="bg-[#064E3B] rounded-[14px] p-5 shadow-sm flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
               <div className="flex justify-between items-start mb-2">
                 <span className="text-white text-[13px] font-medium">
                   Active Agents
@@ -393,12 +393,12 @@ export function Dashboard({
                     agents.filter((a) => a.created_at.slice(0, 7) === month)
                       .length
                   }{" "}
-                  cadastrados este ms
+                  registered this month
                 </div>
               </div>
             </div>
 
-            <div className="bg-white border border-gray-100 rounded-[14px] p-5 shadow-sm flex flex-col justify-between">
+            <div className="bg-white border border-gray-100 rounded-[14px] p-5 shadow-sm flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
               <div className="flex justify-between items-start mb-2">
                 <span className="text-[#111827] text-[13px] font-medium">
                   Today's Spent
@@ -437,12 +437,12 @@ export function Dashboard({
                       d="M5 10l7-7m0 0l7 7m-7-7v18"
                     />
                   </svg>{" "}
-                  Gastos confirmados
+                  Confirmed spend
                 </div>
               </div>
             </div>
 
-            <div className="bg-white border border-gray-100 rounded-[14px] p-5 shadow-sm flex flex-col justify-between">
+            <div className="bg-white border border-gray-100 rounded-[14px] p-5 shadow-sm flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
               <div className="flex justify-between items-start mb-2">
                 <span className="text-[#111827] text-[13px] font-medium">
                   Blocked Txs
@@ -473,7 +473,7 @@ export function Dashboard({
               </div>
             </div>
 
-            <div className="bg-white border border-gray-100 rounded-[14px] p-5 shadow-sm flex flex-col justify-between">
+            <div className="bg-white border border-gray-100 rounded-[14px] p-5 shadow-sm flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
               <div className="flex justify-between items-start mb-2">
                 <span className="text-[#111827] text-[13px] font-medium">
                   Coverage
@@ -501,7 +501,7 @@ export function Dashboard({
                     : ""}
                 </div>
                 <div className="text-[#777D85] text-[11px] font-medium">
-                  Agentes ativos
+                  Active agents
                 </div>
               </div>
             </div>
@@ -532,7 +532,7 @@ export function Dashboard({
               </div>
               <button
                 onClick={() => onNavigate("fleet")}
-                className="bg-[#F6F7F7] px-3 py-1.5 rounded-full text-[12px] font-medium flex items-center gap-1 hover:bg-gray-100 transition-colors"
+                className="bg-[#F6F7F7] px-3 py-1.5 rounded-full text-[12px] font-medium flex items-center gap-1 hover:bg-gray-100 hover:shadow-sm active:scale-[0.98] transition-all duration-200 ease-out cursor-pointer"
               >
                 <svg
                   className="w-3 h-3"
@@ -547,20 +547,20 @@ export function Dashboard({
                     d="M12 4v16m8-8H4"
                   />
                 </svg>
-                Novo
+                New
               </button>
             </div>
 
             <div className="flex gap-4 overflow-x-auto pb-2 flex-1">
               {agents.length === 0 && (
                 <p className="text-[#777D85] text-[12px]">
-                  Nenhum agente cadastrado.
+                  No agents registered.
                 </p>
               )}
               {agents.map((agent) => (
                 <div
                   key={agent.id}
-                  className="min-w-[190px] rounded-[14px] p-4 flex flex-col justify-between relative overflow-hidden"
+                  className="min-w-[190px] rounded-[14px] p-4 flex flex-col justify-between relative overflow-hidden hover:-translate-y-0.5 hover:shadow-md transition-all duration-200"
                   style={{
                     background:
                       "linear-gradient(135deg, rgba(57, 69, 63, 1) 0%, rgba(28, 41, 35, 1) 40%, rgba(16, 25, 22, 1) 100%)",
@@ -586,7 +586,7 @@ export function Dashboard({
                   </div>
                   <div className="relative z-10 my-4">
                     <div className="text-[#A5C0B4] text-[11px] mb-1">
-                      Cap: {sol(fromLamports(agent.daily_cap_lamports))}/dia
+                      Cap: {sol(fromLamports(agent.daily_cap_lamports))}/day
                     </div>
                     <div className="text-white text-[15px] font-mono tracking-[0.2em]">
                       {agent.agent_pubkey.slice(0, 4)}
@@ -596,7 +596,7 @@ export function Dashboard({
                   <button
                     onClick={() => void freeze(agent.id)}
                     disabled={isLoading || agent.status === "FROZEN"}
-                    className="bg-[#F04448] hover:bg-red-600 transition-colors text-white text-[11px] py-1.5 rounded-full font-medium w-full flex justify-center items-center gap-1.5 relative z-10 cursor-pointer"
+                    className="bg-[#F04448] hover:bg-red-600 hover:shadow-sm active:scale-[0.98] transition-all duration-200 ease-out text-white text-[11px] py-1.5 rounded-full font-medium w-full flex justify-center items-center gap-1.5 relative z-10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                   >
                     <svg
                       className="w-3 h-3"
@@ -620,7 +620,7 @@ export function Dashboard({
         </div>
 
         {/* COLUMN 3: Chart */}
-        <div className="bg-white rounded-[22px] p-5 shadow-sm flex flex-col border border-gray-100">
+        <div className="bg-white rounded-[22px] p-5 shadow-sm flex flex-col border border-gray-100 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
           <div className="mb-4">
             <h3 className="text-[#111827] text-[16px] font-medium mb-1">
               Daily Transaction Volume
@@ -632,16 +632,16 @@ export function Dashboard({
           <div className="bg-[#F6F7F7] rounded-[14px] p-4 flex-1 flex flex-col">
             <div className="flex justify-between items-center mb-6">
               <span className="text-[#111827] text-[11px] font-medium">
-                Approveds vs Blockeds
+                Approved vs Blocked
               </span>
               <div className="flex gap-3">
                 <div className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-sm bg-[#B6F03F]"></div>
-                  <span className="text-[#777D85] text-[10px]">Approveds</span>
+                  <span className="text-[#777D85] text-[10px]">Approved</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-sm bg-[#F04448]"></div>
-                  <span className="text-[#777D85] text-[10px]">Blockeds</span>
+                  <span className="text-[#777D85] text-[10px]">Blocked</span>
                 </div>
               </div>
             </div>
@@ -689,19 +689,19 @@ export function Dashboard({
                   return (
                     <div
                       key={idx}
-                      className="relative z-10 w-4 flex flex-col justify-end"
+                      className="relative z-10 w-4 flex flex-col justify-end transition-all duration-500 ease-out"
                       style={{ height: heightPercent + "%" }}
                     >
                       {day.blocked > 0 && (
                         <div
-                          className="w-full bg-[#F04448] rounded-t-sm"
+                          className="w-full bg-[#F04448] rounded-t-sm transition-all duration-500 ease-out"
                           style={{ height: blockedPercent + "%" }}
                         ></div>
                       )}
                       {day.approved > 0 && (
                         <div
                           className={
-                            "w-full bg-[#B6F03F] " +
+                            "w-full bg-[#B6F03F] transition-all duration-500 ease-out " +
                             (day.blocked === 0 ? "rounded-t-sm " : "") +
                             "rounded-b-sm"
                           }
@@ -724,7 +724,7 @@ export function Dashboard({
             Recent Transactions
           </h3>
           <div className="flex gap-2">
-            <div className="flex items-center gap-2 border border-[#E8EAEC] rounded-[10px] px-3 h-[34px]">
+            <div className="flex items-center gap-2 border border-[#E8EAEC] rounded-[10px] px-3 h-[34px] focus-within:ring-2 focus-within:ring-[#064E3B]/20 focus-within:border-[#064E3B] transition-all duration-200">
               <svg
                 className="w-4 h-4 text-[#777D85]"
                 fill="none"
@@ -756,7 +756,7 @@ export function Dashboard({
                       : "ALL",
                 )
               }
-              className="flex items-center gap-2 border border-[#E8EAEC] rounded-[10px] px-3 h-[34px] hover:bg-gray-50 transition-colors cursor-pointer"
+              className="flex items-center gap-2 border border-[#E8EAEC] rounded-[10px] px-3 h-[34px] hover:bg-gray-50 hover:shadow-sm active:scale-[0.98] transition-all duration-200 ease-out cursor-pointer"
             >
               <span className="text-[#111827] text-[12px] font-medium">
                 Filter: {filter}
@@ -783,7 +783,7 @@ export function Dashboard({
               <tr className="bg-[#F6F7F7] border-b border-[#E8EAEC]">
                 <th className="py-3 px-4 text-[#777D85] text-[11px] font-medium w-[40px]">
                   <input
-                    aria-label="Selecionar todas as transaes"
+                    aria-label="Select all transactions"
                     type="checkbox"
                     checked={
                       transactions.length > 0 &&
@@ -828,11 +828,11 @@ export function Dashboard({
                 transactions.map((tx) => (
                   <tr
                     key={tx.id}
-                    className="border-b border-[#E8EAEC] hover:bg-gray-50"
+                    className="border-b border-[#E8EAEC] hover:bg-gray-50/80 transition-colors duration-150"
                   >
                     <td className="py-3 px-4 w-[40px]">
                       <input
-                        aria-label={`Selecionar transao ${tx.id}`}
+                        aria-label={`Select transaction ${tx.id}`}
                         type="checkbox"
                         checked={selected.includes(tx.id)}
                         onChange={(e) =>
@@ -871,7 +871,7 @@ export function Dashboard({
                     <td className="py-3 px-4">
                       <span
                         className={
-                          "px-2 py-1 rounded-[4px] text-[10px] font-semibold " +
+                          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] text-[10px] font-semibold tracking-wide transition-all duration-150 " +
                           (tx.settlement_status === "CONFIRMED"
                             ? "bg-[#E6F8F0] text-[#24865E]"
                             : tx.status === "BLOCKED" ||
@@ -880,10 +880,23 @@ export function Dashboard({
                               : "bg-gray-100 text-[#777D85]")
                         }
                       >
-                        {tx.status}
-                        {tx.settlement_status
-                          ? `  ${tx.settlement_status}`
-                          : ""}
+                        <span
+                          className={
+                            "w-1.5 h-1.5 rounded-full shrink-0 " +
+                            (tx.settlement_status === "CONFIRMED"
+                              ? "bg-[#24865E]"
+                              : tx.status === "BLOCKED" ||
+                                  tx.settlement_status === "FAILED"
+                                ? "bg-[#F04448]"
+                                : "bg-[#777D85]")
+                          }
+                        />
+                        <span>
+                          {tx.status}
+                          {tx.settlement_status
+                            ? `  ${tx.settlement_status}`
+                            : ""}
+                        </span>
                       </span>
                     </td>
                   </tr>
@@ -894,15 +907,15 @@ export function Dashboard({
         </div>
       </div>
       {isDepositModalOpen && (
-        <div className="fixed inset-0 bg-[#111827]/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-[400px] rounded-[24px] shadow-2xl overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-[#111827]/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-[400px] rounded-[24px] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center p-6 pb-4 border-b border-gray-100">
               <h2 className="text-[#111827] text-[20px] font-semibold">
                 Deposit SOL
               </h2>
               <button
                 onClick={() => setIsDepositModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 hover:bg-gray-100 text-gray-500 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 hover:bg-gray-100 text-gray-500 hover:shadow-sm active:scale-[0.98] transition-all duration-200 ease-out cursor-pointer"
               >
                 <svg
                   className="w-5 h-5"
@@ -927,13 +940,13 @@ export function Dashboard({
               )}
               <div>
                 <label className="block text-[#111827] text-[13px] font-medium mb-1.5">
-                  Cofre
+                  Vault
                   <select
                     value={depositVaultId}
                     onChange={(e) => setDepositVaultId(e.target.value)}
-                    className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 mt-2 mb-4"
+                    className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 mt-2 mb-4 text-[14px] outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200"
                   >
-                    <option value="">Selecione</option>
+                    <option value="">Select vault</option>
                     {data?.vaults.map((v) => (
                       <option key={v.id} value={v.id}>
                         {v.vault_pubkey.slice(0, 8)}
@@ -947,19 +960,18 @@ export function Dashboard({
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                     <span className="text-[#777D85] font-medium text-[14px]">
-                      ?
+                      ◎
                     </span>
                   </div>
                   <input
                     type="text"
                     value={depositAmount}
                     onChange={(e) => setDepositAmount(e.target.value)}
-                    className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] pl-10 pr-4 py-2.5 text-[14px] text-[#111827] font-semibold outline-none focus:border-[#064E3B] transition-colors"
+                    className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] pl-10 pr-4 py-2.5 text-[14px] text-[#111827] font-semibold outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200"
                   />
                 </div>
                 <p className="text-[#777D85] text-[11px] mt-2">
-                  Faucet de teste Devnet. Sujeito  disponibilidade; no
-                  deposita dinheiro real.
+                  Devnet test faucet. Subject to RPC rate limits; does not deposit real currency.
                 </p>
               </div>
             </div>
@@ -967,7 +979,7 @@ export function Dashboard({
               <button
                 onClick={submitDeposit}
                 disabled={isLoading}
-                className="bg-[#B6F03F] text-[#111827] w-full px-8 py-3 rounded-full text-[14px] font-semibold hover:opacity-90 transition-opacity flex justify-center items-center gap-2"
+                className="bg-[#B6F03F] text-[#111827] w-full px-8 py-3 rounded-full text-[14px] font-semibold hover:opacity-95 hover:shadow-sm active:scale-[0.98] transition-all duration-200 ease-out flex justify-center items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {isLoading ? "Processing..." : "Confirm Deposit"}
               </button>
@@ -977,15 +989,15 @@ export function Dashboard({
       )}
 
       {isWithdrawModalOpen && (
-        <div className="fixed inset-0 bg-[#111827]/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-[400px] rounded-[24px] shadow-2xl overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-[#111827]/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-[400px] rounded-[24px] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center p-6 pb-4 border-b border-gray-100">
               <h2 className="text-[#111827] text-[20px] font-semibold">
                 Withdraw Funds
               </h2>
               <button
                 onClick={() => setIsWithdrawModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 hover:bg-gray-100 text-gray-500 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 hover:bg-gray-100 text-gray-500 hover:shadow-sm active:scale-[0.98] transition-all duration-200 ease-out cursor-pointer"
               >
                 <svg
                   className="w-5 h-5"
@@ -1017,7 +1029,7 @@ export function Dashboard({
                   placeholder="Solana Wallet Address"
                   value={withdrawAddress}
                   onChange={(e) => setWithdrawAddress(e.target.value)}
-                  className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 text-[14px] text-[#111827] placeholder-[#777D85] outline-none focus:border-[#064E3B] transition-colors"
+                  className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 text-[14px] text-[#111827] placeholder-[#777D85] outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200"
                 />
               </div>
               <div>
@@ -1027,14 +1039,14 @@ export function Dashboard({
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                     <span className="text-[#777D85] font-medium text-[14px]">
-                      ?
+                      ◎
                     </span>
                   </div>
                   <input
                     type="text"
                     value={withdrawAmount}
                     onChange={(e) => setWithdrawAmount(e.target.value)}
-                    className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] pl-10 pr-4 py-2.5 text-[14px] text-[#111827] font-semibold outline-none focus:border-[#064E3B] transition-colors"
+                    className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] pl-10 pr-4 py-2.5 text-[14px] text-[#111827] font-semibold outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200"
                   />
                 </div>
               </div>
@@ -1042,9 +1054,9 @@ export function Dashboard({
             <div className="p-6 pt-4 border-t border-gray-100 flex justify-end">
               <button
                 onClick={submitWithdraw}
-                className="bg-[#064E3B] text-white w-full px-8 py-3 rounded-full text-[14px] font-semibold hover:opacity-90 transition-opacity flex justify-center items-center gap-2"
+                className="bg-[#064E3B] text-white w-full px-8 py-3 rounded-full text-[14px] font-semibold hover:bg-[#085a44] hover:shadow-sm active:scale-[0.98] transition-all duration-200 ease-out flex justify-center items-center gap-2 cursor-pointer"
               >
-                Consultar disponibilidade
+                Check Availability
               </button>
             </div>
           </div>

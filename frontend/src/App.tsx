@@ -6,6 +6,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { AgentFleet } from "./pages/AgentFleet";
 import { Simulator } from "./pages/Simulator";
 import { VaultBudgets } from "./pages/VaultBudgets";
+import { Docs } from "./pages/Docs";
 import { Hero } from "./components/Hero";
 import { Solutions } from "./components/Solutions";
 import { Features } from "./components/Features";
@@ -14,21 +15,37 @@ import { Testimonials } from "./components/Testimonials";
 import { Pricing } from "./components/Pricing";
 import { Footer } from "./components/Footer";
 
-function AuthenticatedApp() {
+function AuthenticatedApp({
+  initialPage = "dashboard",
+  onBackToLanding,
+}: {
+  initialPage?: string;
+  onBackToLanding?: () => void;
+}) {
   const auth = useWalletAuth();
-  const [currentPage, setCurrentPage] = useState("dashboard");
+  const [currentPage, setCurrentPage] = useState(initialPage);
+
+  const handleNavigate = (page: string) => {
+    if (page === "landing" && onBackToLanding) {
+      onBackToLanding();
+    } else {
+      setCurrentPage(page);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#F3F4F6] font-inter pb-12">
       <Header
         key={`header-${auth.generation}`}
         currentPage={currentPage}
-        onNavigate={setCurrentPage}
+        onNavigate={handleNavigate}
       />
-      {auth.session ? (
+      {currentPage === "docs" ? (
+        <Docs onNavigate={handleNavigate} />
+      ) : auth.session ? (
         <div key={`content-${auth.generation}`}>
           {currentPage === "dashboard" && (
-            <Dashboard onNavigate={setCurrentPage} />
+            <Dashboard onNavigate={handleNavigate} />
           )}
           {currentPage === "fleet" && <AgentFleet />}
           {currentPage === "simulator" && <Simulator />}
@@ -62,6 +79,17 @@ function AuthenticatedApp() {
 
 function App() {
   const [currentPage, setCurrentPage] = useState("landing");
+  const [appSection, setAppSection] = useState("dashboard");
+
+  const launchApp = (section: string = "dashboard") => {
+    setAppSection(section);
+    setCurrentPage("app");
+  };
+
+  const openDocs = () => {
+    setAppSection("docs");
+    setCurrentPage("app");
+  };
 
   useEffect(() => {
     if (currentPage !== "landing") return;
@@ -91,7 +119,7 @@ function App() {
       {currentPage === "landing" ? (
         <div className="w-full relative bg-[#060D0C]">
           
-          {/* Fundo de Vdeo (Google Flow / Veo 3.1) - Fixo para todo o site */}
+          {/* Fundo de Vídeo (Google Flow / Veo 3.1) - Fixo para todo o site */}
           <div className="fixed inset-0 w-full h-full z-0 pointer-events-none">
             <video 
               autoPlay 
@@ -104,25 +132,29 @@ function App() {
             </video>
           </div>
 
-          <Hero />
-          <Solutions />
+          <Hero onLaunchApp={() => launchApp("dashboard")} onOpenDocs={openDocs} />
+          <Solutions onLaunchApp={() => launchApp("dashboard")} onOpenDocs={openDocs} />
           <Features />
           <Services />
           <Testimonials />
-          <Pricing />
-          <Footer />
+          <Pricing onLaunchApp={() => launchApp("dashboard")} />
+          <Footer onLaunchApp={() => launchApp("dashboard")} onOpenDocs={openDocs} />
           
-          {/* Botǜo flutuante temporǭrio para ir pro App interno */}
+          {/* Quick Launch Floating Pill */}
           <button 
-            onClick={() => setCurrentPage("dashboard")}
-            className="fixed bottom-4 right-4 z-50 bg-white/10 backdrop-blur-md border border-white/20 text-white px-4 py-2 rounded-lg text-sm hover:bg-white/20"
+            onClick={() => launchApp("dashboard")}
+            className="fixed bottom-6 right-6 z-50 bg-[#B6F03F] text-[#0C160B] font-semibold px-5 py-2.5 rounded-full text-xs shadow-xl hover:bg-[#a3d938] transition-all cursor-pointer flex items-center gap-2 active:scale-95 border border-[#B6F03F]/40"
           >
-            Acessar Sistema Interno &rarr;
+            <span>Launch App</span>
+            <span>&rarr;</span>
           </button>
         </div>
       ) : (
         <WalletAuthProvider>
-          <AuthenticatedApp />
+          <AuthenticatedApp 
+            initialPage={appSection} 
+            onBackToLanding={() => setCurrentPage("landing")} 
+          />
         </WalletAuthProvider>
       )}
     </>

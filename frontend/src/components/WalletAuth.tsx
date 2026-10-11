@@ -26,7 +26,7 @@ interface WalletAuthState {
 const WalletAuthContext = createContext<WalletAuthState | null>(null);
 export function useWalletAuth(): WalletAuthState {
   const auth = useContext(WalletAuthContext);
-  if (!auth) throw new Error("WalletAuthProvider ausente.");
+  if (!auth) throw new Error("WalletAuthProvider missing.");
   return auth;
 }
 export function WalletAuthProvider({ children }: { children: ReactNode }) {

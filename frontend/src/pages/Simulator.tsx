@@ -37,7 +37,7 @@ export function Simulator() {
       setError(
         e instanceof Error
           ? e.message
-          : "No foi possvel carregar simulaes.",
+          : "Could not load simulations.",
       );
     } finally {
       setLoading(false);
@@ -65,7 +65,7 @@ export function Simulator() {
     if (!running || busy) return;
     if (!agentId || !recipient.trim()) {
       setError(
-        "Selecione um agente e informe o destinatrio para avaliar as regras.",
+        "Please select an agent and enter a recipient to evaluate policies.",
       );
       return;
     }
@@ -74,7 +74,7 @@ export function Simulator() {
     const signal = control.begin();
     append(
       "action",
-      `[ACTION] Avaliando ${fromLamports(amount)} SOL  nenhum pagamento ser enviado.`,
+      `[ACTION] Evaluating ${fromLamports(amount)} SOL policy check (simulation mode).`,
     );
     try {
       const result = await request<Simulation>("/simulator/evaluate", {
@@ -97,7 +97,7 @@ export function Simulator() {
       );
     } catch (e) {
       if (!signal.aborted) {
-        const text = e instanceof Error ? e.message : "Erro ao avaliar.";
+        const text = e instanceof Error ? e.message : "Evaluation error.";
         setError(text);
         append("error", text);
       }
@@ -110,12 +110,12 @@ export function Simulator() {
   const triggerReal = async (amount: string) => {
     if (!running || busy) return;
     if (!agentId || !recipient.trim()) {
-      setError("Selecione um agente e informe o destinatário.");
+      setError("Please select an agent and enter a recipient address.");
       return;
     }
     setBusy(true);
     setError("");
-    append("action", `[WEB3] Executando transferência REAL de ${fromLamports(amount)} SOL...`);
+    append("action", `[WEB3] Executing REAL transfer of ${fromLamports(amount)} SOL on Solana...`);
     try {
       const result = await request<any>("/transactions", {
         method: "POST",
@@ -128,9 +128,9 @@ export function Simulator() {
           request_hash: crypto.randomUUID()
         }),
       });
-      append("approved", `[SUCESSO] Transação confirmada na Solana! Assinatura: ${result.signature || result.data?.signature}`);
+      append("approved", `[SUCCESS] Transaction confirmed on Solana! Signature: ${result.signature || result.data?.signature}`);
     } catch (e: any) {
-      append("blocked", `[BLOQUEADO/ERRO] ${e.message}`);
+      append("blocked", `[BLOCKED/ERROR] ${e.message}`);
     } finally {
       setBusy(false);
     }
@@ -144,8 +144,8 @@ export function Simulator() {
     append(
       "system",
       control.running
-        ? "Simulador iniciado; dispare uma ao para avaliar."
-        : "Simulador parado. Solicitaes j recebidas pelo servidor podem permanecer no histrico.",
+        ? "Simulator started; trigger an agent action to evaluate."
+        : "Simulator stopped. Completed evaluation requests remain in history.",
     );
     if (!control.running) void load();
   };
@@ -164,7 +164,7 @@ export function Simulator() {
             </span>
           </div>
           <p className="text-[#777D85] text-[13px]">
-            Avaliao real de polticas no backend. Simulaes no enviam SOL.
+            Real policy engine validation on backend. Simulations do not transfer SOL.
           </p>
         </div>
         <button
@@ -173,7 +173,7 @@ export function Simulator() {
             setError("");
             void load();
           }}
-          className="flex items-center gap-2 border border-gray-200 bg-white text-gray-700 px-4 py-2 rounded-full text-[12px] font-semibold hover:bg-gray-50 transition-colors"
+          className="flex items-center gap-2 border border-gray-200 bg-white text-gray-700 px-4 py-2 rounded-full text-[12px] font-semibold hover:bg-gray-50 active:scale-[0.98] transition-all duration-200 ease-out cursor-pointer shadow-sm"
         >
           <svg
             className="w-4 h-4"
@@ -188,7 +188,7 @@ export function Simulator() {
               d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
             />
           </svg>
-          Limpar terminal
+          Clear terminal
         </button>
       </div>
 
@@ -202,34 +202,34 @@ export function Simulator() {
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-[#111827] text-[14px] font-semibold">
-                {running ? "Simulador ativo" : "Simulador parado"}
+                {running ? "Simulator active" : "Simulator stopped"}
               </span>
             </div>
           </div>
 
           {loading && (
             <p role="status" className="text-[#777D85] text-[12px]">
-              Carregando...
+              Loading...
             </p>
           )}
           {error && (
             <p role="alert" className="text-[#F04448] text-[12px]">
               {error}{" "}
               <button className="underline" onClick={() => void load()}>
-                Tentar novamente
+                Try again
               </button>
             </p>
           )}
           <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100">
             <label className="text-[#111827] text-[12px]">
-              Agente
+              Agent
               <select
                 disabled={busy}
                 value={agentId}
                 onChange={(e) => setAgentId(e.target.value)}
-                className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-3 py-2 mt-2"
+                className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-3 py-2 mt-2 outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200 disabled:opacity-50"
               >
-                <option value="">Selecione</option>
+                <option value="">Select agent...</option>
                 {agents.map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.name}  {a.status}
@@ -238,18 +238,18 @@ export function Simulator() {
               </select>
             </label>
             <label className="block text-[#111827] text-[12px] mt-4">
-              Destinatrio Solana
+              Solana Recipient Public Key
               <input
                 disabled={busy}
                 value={recipient}
                 onChange={(e) => setRecipient(e.target.value)}
-                placeholder="Endereo pblico Devnet"
-                className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-3 py-2 mt-2"
+                placeholder="Devnet public address (e.g. 9xQe...)"
+                className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-3 py-2 mt-2 outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200 disabled:opacity-50"
               />
             </label>
             {!loading && !error && !agents.length && (
               <p className="text-[#777D85] text-[12px] mt-3">
-                Cadastre um cofre e um agente para comear.
+                Register a vault and an agent to get started.
               </p>
             )}
           </div>
@@ -268,7 +268,7 @@ export function Simulator() {
               <div>
                 <span className="text-[#111827] text-[32px] font-semibold tracking-tight">
                   {agent ? sol(usedBudget) : ""}{" "}
-                  <span className="text-[20px]">simulados</span>
+                  <span className="text-[20px]">simulated</span>
                 </span>
               </div>
               <span className="text-gray-400 font-medium text-[14px]">
@@ -278,7 +278,7 @@ export function Simulator() {
 
             <div className="w-full bg-[#F6F7F7] rounded-full h-[10px] mb-3 overflow-hidden">
               <div
-                className="bg-[#B6F03F] h-full rounded-full transition-all duration-500"
+                className="bg-[#B6F03F] h-full rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${usagePercent(usedBudget, totalBudget)}%` }}
               ></div>
             </div>
@@ -288,42 +288,42 @@ export function Simulator() {
                 {agent ? sol(Math.max(0, totalBudget - usedBudget)) : ""}{" "}
                 remaining
               </span>
-              <span>Reseta s 00:00 UTC</span>
+              <span>Resets at 00:00 UTC</span>
             </div>
           </div>
 
           {/* Botes de Ao para Demo */}
           <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 flex flex-col">
             <h3 className="text-[#111827] text-[14px] font-semibold mb-4">
-              Disparar Aes do Agente
+              Trigger Agent Behaviors
             </h3>
             <div className="flex gap-3">
               <button
                 disabled={!running || busy || !agent}
                 onClick={triggerGoodBot}
-                className="flex-1 bg-gray-900 text-white py-3 rounded-xl text-[13px] font-semibold hover:bg-gray-800 transition-colors"
+                className="flex-1 bg-gray-900 text-white py-3 rounded-xl text-[13px] font-semibold hover:bg-gray-800 hover:shadow-md active:scale-[0.98] transition-all duration-200 ease-out disabled:transform-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 Well-Behaved Bot (0.5 SOL)
               </button>
               <button
                 disabled={!running || busy || !agent}
                 onClick={triggerGreedyBot}
-                className="flex-1 bg-gray-900 text-white py-3 rounded-xl text-[13px] font-semibold hover:bg-gray-800 transition-colors"
+                className="flex-1 bg-gray-900 text-white py-3 rounded-xl text-[13px] font-semibold hover:bg-gray-800 hover:shadow-md active:scale-[0.98] transition-all duration-200 ease-out disabled:transform-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
-                Rob Guloso (6.0 SOL)
+                Greedy Rogue Bot (6.0 SOL)
                 </button>
               </div>
               <button
                 disabled={!running || busy || !agent}
                 onClick={() => void triggerReal("500000000")}
-                className="w-full mt-3 bg-[#111827] text-white rounded-[14px] p-4 text-left hover:bg-gray-800 transition-colors cursor-pointer group shadow-sm flex items-center justify-between"
+                className="w-full mt-3 bg-[#111827] text-white rounded-[14px] p-4 text-left hover:bg-gray-800 hover:shadow-md active:scale-[0.98] transition-all duration-200 ease-out disabled:transform-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer group shadow-sm flex items-center justify-between"
               >
                 <div>
                   <h4 className="font-medium text-[14px] text-[#B6F03F]">
-                    🔥 Executar Transferência na Web3 (0.5 SOL)
+                    🔥 Execute Real Web3 Transfer (0.5 SOL)
                   </h4>
                   <p className="text-gray-400 text-[12px] mt-1">
-                    Chama o Endpoint de Produção para confirmar a transação na rede.
+                    Calls production API endpoint to submit transaction to Solana Devnet.
                   </p>
                 </div>
               </button>
@@ -347,10 +347,10 @@ export function Simulator() {
                   role="switch"
                   aria-checked={running}
                   onClick={toggle}
-                  className="w-10 h-6 bg-gray-900 rounded-full flex items-center p-1 cursor-pointer"
+                  className="w-10 h-6 bg-gray-900 rounded-full flex items-center p-1 cursor-pointer active:scale-[0.98] transition-all duration-200 ease-out"
                 >
                   <div
-                    className={`w-4 h-4 bg-[#B6F03F] rounded-full ${running ? "translate-x-4" : ""}`}
+                    className={`w-4 h-4 bg-[#B6F03F] rounded-full transition-transform duration-200 ease-out ${running ? "translate-x-4" : ""}`}
                   ></div>
                 </button>
               </div>
@@ -377,17 +377,28 @@ export function Simulator() {
                 </div>
                 <div>
                   <h3 className="text-[13px] font-semibold text-gray-900">
-                    {agent?.name ?? "Nenhum agente"}
+                    {agent?.name ?? "No agent selected"}
                   </h3>
                   <p className="text-[11px] text-gray-500">
                     {agent
                       ? `${agent.id.slice(0, 8)}  SIMULATION`
-                      : "Selecione um agente"}
+                      : "Select an agent"}
                   </p>
                 </div>
               </div>
-              <span className="bg-green-100 text-green-700 text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider">
-                {busy ? "Avaliando" : running ? "Ready" : "Stopped"}
+              <span
+                className={`inline-flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider transition-colors duration-200 ${
+                  busy
+                    ? "bg-amber-100 text-amber-800"
+                    : running
+                      ? "bg-green-100 text-green-700"
+                      : "bg-gray-100 text-gray-500"
+                }`}
+              >
+                {running && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                )}
+                {busy ? "EVALUATING" : running ? "LIVE" : "STOPPED"}
               </span>
             </div>
 
@@ -419,7 +430,12 @@ export function Simulator() {
 
               <div className="flex-1 p-5 font-mono text-[13px] overflow-y-auto bg-[#0B0F19] text-gray-300">
                 <div className="flex justify-between text-gray-500 mb-4 text-[11px]">
-                  <span>AGENTSAFE RUNTIME v1.0</span>
+                  <span className="flex items-center gap-1.5">
+                    {running && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#B6F03F] animate-pulse" />
+                    )}
+                    <span>AGENTSAFE RUNTIME v1.0 {running ? "[LIVE]" : "[OFFLINE]"}</span>
+                  </span>
                   <span>solana:devnet</span>
                 </div>
                 <div className="border-b border-gray-800 mb-4"></div>
@@ -427,38 +443,90 @@ export function Simulator() {
                 <div className="flex flex-col gap-2">
                   {logs.length === 0 && (
                     <div className="text-gray-600 italic">
-                      Inicie o simulador e dispare uma ao. O histrico 
-                      preservado no backend.
+                      Start the simulator and trigger an agent behavior. Historical
+                      records are preserved in the backend.
                     </div>
                   )}
-                  {logs.map((log, i) => (
-                    <div
-                      key={i}
-                      className={`flex gap-3 ${log.type === "error" ? "bg-red-900/20 p-2 rounded -mx-2" : ""}`}
-                    >
-                      <span className="text-gray-600 shrink-0">{log.time}</span>
-                      <span
-                        className={`
-                        ${log.type === "system" ? "text-gray-400" : ""}
-                        ${log.type === "action" ? "text-blue-400" : ""}
-                        ${log.type === "success" ? "text-[#B6F03F]" : ""}
-                        ${log.type === "error" ? "text-red-400 font-bold" : ""}
-                      `}
+                  {logs.map((log, i) => {
+                    const isApproved =
+                      log.type === "approved" ||
+                      log.type === "success" ||
+                      log.text.includes("APPROVED") ||
+                      log.text.includes("[SUCCESS]") ||
+                      log.text.includes("[SUCESSO]");
+                    const isBlocked =
+                      log.type === "blocked" ||
+                      log.type === "error" ||
+                      log.text.includes("BLOCKED") ||
+                      log.text.includes("REJECTED") ||
+                      log.text.includes("[BLOCKED") ||
+                      log.text.includes("[BLOQUEADO");
+
+                    let logStyle = "text-gray-300";
+                    if (isApproved) {
+                      logStyle =
+                        "bg-emerald-950/40 border border-emerald-500/30 shadow-[0_0_12px_rgba(182,240,63,0.15)] text-[#B6F03F] p-2 rounded -mx-2";
+                    } else if (isBlocked) {
+                      logStyle =
+                        "bg-red-950/40 border border-red-500/30 shadow-[0_0_12px_rgba(240,68,72,0.15)] text-red-300 font-semibold p-2 rounded -mx-2";
+                    } else if (log.type === "action") {
+                      logStyle = "text-blue-400";
+                    } else if (log.type === "system") {
+                      logStyle = "text-gray-400";
+                    }
+
+                    return (
+                      <div
+                        key={i}
+                        className={`flex gap-3 animate-in fade-in duration-150 ${logStyle}`}
                       >
-                        {log.text}
-                      </span>
-                    </div>
-                  ))}
+                        <span className="text-gray-600 shrink-0 font-mono">
+                          {log.time}
+                        </span>
+                        <span className="flex-1 font-mono break-all">
+                          {log.text}
+                        </span>
+                      </div>
+                    );
+                  })}
                   {history
                     .filter((h) => h.agent_id === agentId)
                     .slice(0, 10)
-                    .map((h) => (
-                      <div key={h.id} className="text-[11px] text-gray-400">
-                        <time>{new Date(h.created_at).toLocaleString()}</time> {" "}
-                        {fromLamports(h.amount_lamports)} SOL  {h.decision} {" "}
-                        {h.reason}  NOT_SUBMITTED
-                      </div>
-                    ))}
+                    .map((h) => {
+                      const isApproved = h.decision === "APPROVED";
+                      return (
+                        <div
+                          key={h.id}
+                          className={`text-[11px] flex items-center justify-between py-1 px-2 rounded font-mono transition-colors ${
+                            isApproved
+                              ? "bg-emerald-950/20 text-emerald-300/90 border border-emerald-500/20"
+                              : "bg-red-950/20 text-red-300/90 border border-red-500/20"
+                          }`}
+                        >
+                          <span className="text-gray-500 text-[10px]">
+                            {new Date(h.created_at).toLocaleTimeString()}
+                          </span>
+                          <span className="font-medium text-gray-200">
+                            {fromLamports(h.amount_lamports)} SOL
+                          </span>
+                          <span
+                            className={`font-semibold px-1.5 py-0.5 rounded text-[10px] ${
+                              isApproved
+                                ? "bg-emerald-900/60 text-[#B6F03F] border border-emerald-500/30"
+                                : "bg-red-900/60 text-red-300 border border-red-500/30"
+                            }`}
+                          >
+                            {h.decision}
+                          </span>
+                          <span
+                            className="text-gray-400 truncate max-w-[140px] text-[10px]"
+                            title={h.reason}
+                          >
+                            {h.reason}
+                          </span>
+                        </div>
+                      );
+                    })}
                   {/* Cursor piscante falso */}
                   {logs.length > 0 && (
                     <div className="flex gap-3 mt-1">

@@ -4,7 +4,12 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-export function Footer() {
+interface FooterProps {
+  onLaunchApp?: () => void;
+  onOpenDocs?: () => void;
+}
+
+export function Footer({ onLaunchApp, onOpenDocs }: FooterProps = {}) {
   const footerRef = useRef<HTMLElement>(null);
   const ctaCardRef = useRef<HTMLDivElement>(null);
 
@@ -63,18 +68,18 @@ export function Footer() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-            <a
-              href="#pricing"
-              className="bg-[#B6F03F] text-[#0C160B] text-[16px] font-normal rounded-[11px] px-8 py-3.5 hover:bg-[#a3d938] transition-colors text-center whitespace-nowrap shadow-sm"
+            <button
+              onClick={onLaunchApp}
+              className="bg-[#B6F03F] text-[#0C160B] text-[16px] font-medium rounded-[11px] px-8 py-3.5 hover:bg-[#a3d938] transition-colors text-center whitespace-nowrap shadow-sm cursor-pointer active:scale-95"
             >
               Get Started &gt;
-            </a>
-            <a
-              href="#features"
-              className="bg-[#202A29]/60 hover:bg-[#202A29] border border-white/10 text-[#FAFCFA] text-[16px] font-normal rounded-[11px] px-8 py-3.5 transition-colors text-center whitespace-nowrap"
+            </button>
+            <button
+              onClick={onOpenDocs}
+              className="bg-[#202A29]/60 hover:bg-[#202A29] border border-white/10 text-[#FAFCFA] text-[16px] font-normal rounded-[11px] px-8 py-3.5 transition-colors text-center whitespace-nowrap cursor-pointer active:scale-95"
             >
               Explore Docs
-            </a>
+            </button>
           </div>
         </div>
 
@@ -83,7 +88,10 @@ export function Footer() {
           
           {/* Coluna 1 & 2: Branding e Visão */}
           <div className="lg:col-span-2 flex flex-col items-start pr-0 lg:pr-8">
-            <div className="text-[24px] text-white font-normal tracking-tight mb-4 flex items-center gap-2">
+            <div 
+              onClick={onLaunchApp}
+              className="text-[24px] text-white font-normal tracking-tight mb-4 flex items-center gap-2 cursor-pointer hover:opacity-90"
+            >
               <span className="w-3 h-3 rounded-full bg-[#B6F03F] inline-block shadow-[0_0_10px_#B6F03F]" />
               AgentSafe
             </div>
@@ -139,16 +147,16 @@ export function Footer() {
             <h4 className="text-[14px] font-medium text-[#FAFCFA] tracking-wide uppercase mb-1">
               Resources
             </h4>
-            <a href="#" className="text-[15px] text-[#FAFCFA]/60 hover:text-[#B6F03F] transition-colors">
-              Smart Contracts
-            </a>
-            <a href="#" className="text-[15px] text-[#FAFCFA]/60 hover:text-[#B6F03F] transition-colors">
+            <button onClick={onOpenDocs} className="text-left text-[15px] text-[#FAFCFA]/60 hover:text-[#B6F03F] transition-colors cursor-pointer bg-transparent border-none p-0">
+              Protocol Documentation
+            </button>
+            <button onClick={onOpenDocs} className="text-left text-[15px] text-[#FAFCFA]/60 hover:text-[#B6F03F] transition-colors cursor-pointer bg-transparent border-none p-0">
               Policy Architecture
-            </a>
-            <a href="#" className="text-[15px] text-[#FAFCFA]/60 hover:text-[#B6F03F] transition-colors">
+            </button>
+            <button onClick={onOpenDocs} className="text-left text-[15px] text-[#FAFCFA]/60 hover:text-[#B6F03F] transition-colors cursor-pointer bg-transparent border-none p-0">
               Security Audit
-            </a>
-            <a href="#" className="text-[15px] text-[#FAFCFA]/60 hover:text-[#B6F03F] transition-colors">
+            </button>
+            <a href="https://faucet.solana.com" target="_blank" rel="noreferrer" className="text-[15px] text-[#FAFCFA]/60 hover:text-[#B6F03F] transition-colors">
               Solana Faucet
             </a>
           </div>

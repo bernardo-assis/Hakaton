@@ -28,7 +28,7 @@ export async function authenticateWallet(
       (address && provider?.publicKey?.toString() !== address)
     )
       throw new Error(
-        "Operação interrompida: a carteira mudou. Tente novamente.",
+        "Operation aborted: wallet changed. Please try again.",
       );
   };
   const address = await connectWallet(provider);
@@ -48,7 +48,7 @@ export async function authenticateWallet(
     !Number.isFinite(Date.parse(challenge.expires_at)) ||
     Date.parse(challenge.expires_at) <= Date.now()
   )
-    throw new Error("O pedido de assinatura expirou. Tente novamente.");
+    throw new Error("Signature request expired. Please try again.");
   const signature = await signWalletMessage(
     provider!,
     challenge.message,
@@ -61,7 +61,7 @@ export async function authenticateWallet(
   });
   assertCurrent(address);
   if (!verified.authenticated || verified.owner_pubkey !== address)
-    throw new Error("Não foi possível verificar esta carteira.");
+    throw new Error("Could not verify wallet signature.");
   const session = await client<SessionResponse>("/auth/session");
   assertCurrent(address);
   if (
@@ -70,6 +70,6 @@ export async function authenticateWallet(
     !Number.isFinite(Date.parse(session.expires_at)) ||
     Date.parse(session.expires_at) <= Date.now()
   )
-    throw new Error("A sessão não foi confirmada. Tente novamente.");
+    throw new Error("Session was not confirmed. Please try again.");
   return session;
 }

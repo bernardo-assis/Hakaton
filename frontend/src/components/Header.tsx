@@ -40,7 +40,7 @@ export function Header({
       setNotifications(await request<AuditEvent[]>("/notifications"));
     } catch (e) {
       setError(
-        e instanceof Error ? e.message : "Falha ao carregar notificações.",
+        e instanceof Error ? e.message : "Failed to load notifications.",
       );
     } finally {
       setLoading(false);
@@ -50,7 +50,7 @@ export function Header({
     <header className="max-w-[1280px] mx-auto w-full flex items-center justify-between p-4 h-[76px] mt-2">
       {/* Logo Section */}
       <div
-        className="flex items-center gap-[8px] px-2 h-11 cursor-pointer"
+        className="flex items-center gap-[8px] px-2 h-11 cursor-pointer hover:opacity-90 transition-opacity"
         onClick={() => onNavigate("dashboard")}
       >
         <div className="w-8 h-8 bg-[#064E3B] rounded-full flex items-center justify-center flex-shrink-0">
@@ -76,28 +76,41 @@ export function Header({
       {/* Navigation */}
       <nav className="flex items-center gap-1 bg-white border border-gray-200 rounded-full p-1 h-11 shadow-sm overflow-x-auto hide-scrollbar">
         <button
+          onClick={() => onNavigate("landing")}
+          className="text-[#6B7280] hover:text-[#111827] hover:bg-gray-50 px-3.5 py-1.5 rounded-full text-[13px] font-medium active:scale-[0.98] transition-all duration-200 cursor-pointer whitespace-nowrap"
+        >
+          Landing
+        </button>
+        <button
           onClick={() => onNavigate("dashboard")}
-          className={`${currentPage === "dashboard" ? "bg-[#F3F4F6] text-[#111827]" : "text-[#6B7280] hover:text-[#111827] hover:bg-gray-50"} px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors cursor-pointer whitespace-nowrap`}
+          className={`${currentPage === "dashboard" ? "bg-[#F3F4F6] text-[#111827]" : "text-[#6B7280] hover:text-[#111827] hover:bg-gray-50"} px-4 py-1.5 rounded-full text-[13px] font-medium active:scale-[0.98] transition-all duration-200 cursor-pointer whitespace-nowrap`}
         >
           Overview
         </button>
         <button
           onClick={() => onNavigate("simulator")}
-          className={`${currentPage === "simulator" ? "bg-[#F3F4F6] text-[#111827]" : "text-[#6B7280] hover:text-[#111827] hover:bg-gray-50"} px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors cursor-pointer whitespace-nowrap`}
+          className={`${currentPage === "simulator" ? "bg-[#F3F4F6] text-[#111827]" : "text-[#6B7280] hover:text-[#111827] hover:bg-gray-50"} px-4 py-1.5 rounded-full text-[13px] font-medium active:scale-[0.98] transition-all duration-200 cursor-pointer whitespace-nowrap`}
         >
           AI Simulator
         </button>
         <button
           onClick={() => onNavigate("fleet")}
-          className={`${currentPage === "fleet" ? "bg-[#F3F4F6] text-[#111827]" : "text-[#6B7280] hover:text-[#111827] hover:bg-gray-50"} px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors cursor-pointer whitespace-nowrap`}
+          className={`${currentPage === "fleet" ? "bg-[#F3F4F6] text-[#111827]" : "text-[#6B7280] hover:text-[#111827] hover:bg-gray-50"} px-4 py-1.5 rounded-full text-[13px] font-medium active:scale-[0.98] transition-all duration-200 cursor-pointer whitespace-nowrap`}
         >
           Agent Fleet
         </button>
         <button
           onClick={() => onNavigate("vault")}
-          className={`${currentPage === "vault" ? "bg-[#F3F4F6] text-[#111827]" : "text-[#6B7280] hover:text-[#111827] hover:bg-gray-50"} px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors cursor-pointer whitespace-nowrap`}
+          className={`${currentPage === "vault" ? "bg-[#F3F4F6] text-[#111827]" : "text-[#6B7280] hover:text-[#111827] hover:bg-gray-50"} px-4 py-1.5 rounded-full text-[13px] font-medium active:scale-[0.98] transition-all duration-200 cursor-pointer whitespace-nowrap`}
         >
           Vault Budgets
+        </button>
+        <button
+          onClick={() => onNavigate("docs")}
+          className={`${currentPage === "docs" ? "bg-[#064E3B] text-white" : "text-[#6B7280] hover:text-[#111827] hover:bg-gray-50"} px-4 py-1.5 rounded-full text-[13px] font-medium active:scale-[0.98] transition-all duration-200 cursor-pointer whitespace-nowrap flex items-center gap-1.5`}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-[#B6F03F]" />
+          Docs
         </button>
       </nav>
 
@@ -105,10 +118,10 @@ export function Header({
       <div className="flex items-center gap-4 h-11 relative">
         <button
           disabled={!auth.session || busy}
-          aria-label="Notificações"
+          aria-label="Notifications"
           aria-expanded={notificationsOpen}
           onClick={() => void toggleNotifications()}
-          className="text-gray-400 hover:text-[#111827] transition-colors flex items-center justify-center bg-white border border-gray-200 rounded-full w-10 h-10 shadow-sm"
+          className="text-gray-400 hover:text-[#111827] active:scale-95 transition-all duration-200 ease-out flex items-center justify-center bg-white border border-gray-200 rounded-full w-10 h-10 shadow-sm disabled:opacity-50 disabled:transform-none cursor-pointer"
         >
           <svg
             className="w-5 h-5"
@@ -129,15 +142,15 @@ export function Header({
           onClick={toggleWallet}
           title={
             wallet
-              ? `Carteira autenticada: ${wallet}. Sair da sessão`
+              ? `Authenticated wallet: ${wallet}. Disconnect session`
               : auth.connectedWallet
-                ? "Carteira conectada; assine para autenticar"
-                : "Conectar e autenticar com Phantom"
+                ? "Wallet connected; sign message to authenticate"
+                : "Connect and authenticate with Phantom"
           }
-          className="flex items-center gap-2 bg-[#B6F03F] text-[#111827] px-5 h-10 rounded-full text-[13px] font-semibold hover:opacity-90 transition-opacity shadow-sm cursor-pointer"
+          className="flex items-center gap-2 bg-[#B6F03F] text-[#111827] px-5 h-10 rounded-full text-[13px] font-semibold hover:opacity-90 hover:shadow-sm active:scale-[0.98] transition-all duration-200 shadow-sm cursor-pointer disabled:opacity-50 disabled:transform-none"
         >
           <svg
-            className="w-4 h-4"
+            className="w-4 h-4 flex-shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -149,28 +162,34 @@ export function Header({
               d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
             />
           </svg>
+          {wallet && (
+            <span
+              className="w-2 h-2 rounded-full bg-[#064E3B] animate-pulse flex-shrink-0"
+              title="Connected to Solana Devnet"
+            />
+          )}
           {auth.status === "checking"
-            ? "Verificando sessão..."
+            ? "Verifying session..."
             : auth.status === "revoking"
-              ? "Encerrando sessão..."
+              ? "Disconnecting session..."
               : auth.status === "signing"
-                ? "Aguardando assinatura..."
+                ? "Awaiting signature..."
                 : auth.revocationPending
-                  ? "Tentar sair novamente"
+                  ? "Try disconnecting again"
                   : wallet
-                    ? `${wallet.slice(0, 4)}…${wallet.slice(-4)} · Sair`
+                    ? `${wallet.slice(0, 4)}…${wallet.slice(-4)} · Disconnect`
                     : auth.connectedWallet
-                      ? "Autenticar Phantom Wallet"
-                      : "Conectar Phantom Wallet"}
+                      ? "Authenticate Phantom Wallet"
+                      : "Connect Phantom Wallet"}
         </button>
         {(notificationsOpen || error || auth.error) && (
-          <div className="absolute top-14 right-0 bg-white rounded-[22px] p-5 shadow-lg border border-gray-100 z-40 w-[340px] max-h-[420px] overflow-y-auto">
+          <div className="absolute top-14 right-0 bg-white rounded-[22px] p-5 shadow-lg border border-gray-100 z-40 w-[340px] max-h-[420px] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between mb-3">
               <h3 className="text-[#111827] text-[14px] font-semibold">
-                {notificationsOpen ? "Notificações" : "Carteira"}
+                {notificationsOpen ? "Notifications" : "Wallet"}
               </h3>
               <button
-                aria-label="Fechar painel"
+                aria-label="Close panel"
                 onClick={() => {
                   setNotificationsOpen(false);
                   setError("");
@@ -191,20 +210,20 @@ export function Header({
                     target="_blank"
                     rel="noreferrer"
                   >
-                    Baixar Phantom
+                    Download Phantom
                   </a>
                 )}
               </p>
             )}
             {!auth.session && auth.connectedWallet && (
               <p className="text-[#777D85] text-[12px] mt-2">
-                Carteira conectada, mas ainda não autenticada. A assinatura
-                confirma sua identidade e não transfere fundos.
+                Wallet connected, but not authenticated yet. The signature
+                verifies your identity without moving funds.
               </p>
             )}
             {loading && (
               <p role="status" className="text-[#777D85] text-[12px]">
-                Carregando...
+                Loading...
               </p>
             )}
             {notificationsOpen &&
@@ -212,7 +231,7 @@ export function Header({
               !error &&
               notifications.length === 0 && (
                 <p className="text-[#777D85] text-[12px]">
-                  Nenhuma notificação registrada.
+                  No notifications recorded.
                 </p>
               )}
             {notificationsOpen &&

@@ -29,3 +29,45 @@ spline-viewer::part(logo) {
   animation: shimmer 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes zoomIn95 {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-in {
+  animation-duration: 200ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: both;
+}
+
+.animate-in.duration-150 {
+  animation-duration: 150ms;
+}
+
+.animate-in.duration-200 {
+  animation-duration: 200ms;
+}
+
+.fade-in {
+  animation-name: fadeIn;
+}
+
+.zoom-in-95 {
+  animation-name: zoomIn95;
+}
+

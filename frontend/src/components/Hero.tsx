@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 
-export function Hero() {
+interface HeroProps {
+  onLaunchApp?: () => void;
+  onOpenDocs?: () => void;
+}
+
+export function Hero({ onLaunchApp, onOpenDocs }: HeroProps = {}) {
   const fullText = "The future of autonomous security.";
   const [displayText, setDisplayText] = useState("");
 
@@ -29,7 +34,10 @@ export function Hero() {
 
       {/* Header / Navbar */}
       <header className="relative z-10 pt-6 px-6 lg:px-12 xl:px-20 flex items-center justify-between">
-        <div className="text-[24px] text-white font-normal tracking-tight drop-shadow-md flex items-center gap-2">
+        <div 
+          onClick={onLaunchApp}
+          className="text-[24px] text-white font-normal tracking-tight drop-shadow-md flex items-center gap-2 cursor-pointer hover:opacity-90 transition-opacity"
+        >
           <span className="w-2.5 h-2.5 rounded-full bg-[#B6F03F] inline-block shadow-[0_0_8px_#B6F03F]" />
           AgentSafe
         </div>
@@ -40,10 +48,19 @@ export function Hero() {
           <a href="#features" className="text-[16px] font-normal hover:text-[#B6F03F] transition-colors">Features</a>
           <a href="#testimonials" className="text-[16px] font-normal hover:text-[#B6F03F] transition-colors">Testimonials</a>
           <a href="#pricing" className="text-[16px] font-normal hover:text-[#B6F03F] transition-colors">Pricing</a>
+          <button 
+            onClick={onOpenDocs}
+            className="text-[16px] font-normal text-[#FAFCFA] hover:text-[#B6F03F] transition-colors cursor-pointer bg-transparent border-none p-0"
+          >
+            Docs
+          </button>
           
-          <a href="#pricing" className="bg-[#B6F03F] text-[#0C160B] text-[16px] font-normal rounded-[11px] px-6 py-2.5 ml-4 hover:bg-[#a3d938] transition-colors inline-block">
-            Get Started &gt;
-          </a>
+          <button 
+            onClick={onLaunchApp}
+            className="bg-[#B6F03F] text-[#0C160B] text-[16px] font-medium rounded-[11px] px-6 py-2.5 ml-4 hover:bg-[#a3d938] transition-colors inline-block cursor-pointer active:scale-95"
+          >
+            Launch App &gt;
+          </button>
         </nav>
       </header>
 
@@ -66,7 +83,7 @@ export function Hero() {
           
           <div className="flex flex-col sm:flex-row sm:items-center gap-5 mt-2">
             <p className="text-[18px] md:text-[20px] font-normal text-[#FAFCFA]/90">
-              Agentic safety for tomorrow.
+              Treasury firewall and zero-trust policies for autonomous AI agents.
             </p>
             
             {/* Overlapping Avatars */}
@@ -82,16 +99,22 @@ export function Hero() {
         {/* Right Side: Action Area & Secondary Text */}
         <div className="flex flex-col items-start lg:items-end max-w-[480px] gap-8">
           <p className="text-[18px] font-normal leading-[1.4] text-left lg:text-right text-[#FAFCFA]/80">
-            We specialize in leveraging advanced AI agents to transform your infrastructure security and compliance workflows without manual intervention.
+            We specialize in providing cryptographic vaults and programmable spending guardrails on Solana to protect enterprise treasuries from prompt injections and hallucinations.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <a href="#pricing" className="bg-[#B6F03F] text-[#0C160B] text-[16px] font-normal rounded-[11px] px-6 py-3.5 flex-1 sm:flex-none whitespace-nowrap hover:bg-[#a3d938] transition-colors text-center">
-              Start Free Trial -&gt;
-            </a>
-            <a href="#features" className="bg-[#202A29]/50 backdrop-blur-[12px] border border-white/10 text-[#FAFCFA] text-[16px] font-normal rounded-[11px] px-6 py-3.5 flex-1 sm:flex-none whitespace-nowrap hover:bg-[#202A29]/70 transition-colors text-center">
+            <button 
+              onClick={onLaunchApp}
+              className="bg-[#B6F03F] text-[#0C160B] text-[16px] font-medium rounded-[11px] px-6 py-3.5 flex-1 sm:flex-none whitespace-nowrap hover:bg-[#a3d938] transition-colors text-center cursor-pointer active:scale-95 shadow-md"
+            >
+              Launch Dashboard -&gt;
+            </button>
+            <button 
+              onClick={onOpenDocs}
+              className="bg-[#202A29]/50 backdrop-blur-[12px] border border-white/10 text-[#FAFCFA] text-[16px] font-normal rounded-[11px] px-6 py-3.5 flex-1 sm:flex-none whitespace-nowrap hover:bg-[#202A29]/70 transition-colors text-center cursor-pointer active:scale-95"
+            >
               View Documentation
-            </a>
+            </button>
           </div>
         </div>
 
