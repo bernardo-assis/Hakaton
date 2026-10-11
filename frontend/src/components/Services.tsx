@@ -6,7 +6,6 @@ gsap.registerPlugin(ScrollTrigger);
 
 export function Services() {
   const sectionRef = useRef<HTMLElement>(null);
-  const leftColRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
 
   const services = [
@@ -53,58 +52,41 @@ export function Services() {
   ];
 
   useEffect(() => {
-    const mm = gsap.matchMedia();
-
-    // Em desktop (>= 1024px), aplica o Pinning da Apple e desaceleração elástica
-    mm.add("(min-width: 1024px)", () => {
-      if (sectionRef.current && leftColRef.current) {
-        ScrollTrigger.create({
-          trigger: sectionRef.current,
-          pin: leftColRef.current,
-          start: "top 18%",
-          end: "bottom 90%",
-          pinSpacing: false,
-        });
-      }
-
-      // Desaceleração elástica e stacking progressivo nos cards
+    const ctx = gsap.context(() => {
+      // Animação de entrada suave e sem travamentos em cada card conforme entra na tela
       cardsRef.current.forEach((card) => {
         if (!card) return;
         gsap.fromTo(
           card,
-          { y: 70, opacity: 0.4, scale: 0.96 },
+          { y: 50, opacity: 0 },
           {
             y: 0,
             opacity: 1,
-            scale: 1,
-            ease: "power2.out",
+            duration: 0.8,
+            ease: "power3.out",
             scrollTrigger: {
               trigger: card,
-              start: "top 85%",
-              end: "top 55%",
-              scrub: 1.2,
+              start: "top 88%",
+              toggleActions: "play none none reverse",
             },
           }
         );
       });
-    });
+    }, sectionRef);
 
-    return () => mm.revert();
+    return () => ctx.revert();
   }, []);
 
   return (
     <section
       id="services"
       ref={sectionRef}
-      className="relative w-full px-6 lg:px-12 xl:px-20 py-32 text-[#FAFCFA] z-10 min-h-screen"
+      className="relative w-full px-6 lg:px-12 xl:px-20 py-28 text-[#FAFCFA] z-10"
     >
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-16 lg:gap-24 items-start relative">
+      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-12 lg:gap-20 items-start relative">
         
-        {/* Coluna da Esquerda (Apple-Style Pinning — Congela no scroll via GSAP) */}
-        <div
-          ref={leftColRef}
-          className="w-full lg:w-5/12 flex flex-col items-start lg:pt-8 will-change-transform z-10"
-        >
+        {/* Coluna da Esquerda (Sticky Seguro — Fixa de forma nativa e sem bugs de layout) */}
+        <div className="w-full lg:w-5/12 lg:sticky lg:top-36 flex flex-col items-start self-start z-10">
           <span className="text-[#B6F03F] text-[14px] md:text-[16px] font-normal tracking-[0.2em] uppercase mb-4">
             Services
           </span>
@@ -116,15 +98,15 @@ export function Services() {
           </p>
         </div>
 
-        {/* Coluna da Direita (Cards com Stacking e Desaceleração Elástica) */}
-        <div className="w-full lg:w-7/12 flex flex-col gap-8 lg:pb-32 relative z-10">
+        {/* Coluna da Direita (Cards com Rolagem Fluida e Entrada Limpa) */}
+        <div className="w-full lg:w-7/12 flex flex-col gap-6 lg:gap-8 relative z-10">
           {services.map((service, idx) => (
             <div
               key={idx}
               ref={(el) => {
                 cardsRef.current[idx] = el;
               }}
-              className="flex flex-col sm:flex-row items-start gap-6 bg-[#0C1411]/70 backdrop-blur-xl border border-white/10 rounded-[24px] p-8 lg:p-10 hover:bg-[#0C1411]/90 hover:border-[#B6F03F]/30 transition-all duration-500 shadow-xl hover:shadow-[0_20px_45px_-12px_rgba(0,0,0,0.8)] group will-change-transform cursor-pointer relative overflow-hidden"
+              className="flex flex-col sm:flex-row items-start gap-6 bg-[#0C1411]/70 backdrop-blur-xl border border-white/10 rounded-[24px] p-8 lg:p-10 hover:bg-[#0C1411]/90 hover:border-[#B6F03F]/40 transition-all duration-300 shadow-xl hover:shadow-[0_20px_45px_-12px_rgba(0,0,0,0.8)] hover:-translate-y-1 group cursor-pointer relative overflow-hidden will-change-transform"
             >
               {/* Brilho dinâmico sutil no hover */}
               <div className="absolute -inset-20 bg-gradient-to-tr from-[#B6F03F]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
