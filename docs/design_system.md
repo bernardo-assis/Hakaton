@@ -162,4 +162,15 @@ A imagem original de referência foi baixada e arquivada localmente em:
   * **Plano Central (Professional - Featured):** Container em caixa preta elevada (`bg-[#030408] border border-white/15 rounded-[26px]`), linha divisória fina abaixo do subtítulo, sombra profunda e botão de ação branco sólido (`bg-white text-black font-semibold`).
 * **Marcadores:** Losangos técnicos em ciano/azul (`◆`) com espaçamento confortável.
 
+---
+
+## 10. Landing Page — Seção 6: Footer & Pre-CTA (Extração Visual)
+
+### 10.1 Regras de Design
+* **Fundo:** `#060D0C` com linha divisória superior sutil `border-t border-white/10`.
+* **Pre-Footer CTA Banner:** Card escuro elevado (`bg-[#0C1411] border border-white/10 rounded-[24px]`) com chamada para ação ("Ready to safeguard your AI agent fleet?"), botão principal em Verde Neon (`#B6F03F`) e botão secundário dark com borda sutil.
+* **Colunas de Navegação:** Grid responsivo (Branding + Status Pill operacional, Protocolo, Recursos e Comunidade).
+* **Rodapé Inferior:** Copyright, status da Solana Devnet e links legais discretos em `#FAFCFA]/50`.
+
+
 

@@ -11,6 +11,7 @@ import { Features } from "./components/Features";
 import { Services } from "./components/Services";
 import { Testimonials } from "./components/Testimonials";
 import { Pricing } from "./components/Pricing";
+import { Footer } from "./components/Footer";
 
 function AuthenticatedApp() {
   const auth = useWalletAuth();
@@ -85,6 +86,7 @@ function App() {
           <Services />
           <Testimonials />
           <Pricing />
+          <Footer />
           
           {/* Botǜo flutuante temporǭrio para ir pro App interno */}
           <button 
