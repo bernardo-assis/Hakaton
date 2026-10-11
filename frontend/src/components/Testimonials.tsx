@@ -26,41 +26,41 @@ export function Testimonials() {
   return (
     <section
       id="testimonials"
-      className="relative w-full px-6 lg:px-12 xl:px-20 py-32 text-[#FAFCFA] z-10 bg-[#070814]"
+      className="relative w-full px-6 lg:px-12 xl:px-20 py-28 text-[#FAFCFA] z-10 bg-[#060D0C]"
     >
-      {/* Header Centralizado - 100% Fiel à Imagem de Referência */}
-      <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-20">
-        <span className="text-[#38BDF8] text-[12px] md:text-[13px] font-semibold tracking-[0.25em] uppercase mb-4">
-          TESTIMONIALS
+      {/* Header Centralizado — Harmonizado com a tipografia do site */}
+      <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-16 lg:mb-20">
+        <span className="text-[#B6F03F] text-[14px] md:text-[16px] font-normal tracking-[0.2em] uppercase mb-4">
+          Testimonials
         </span>
-        <h2 className="text-[38px] md:text-[50px] lg:text-[54px] font-semibold tracking-[-0.03em] text-white">
+        <h2 className="text-[36px] md:text-[48px] lg:text-[56px] font-normal leading-[1.1] tracking-tight text-[#FAFCFA]">
           What our clients say.
         </h2>
       </div>
 
       {/* Grid de 3 Colunas Limpas (Sem efeito vidro, fundo sólido, como na referência) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-14 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-14 max-w-6xl mx-auto">
         {testimonials.map((item, idx) => (
           <div key={idx} className="flex flex-col justify-start">
             {/* Header do Autor (Avatar + Info) */}
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center gap-4 mb-5">
               <img
                 src={item.avatar}
                 alt={item.name}
-                className="w-12 h-12 rounded-full object-cover border border-white/10 shadow-sm"
+                className="w-[44px] h-[44px] rounded-full object-cover border border-white/10 shadow-sm"
               />
               <div className="flex flex-col">
-                <span className="text-white text-[16px] font-semibold leading-snug">
+                <span className="text-[#FAFCFA] text-[16px] font-medium leading-snug">
                   {item.name}
                 </span>
-                <span className="text-[#94A3B8] text-[11px] md:text-[12px] tracking-[0.08em] font-medium uppercase mt-0.5">
+                <span className="text-[#FAFCFA]/60 text-[11px] md:text-[12px] tracking-[0.1em] font-normal uppercase mt-0.5">
                   {item.role}
                 </span>
               </div>
             </div>
 
             {/* Citação */}
-            <p className="text-[#CBD5E1] text-[15px] md:text-[16px] leading-[1.65] font-normal">
+            <p className="text-[#FAFCFA]/80 text-[16px] font-normal leading-[1.65]">
               {item.quote}
             </p>
           </div>

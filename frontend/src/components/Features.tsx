@@ -30,17 +30,17 @@ export function Features() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[350px] bg-[#B6F03F]/5 blur-[140px] pointer-events-none rounded-full" />
       <div className="absolute top-1/3 left-1/4 w-[500px] h-[250px] bg-[#38BDF8]/5 blur-[120px] pointer-events-none rounded-full" />
 
-      {/* Header Centralizado - 100% Fiel à Referência */}
+      {/* Header Centralizado — Harmonizado com a tipografia do site */}
       <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-16 lg:mb-20 relative z-10">
-        <span className="text-[#38BDF8] text-[12px] md:text-[13px] font-semibold tracking-[0.25em] uppercase mb-4 px-3.5 py-1 rounded-full bg-[#38BDF8]/10 border border-[#38BDF8]/20 backdrop-blur-sm">
-          FEATURES
+        <span className="text-[#B6F03F] text-[14px] md:text-[16px] font-normal tracking-[0.2em] uppercase mb-4">
+          Features
         </span>
         
-        <h2 className="text-[38px] md:text-[50px] lg:text-[56px] font-semibold tracking-[-0.03em] leading-[1.1] mb-5 text-white">
+        <h2 className="text-[36px] md:text-[48px] lg:text-[56px] font-normal leading-[1.1] tracking-tight mb-5 text-[#FAFCFA]">
           The future of finance is here.
         </h2>
         
-        <p className="text-[16px] md:text-[18px] text-[#94A3B8] leading-relaxed max-w-xl">
+        <p className="text-[18px] text-[#FAFCFA]/80 leading-relaxed max-w-xl">
           We provide cutting-edge AI tools to optimize your financial performance and secure autonomous execution.
         </p>
       </div>
@@ -75,10 +75,10 @@ export function Features() {
 
             {/* Conteúdo do Card (Texto) */}
             <div className="relative z-10 flex flex-col">
-              <h3 className="text-[22px] lg:text-[24px] font-semibold text-white mb-2 group-hover:text-[#B6F03F] transition-colors duration-300 tracking-tight">
+              <h3 className="text-[22px] lg:text-[24px] font-medium text-[#FAFCFA] mb-2 group-hover:text-[#B6F03F] transition-colors duration-300 tracking-tight">
                 {item.title}
               </h3>
-              <p className="text-[14px] lg:text-[15px] text-[#94A3B8] leading-relaxed">
+              <p className="text-[15px] text-[#FAFCFA]/70 leading-relaxed font-normal">
                 {item.description}
               </p>
             </div>
