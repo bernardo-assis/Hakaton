@@ -2,6 +2,10 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const config = {
+  payments: {
+    enabled: process.env.DEVNET_PAYMENTS_ENABLED === 'true',
+    signerEncryptionKey: process.env.VAULT_SIGNER_ENCRYPTION_KEY || '',
+  },
   auth: {
     production: process.env.NODE_ENV === "production",
     allowedOrigins: (

@@ -1,61 +1,50 @@
 # Story 01: Backend Core, Database & Solana Devnet Settlement
 
-**Épico:** Infraestrutura de Cofres & Motor de Políticas de Segurança (AgentSafe)
-**Fase:** Fase 2 · Orquestração e Execução (Backend)
-**Responsáveis:** `@sm` (Coordenação), `@dev-back` (Implementação), `@qa` (Auditoria & Testes)
-**Status:** Modelagem SQL validada; serviços e conexão ainda pendentes
+**Épico:** Infraestrutura de Cofres & Motor de Políticas (AgentSafe)
+**Fase:** 2 — Backend; liquidação aguardando definição de autoridade
+**Responsáveis:** @sm, @dev-back, @qa
+**Status:** API, PostgreSQL e autenticação entregues nas stories 03/04; pagamentos reais pendentes.
 
----
+## Reconciliação — 2026-10-10
 
-## 1. Contexto & Objetivo
-Implementar a fundação do **AgentSafe** no backend em Node.js com Express, TypeScript, SQLite (`better-sqlite3`), validações Zod e `@solana/web3.js` conectado à Solana Devnet. O backend deve ser capaz de receber requisições de pagamento de agentes de IA, avaliar estritamente as regras `RN01` a `RN05`, executar transferências reais na Devnet para pagamentos válidos, e rejeitar/registrar abusos e limites estourados.
+Este cartão histórico foi reconciliado com o código e as evidências das [stories 03](03-ui-integration.md) e [04](04-wallet-auth.md). Marcações representam implementação e validação registradas; não são uma nova execução de testes nesta sessão. O runtime usa PostgreSQL (`pg`), com migrations `0001`–`0003`; `src/db/schema.sql` e seus testes SQLite são legado. Não usar `/api/v1/vault/*` como contrato vigente: rotas atuais estão em `backend/src/app.ts`, e autenticação em `docs/architecture/WALLET_AUTH_API.md`.
 
----
+## Setup e persistência
 
-## 2. Checklist de Execução Técnica
+- [x] Backend Express/TypeScript/Zod e dependências Solana configurados.
+- [x] PostgreSQL: pool em `src/db/database.ts`; migrations de recursos, políticas e autenticação.
+- [x] Schema SQLite histórico validado com oito testes em 2026-10-08; isso não valida o runtime PostgreSQL.
+- [ ] Seed de cofre custodial e dois agentes de pagamento: depende da autoridade escolhida; dados de demonstração não comprovam este requisito.
 
-### Camada 1: Setup do Ambiente & Banco de Dados (SQLite)
-- [ ] **Configuração do Projeto Backend:** Inicializar `backend/package.json`, `tsconfig.json` e instalar dependências (`express`, `cors`, `dotenv`, `zod`, `better-sqlite3`, `@solana/web3.js`, `ts-node-dev`, `@types/...`).
-- [x] **Schema SQL:** Criar e validar `src/db/schema.sql` conforme `docs/architecture/DATABASE.md`, incluindo `audit_events` e `agent_credentials`.
-- [ ] **Conexão SQLite:** Implementar `src/db/database.ts`, habilitar foreign keys em cada conexão e carregar o schema; não tratar o schema inicial como migração de um banco antigo.
-- [ ] **Seed Inicial:** Script para popular 1 cofre mestre de teste e 2 agentes com tetos distintos (um para testes válidos e outro para testes de bloqueio).
+## Solana
 
-### Camada 2: Conexão Web3 Solana (Devnet)
-- [ ] **Configuração Solana (`src/config/solana.ts`):** Estabelecer conexão com cluster RPC `https://api.devnet.solana.com`.
-- [ ] **Serviço Solana (`src/services/solanaService.ts`):** Implementar geração de Keypair do cofre, consulta de saldo, verificação de airdrop e função `transferSolDevnet(toPublicKey, amountLamports)` retornando a assinatura da transação e URL do Solana Explorer.
+- [x] Serviço e configuração RPC, consulta de saldo e faucet Devnet implementados; cobertura de regressão registrada na story 04.
+- [ ] Cofre assinante e pagamento real seguro: métodos legados `generateKeypair`/`sendLamports` existem, mas a API pública de transferência permanece desabilitada (501). Não constituem liquidação entregue.
+- [ ] Persistência pré-envio, confirmação verificada, resultado desconhecido e recuperação após reinício.
 
-### Camada 3: Motor de Políticas (Policy Engine)
-- [ ] **Implementação das Regras (`src/services/policyEngine.ts`):**
-  - [ ] `RN01`: Checagem de status (`ACTIVE` vs `FROZEN`).
-  - [ ] `RN04`: Validação de Whitelist (se ativa).
-  - [ ] `RN02`: Validação de Teto por Transação (`single_tx_cap_lamports`).
-  - [ ] `RN03`: Validação de Teto Diário acumulado nas últimas 24h (`daily_cap_lamports`).
-  - [ ] Reserva atômica de orçamento e saldo compartilhado, incluindo taxa, conforme DATABASE.md.
-  - [ ] Idempotência por agente, comparação do conteúdo e recuperação da mesma solicitação.
-  - [ ] Persistência antes do envio, conciliação de CONFIRMED/FAILED/UNKNOWN e recuperação após reinício.
-  - [ ] Congelamento global e individual, coordenado com o envio.
+## Política e contabilidade financeira
 
-### Camada 4: Rotas & Controllers Express (Porta 3001)
-- [ ] **Autenticação e autorização:** Gestor por desafio assinado com expiração/uso único e sessão revogável; agente por token opaco com hash, validade e revogação. Definir armazenamento de sessão antes de implementar.
-- [ ] **Administração:** Cadastro/alteração de agentes, whitelist e credenciais, com auditoria na mesma transação da mudança.
-- [ ] **Schemas Zod (`src/schemas/vault.schemas.ts`):** Validação estrita dos bodies de requisição.
-- [ ] **Endpoints REST (`src/routes/vaultRoutes.ts` & `src/controllers/vaultController.ts`):**
-  - [ ] `POST /api/v1/vault/pay`: Processa tentativa de pagamento da IA.
-  - [ ] `POST /api/v1/vault/panic`: Kill Switch para agente ou cofre, com autorização do proprietário.
-  - [ ] `GET /api/v1/vault/telemetry`: Retorna métricas, agentes e histórico de transações.
-  - [ ] `GET /api/v1/vault/health`: Healthcheck da API e da conexão Solana.
+- [x] Simulador backend avalia congelamento, whitelist, teto individual e orçamento de simulação; persiste avaliações em `audit_events` (story 03).
+- [ ] RN01–RN05 no executor de pagamentos reais, incluindo congelamento global/individual coordenado com envio.
+- [ ] RN03 financeira: janela móvel de 24h UTC conforme PRD, confirmados por `reserved_at` e reservas pendentes de qualquer idade. O simulador usa dia UTC e não satisfaz este requisito.
+- [ ] Reserva atômica de orçamento e saldo compartilhado, incluindo taxa.
+- [ ] Idempotência de pagamento por agente, conflito de conteúdo e recuperação do mesmo pedido; replay do simulador não comprova pagamento único.
 
-### Camada 5: Testes Automatizados & Auditoria (@qa)
-- [ ] **Script de Teste E2E (`test-vault.ts`):** Executar bateria de 5 testes reais:
-  1. Pagamento válido (10000000 lamports) -> Deve iniciar com decisão APPROVED/estado RESERVED e chegar a CONFIRMED com assinatura verificada na Solana Devnet.
-  2. Tentativa de estourar teto por transação (ex: 2.0 SOL) -> Deve retornar status `BLOCKED` com código `ERR_EXCEEDS_SINGLE_TX_LIMIT`.
-  3. Tentativa de estourar teto diário acumulado -> Deve retornar `ERR_EXCEEDS_DAILY_BUDGET`.
-  4. Acionamento do Kill Switch (`/panic`) -> Agente fica `FROZEN`.
-  5. Tentativa de pagamento com agente congelado -> Deve retornar `ERR_AGENT_FROZEN`.
-- [ ] **Auditoria de Qualidade:** `@qa` valida contratos de API, integridade de tipos e ausência de vazamento de chaves privadas.
+## API e segurança
 
-### Validação da modelagem e cenários adicionais
-- [x] Executar `python3 -m unittest discover -s backend/tests -p "test_schema.py" -v` — 8 testes aprovados em 2026-10-08.
-- [ ] Testar duplicação, concorrência, falhas de rede e reinício na implementação real.
-- [ ] Testar isolamento entre proprietários, credenciais expiradas/revogadas e congelamento global.
-- [ ] Seguir `docs/architecture/DATABASE_MANUAL_TEST.md`; testes de schema não aprovam a API nem o settlement.
+- [x] Gestor autenticado por desafio assinado, expiração/uso único, sessão revogável HttpOnly, CSRF e origem (story 04).
+- [x] Isolamento por proprietário e carteira, incluindo métricas, histórico e panic (story 04).
+- [x] Administração de agentes, whitelist e políticas pela API, validação e eventos administrativos (story 03).
+- [x] Freeze/resume e panic autenticados em `/api/agents` e `/api/agents/panic`.
+- [x] Métricas e histórico em `/api/dashboard`, `/api/agents/:id/history`, notificações e simulador.
+- [ ] Credenciais de agentes de pagamento: emissão, hash, validade e revogação.
+- [ ] API de pagamento segura: contrato a fechar na story 05. `/api/transactions` retorna 501.
+- [ ] Healthcheck dedicado da API e RPC; não existe `/api/v1/vault/health`.
+
+## Validação e entrega
+
+- [x] Builds e testes de API/PostgreSQL registrados nas stories 03/04; story 04: 17 testes backend e smoke HTTP de 53 solicitações, com dois proprietários.
+- [x] Isolamento, replay de autenticação, concorrência de desafio, expiração e revogação de sessão validados.
+- [ ] E2E financeiro Devnet: pagamento confirmado, limites por transação e 24h, panic e agente congelado.
+- [ ] Duplicação, concorrência de pagamentos, falha de rede, recuperação/reinício e credenciais de agente expiradas/revogadas.
+- [ ] Auditoria final financeira e guia manual, seguindo [story 05](05-devnet-payments.md).

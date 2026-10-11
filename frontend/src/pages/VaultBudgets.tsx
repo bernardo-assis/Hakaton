@@ -7,6 +7,7 @@ import {
   usagePercent,
 } from "../lib/api";
 import type { Agent, Vault, Policies } from "../lib/api";
+import { DevnetPayments } from "../components/DevnetPayments";
 import { useWalletAuth } from "../components/WalletAuth";
 
 export function VaultBudgets() {
@@ -286,6 +287,8 @@ export function VaultBudgets() {
           chave privada permanece na Phantom.
         </p>
       )}
+      <DevnetPayments />
+      <p className="text-[#777D85] text-[13px] mb-4">As políticas abaixo controlam as avaliações do simulador. Pagamentos Devnet são acompanhados no painel acima.</p>
       {/* Grid de Métricas do Cofre */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Saldo Total */}

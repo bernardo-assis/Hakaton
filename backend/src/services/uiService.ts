@@ -85,7 +85,7 @@ export class UiService {
       balanceSol: total === null ? null : Number(total) / 1e9,
       balanceLamports: total?.toString() ?? null,
       dailyLimitSol:
-        agents.reduce((n, a) => n + Number(a.daily_cap_lamports), 0) / 1e9,
+        vaults.reduce((n, v) => n + Number(v.daily_cap_lamports), 0) / 1e9,
       spentTodaySol:
         agents.reduce((n, a) => n + Number(a.spent_today_lamports), 0) / 1e9,
       activeAgents: agents.filter((a) => a.status === "ACTIVE").length,

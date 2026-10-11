@@ -4,6 +4,7 @@ import vaultRoutes from "./routes/vaultRoutes";
 import agentRoutes from "./routes/agentRoutes";
 import transactionRoutes from "./routes/transactionRoutes";
 import dashboardRoutes from "./routes/dashboardRoutes";
+import paymentRoutes, { agentPaymentRoutes } from './routes/paymentRoutes';
 
 import rateLimit from "express-rate-limit";
 
@@ -28,12 +29,15 @@ const limiter = rateLimit({
 };
 
 app.use(cors({ origin: config.auth.allowedOrigins, credentials: true }));
-app.use(originGuard);
+// Machine tokens never use browser cookies. Browser requests retain Origin/CSRF checks.
+app.use((req,res,next)=>req.path==='/api/agent-payments'&&!req.get('Origin')&&!req.get('Cookie')?next():originGuard(req,res,next));
 app.use(express.json());
 app.use(limiter);
 
 app.use("/api/auth", authRoutes);
+app.use('/api/agent-payments',agentPaymentRoutes);
 app.use("/api", requireWallet);
+app.use('/api',paymentRoutes);
 app.use("/api/users", (_req, res) =>
   res.status(501).json({ success: false, error: "Use wallet authentication" }),
 );

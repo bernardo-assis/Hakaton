@@ -1,0 +1,18 @@
+import { Router } from 'express';
+import { PaymentController } from '../controllers/PaymentController';
+import { asyncErrorWrapper } from '../utils/asyncErrorWrapper';
+const controller = new PaymentController();
+export const agentPaymentRoutes = Router();
+agentPaymentRoutes.post('/', asyncErrorWrapper((req, res) => controller.execute(req, res, 'request')));
+const router = Router();
+router.post('/vaults/devnet', asyncErrorWrapper((req, res) => controller.execute(req, res, 'createVault')));
+router.get('/vaults/:id/payment-config', asyncErrorWrapper((req, res) => controller.execute(req, res, 'config')));
+router.patch('/vaults/:id/payment-config', asyncErrorWrapper((req, res) => controller.execute(req, res, 'mode')));
+router.post('/agents/:id/credentials', asyncErrorWrapper((req, res) => controller.execute(req, res, 'issue')));
+router.delete('/agents/:id/credentials/:credentialId', asyncErrorWrapper((req, res) => controller.execute(req, res, 'revoke')));
+router.get('/payments', asyncErrorWrapper((req, res) => controller.execute(req, res, 'list')));
+router.post('/payments', asyncErrorWrapper((req, res) => controller.execute(req, res, 'requestOwner')));
+router.get('/payments/:id', asyncErrorWrapper((req, res) => controller.execute(req, res, 'detail')));
+router.post('/payments/:id/approve', asyncErrorWrapper((req, res) => controller.execute(req, res, 'approve')));
+router.post('/payments/:id/reject', asyncErrorWrapper((req, res) => controller.execute(req, res, 'reject')));
+export default router;

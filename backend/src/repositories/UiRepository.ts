@@ -4,6 +4,13 @@ export class UiRepository {
   private get scope() {
     return [this.identity.user_id, this.identity.owner_pubkey];
   }
+  private async lockVault(c: import('pg').PoolClient, kind: 'vaults'|'agents', id: string) {
+    const row = (await c.query(kind === 'vaults'
+      ? 'SELECT id vault_id FROM vaults WHERE id=$1 AND user_id=$2 AND owner_pubkey=$3'
+      : 'SELECT a.vault_id FROM agents a JOIN vaults v ON v.id=a.vault_id WHERE a.id=$1 AND v.user_id=$2 AND v.owner_pubkey=$3', [id,...this.scope])).rows[0];
+    if(!row) throw Object.assign(new Error('Not found'),{status:404});
+    await c.query('SELECT pg_advisory_xact_lock(hashtext($1))',[row.vault_id]);
+  }
   async assertOwned(kind: "vaults" | "agents", id: string) {
     const predicate =
       kind === "vaults"
@@ -23,7 +30,7 @@ export class UiRepository {
   async vaults() {
     return (
       await query(
-        `SELECT v.id,v.user_id,v.owner_pubkey,v.vault_pubkey,v.status,v.created_at,v.policies,COALESCE((SELECT SUM(daily_cap_lamports) FROM agents WHERE vault_id=v.id),0)::text daily_cap_lamports,COALESCE((SELECT SUM(t.amount_lamports) FROM transactions t JOIN agents a ON a.id=t.agent_id WHERE a.vault_id=v.id AND t.settlement_status='CONFIRMED' AND t.created_at>=date_trunc('day',NOW() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'),0)::text spent_today_lamports FROM vaults v WHERE v.user_id=$1 AND v.owner_pubkey=$2 ORDER BY v.created_at`,
+        `SELECT v.id,v.user_id,v.owner_pubkey,v.vault_pubkey,v.status,v.created_at,v.policies,v.execution_mode,v.mode_version,v.daily_cap_lamports::text,EXISTS(SELECT 1 FROM vault_signers WHERE vault_id=v.id) signer_ready,COALESCE((SELECT SUM(t.amount_lamports+COALESCE(t.actual_fee_lamports,t.network_fee_lamports,0)) FROM transactions t JOIN agents a ON a.id=t.agent_id WHERE a.vault_id=v.id AND t.settlement_status='CONFIRMED' AND t.reserved_at>NOW()-INTERVAL '24 hours'),0)::text spent_today_lamports FROM vaults v WHERE v.user_id=$1 AND v.owner_pubkey=$2 ORDER BY v.created_at`,
         this.scope,
       )
     ).rows;
@@ -31,7 +38,7 @@ export class UiRepository {
   async agents() {
     return (
       await query(
-        `SELECT a.*,COALESCE((SELECT SUM((after_state->'result'->>'amount_lamports')::bigint) FROM audit_events WHERE target_id=a.id::text AND action='SIMULATION' AND after_state->'result'->>'decision'='APPROVED' AND created_at>=date_trunc('day',NOW() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'),0)::text simulated_spent_today_lamports,COALESCE((SELECT jsonb_agg(jsonb_build_object('recipient_pubkey',recipient_pubkey,'label',label)) FROM whitelist_recipients WHERE agent_id=a.id),'[]'::jsonb) recipients,COALESCE((SELECT SUM(amount_lamports) FROM transactions WHERE agent_id=a.id AND settlement_status='CONFIRMED' AND created_at>=date_trunc('day',NOW() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'),0)::text spent_today_lamports,(SELECT COUNT(*)::int FROM transactions WHERE agent_id=a.id) transaction_count FROM agents a WHERE EXISTS(SELECT 1 FROM vaults WHERE id=a.vault_id AND user_id=$1 AND owner_pubkey=$2) ORDER BY created_at`,
+        `SELECT a.*,COALESCE((SELECT SUM((after_state->'result'->>'amount_lamports')::bigint) FROM audit_events WHERE target_id=a.id::text AND action='SIMULATION' AND after_state->'result'->>'decision'='APPROVED' AND created_at>=date_trunc('day',NOW() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'),0)::text simulated_spent_today_lamports,COALESCE((SELECT jsonb_agg(jsonb_build_object('recipient_pubkey',recipient_pubkey,'label',label)) FROM whitelist_recipients WHERE agent_id=a.id),'[]'::jsonb) recipients,COALESCE((SELECT SUM(amount_lamports) FROM transactions WHERE agent_id=a.id AND settlement_status='CONFIRMED' AND reserved_at>NOW()-INTERVAL '24 hours'),0)::text spent_today_lamports,(SELECT COUNT(*)::int FROM transactions WHERE agent_id=a.id) transaction_count FROM agents a WHERE EXISTS(SELECT 1 FROM vaults WHERE id=a.vault_id AND user_id=$1 AND owner_pubkey=$2) ORDER BY created_at`,
         this.scope,
       )
     ).rows;
@@ -139,6 +146,7 @@ export class UiRepository {
     const c = await pool.connect();
     try {
       await c.query("BEGIN");
+      await this.lockVault(c,kind,id);
       const predicate =
         kind === "vaults"
           ? "user_id=$2 AND owner_pubkey=$3"
@@ -191,6 +199,7 @@ export class UiRepository {
     const c = await pool.connect();
     try {
       await c.query("BEGIN");
+      await this.lockVault(c,'agents',id);
       const a = (
         await c.query(
           "SELECT vault_id FROM agents WHERE id=$1 AND EXISTS(SELECT 1 FROM vaults WHERE id=agents.vault_id AND user_id=$2 AND owner_pubkey=$3) FOR UPDATE",
@@ -222,6 +231,8 @@ export class UiRepository {
     const c = await pool.connect();
     try {
       await c.query("BEGIN");
+      const vaults = (await c.query('SELECT id FROM vaults WHERE user_id=$1 AND owner_pubkey=$2 ORDER BY id',this.scope)).rows;
+      for(const vault of vaults) await c.query('SELECT pg_advisory_xact_lock(hashtext($1))',[vault.id]);
       const rows = (
         await c.query(
           "UPDATE agents SET status='FROZEN' WHERE status='ACTIVE' AND EXISTS(SELECT 1 FROM vaults WHERE id=agents.vault_id AND user_id=$1 AND owner_pubkey=$2) RETURNING id,vault_id",
@@ -254,6 +265,7 @@ export class UiRepository {
     const c = await pool.connect();
     try {
       await c.query("BEGIN");
+      await this.lockVault(c,'agents',input.agent_id);
       const a = (
         await c.query(
           "SELECT a.*,v.status vault_status,v.policies,v.vault_pubkey FROM agents a JOIN vaults v ON v.id=a.vault_id WHERE a.id=$1 AND v.user_id=$2 AND v.owner_pubkey=$3 FOR UPDATE OF a,v",
