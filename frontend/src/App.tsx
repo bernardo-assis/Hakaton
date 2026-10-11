@@ -9,6 +9,8 @@ import { Hero } from "./components/Hero";
 import { Solutions } from "./components/Solutions";
 import { Features } from "./components/Features";
 import { Services } from "./components/Services";
+import { Testimonials } from "./components/Testimonials";
+import { Pricing } from "./components/Pricing";
 
 function AuthenticatedApp() {
   const auth = useWalletAuth();
@@ -81,6 +83,8 @@ function App() {
           <Solutions />
           <Features />
           <Services />
+          <Testimonials />
+          <Pricing />
           
           {/* Botǜo flutuante temporǭrio para ir pro App interno */}
           <button 

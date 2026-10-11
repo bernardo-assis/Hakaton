@@ -107,6 +107,34 @@ export function Simulator() {
   };
   const triggerGoodBot = () => void trigger("500000000");
   const triggerGreedyBot = () => void trigger("6000000000");
+  const triggerReal = async (amount: string) => {
+    if (!running || busy) return;
+    if (!agentId || !recipient.trim()) {
+      setError("Selecione um agente e informe o destinatário.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    append("action", `[WEB3] Executando transferência REAL de ${fromLamports(amount)} SOL...`);
+    try {
+      const result = await request<any>("/transactions", {
+        method: "POST",
+        body: JSON.stringify({
+          agent_id: agentId,
+          amount_lamports: Number(amount),
+          recipient_pubkey: recipient.trim(),
+          purpose: "Hackathon Web3 Execution",
+          idempotency_key: crypto.randomUUID(),
+          request_hash: crypto.randomUUID()
+        }),
+      });
+      append("approved", `[SUCESSO] Transação confirmada na Solana! Assinatura: ${result.signature || result.data?.signature}`);
+    } catch (e: any) {
+      append("blocked", `[BLOQUEADO/ERRO] ${e.message}`);
+    } finally {
+      setBusy(false);
+    }
+  };
   const toggle = () => {
     if (running) {
       control.stop();
@@ -283,10 +311,24 @@ export function Simulator() {
                 className="flex-1 bg-gray-900 text-white py-3 rounded-xl text-[13px] font-semibold hover:bg-gray-800 transition-colors"
               >
                 Rob Guloso (6.0 SOL)
+                </button>
+              </div>
+              <button
+                disabled={!running || busy || !agent}
+                onClick={() => void triggerReal("500000000")}
+                className="w-full mt-3 bg-[#111827] text-white rounded-[14px] p-4 text-left hover:bg-gray-800 transition-colors cursor-pointer group shadow-sm flex items-center justify-between"
+              >
+                <div>
+                  <h4 className="font-medium text-[14px] text-[#B6F03F]">
+                    🔥 Executar Transferência na Web3 (0.5 SOL)
+                  </h4>
+                  <p className="text-gray-400 text-[12px] mt-1">
+                    Chama o Endpoint de Produção para confirmar a transação na rede.
+                  </p>
+                </div>
               </button>
             </div>
           </div>
-        </div>
 
         {/* Terminal do Agente de IA (Direita) */}
         <div className="flex-1 flex flex-col gap-6">
