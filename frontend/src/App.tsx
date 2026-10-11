@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Lenis from "lenis";
 import { WalletAuthProvider, useWalletAuth } from "./components/WalletAuth";
 import { Header } from "./components/Header";
 import { Dashboard } from "./pages/Dashboard";
@@ -61,6 +62,29 @@ function AuthenticatedApp() {
 
 function App() {
   const [currentPage, setCurrentPage] = useState("landing");
+
+  useEffect(() => {
+    if (currentPage !== "landing") return;
+
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+    });
+
+    let animationFrameId: number;
+    function raf(time: number) {
+      lenis.raf(time);
+      animationFrameId = requestAnimationFrame(raf);
+    }
+
+    animationFrameId = requestAnimationFrame(raf);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      lenis.destroy();
+    };
+  }, [currentPage]);
 
   return (
     <>
