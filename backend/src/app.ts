@@ -1,4 +1,4 @@
-import express from "express";
+import express, { ErrorRequestHandler } from "express";
 import cors from "cors";
 import vaultRoutes from "./routes/vaultRoutes";
 import agentRoutes from "./routes/agentRoutes";
@@ -15,6 +15,7 @@ import { originGuard, requireWallet } from "./middleware/walletAuth";
 import { config } from "./config/unifiedConfig";
 import pool from './db/database';
 const app = express();
+app.disable("x-powered-by");
 // One known terminating proxy only; never trust every forwarded hop.
 app.set('trust proxy',config.server.trustProxyHops);
 app.get('/healthz',(_req,res)=>{res.set('Cache-Control','no-store');res.json({status:'ok'});});
@@ -98,4 +99,17 @@ app.post(
   "/api/simulator/evaluate",
   asyncErrorWrapper((req, res) => ui.execute(req, res, "simulate")),
 );
+// Never expose parser input, internal errors or stack traces through Express defaults.
+const safeErrorHandler: ErrorRequestHandler = (error, _req, res, next) => {
+  if (res.headersSent) {
+    next(error);
+    return;
+  }
+  const status = error?.status === 413 ? 413 :
+    error?.status === 400 || error instanceof URIError ? 400 : 500;
+  const message = status === 413 ? "Request body too large" :
+    status === 400 ? "Invalid request" : "Internal server error";
+  res.status(status).json({ success: false, error: message });
+};
+app.use(safeErrorHandler);
 export default app;

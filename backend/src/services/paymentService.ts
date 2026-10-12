@@ -319,12 +319,15 @@ export class PaymentService {
                     const v = await this.repo.vault(c, pending.vault_id), a = await this.repo.agent(c, t.agent_id);
                     // Reconciliation always follows sent transactions. Rebroadcast is optional and
                     // uses the identical signature only while current controls still allow sending.
-                    if (v.status !== 'ACTIVE' || a.status !== 'ACTIVE' || t.approval_status === 'PENDING' || (v.execution_mode === 'MANUAL' && t.approval_status !== 'APPROVED'))
+                    const requiresApproval = v.execution_mode === 'MANUAL' ||
+                        (v.policies.require_human_approval && BigInt(t.amount_lamports) > BigInt(v.policies.approval_threshold_lamports));
+                    if (v.status !== 'ACTIVE' || a.status !== 'ACTIVE' || t.approval_status === 'PENDING' || (requiresApproval && t.approval_status !== 'APPROVED'))
                         return;
+                    const balance = await this.network.balance(v.vault_pubkey);
+                    // The RPC may outlive a credential: validate its current lifetime afterwards.
                     const credential = t.credential_id ? await this.repo.validCredential(c, t.credential_id) : true;
                     if (!credential)
                         return;
-                    const balance = await this.network.balance(v.vault_pubkey);
                     await this.repo.begin(c);
                     try {
                         await this.validate(c, v, a, t, BigInt(t.network_fee_lamports), balance);

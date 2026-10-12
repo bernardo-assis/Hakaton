@@ -48,7 +48,7 @@ The helper uses `compose.demo.yml`, generates non-secret flags in `.env.demo`, a
 
 Frontend: React 19, TypeScript, Vite and Tailwind CSS. Backend: Node.js, Express, Zod, PostgreSQL and `@solana/web3.js`. Runtime migrations live in `backend/src/db/migrations`; the historical SQLite schema is not the server's persistence layer.
 
-The integrated build passed **42 backend tests in eleven suites**, **14 frontend tests**, production builds and browser checks. Financial browser scenarios use a controlled API; authentication scenarios use the real Docker API, an injected wallet provider and real Ed25519 signatures. Checks cover two owners, session restoration, wallet switching, logout and HttpOnly/SameSite=Strict cookies. The adapter also uses real Solana serialization/signatures with injected RPC. These checks do not replace real Phantom extension testing or a funded, finalized Devnet payment. See [QA evidence](docs/PAYMENT_QA.md) and the [manual test guide](docs/PAYMENT_PANEL_MANUAL_TEST.md).
+The security regression gate passed **107 backend tests in thirteen suites**, including **65 new adversarial cases**, and the rebuilt demo passed live HTTP and Chromium security checks. The preceding integrated build passed **14 frontend tests**, production builds and browser checks. Financial browser scenarios use a controlled API; authentication scenarios use the real Docker API, an injected wallet provider and real Ed25519 signatures. Checks cover two owners, session restoration, wallet switching, logout and HttpOnly/SameSite=Strict cookies. The adapter also uses real Solana serialization/signatures with injected RPC. These checks do not replace real Phantom extension testing or a funded, finalized Devnet payment. See the [security attack report](docs/security/SECURITY_ATTACK_REPORT.md), [QA evidence](docs/PAYMENT_QA.md) and the [manual test guide](docs/PAYMENT_PANEL_MANUAL_TEST.md).
 
 The current payment scope is SOL on Devnet. Pending live validation covers Phantom and funded transfers; an expired transaction with inconclusive history remains `UNKNOWN` and reserved for investigation.
 
@@ -59,6 +59,7 @@ Open **Docs** from the landing page to read the product and API guide. Use **Lau
 ## Repository documentation
 
 - [Security architecture and custody boundaries](docs/architecture/SECURITY_ARCHITECTURE.md)
+- [Security attacks, corrections and remaining exposure](docs/security/SECURITY_ATTACK_REPORT.md)
 - [REST API](docs/api/REST_API.md)
 - [Deployment and local demo](docs/DEPLOYMENT.md)
 - [Payment contract](docs/architecture/DEVNET_PAYMENT_PLAN.md)
