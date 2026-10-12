@@ -31,10 +31,15 @@ export function getProvider(): PhantomProvider | undefined {
 export async function connectWallet(
   provider?: PhantomProvider,
 ): Promise<string> {
-  if (!provider?.isPhantom)
+  if (!provider?.isPhantom) {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '');
+    if (isMobile && typeof window !== 'undefined') {
+      window.location.href = 'https://phantom.app/ul/browse/' + encodeURIComponent(window.location.href) + '?ref=' + encodeURIComponent(window.location.origin);
+    }
     throw new Error(
       "Install the Phantom extension in this browser to connect your wallet.",
     );
+  }
   const result = await provider.connect();
   return result.publicKey.toString();
 }

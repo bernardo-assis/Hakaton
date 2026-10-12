@@ -52,6 +52,10 @@ afterAll(async () => {
       [v.user_id],
     );
     await pool.query(
+      "DELETE FROM transactions WHERE agent_id IN (SELECT id FROM agents WHERE vault_id IN (SELECT id FROM vaults WHERE user_id=$1))",
+      [v.user_id],
+    );
+    await pool.query(
       "DELETE FROM whitelist_recipients WHERE agent_id IN (SELECT id FROM agents WHERE vault_id IN (SELECT id FROM vaults WHERE user_id=$1))",
       [v.user_id],
     );
@@ -245,6 +249,128 @@ test("agent can be moved between owned vaults and prevents IDOR on unowned vault
   expect(audit.after_state.vault_id).toBe(vault2.id);
 
   // Cleanup
+  await pool.query(
+    "DELETE FROM audit_events WHERE target_id=$1 OR vault_id=$2",
+    [agent.id, vault2.id],
+  );
+  await pool.query("DELETE FROM agents WHERE id=$1", [agent.id]);
+  await pool.query("DELETE FROM vaults WHERE id=$1", [vault2.id]);
+});
+
+test("agent with pending payment requests is prevented from changing vaults", async () => {
+  const vault1 = (
+    await request(app)
+      .post("/api/vaults/local")
+      .send({ owner_pubkey: fixtureWallet })
+  ).body.data;
+
+  const vault2 = (
+    await pool.query(
+      "INSERT INTO vaults(user_id, owner_pubkey, vault_pubkey, key_reference) VALUES($1, $2, $3, $4) RETURNING *",
+      [vault1.user_id, fixtureWallet, "55555555555555555555555555555555", "external-wallet:55555555555555555555555555555555"],
+    )
+  ).rows[0];
+
+  const agent = (
+    await request(app)
+      .post("/api/agents")
+      .send({
+        vault_id: vault1.id,
+        name: "Pending Guard Agent",
+        role: "Worker",
+        agent_pubkey: "66666666666666666666666666666666",
+        daily_cap_lamports: "100",
+        single_tx_cap_lamports: "50",
+      })
+  ).body.data;
+
+  // Insert pending payment request
+  await pool.query(
+    `INSERT INTO transactions(agent_id, idempotency_key, request_hash, recipient_pubkey, amount_lamports, decision, settlement_status, approval_status)
+     VALUES($1, 'pending-key-1', '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', '77777777777777777777777777777777', 20, 'APPROVED', 'NOT_SUBMITTED', 'PENDING')`,
+    [agent.id],
+  );
+
+  // Attempt to reassign vault
+  const res = await request(app)
+    .patch(`/api/agents/${agent.id}`)
+    .send({ vault_id: vault2.id });
+  expect(res.status).toBe(400);
+  expect(res.body.error).toBe(
+    "Cannot reassign vault: agent has pending payment requests awaiting approval",
+  );
+
+  // Cleanup
+  await pool.query("DELETE FROM transactions WHERE agent_id=$1", [agent.id]);
+  await pool.query(
+    "DELETE FROM audit_events WHERE target_id=$1 OR vault_id=$2",
+    [agent.id, vault2.id],
+  );
+  await pool.query("DELETE FROM agents WHERE id=$1", [agent.id]);
+  await pool.query("DELETE FROM vaults WHERE id=$1", [vault2.id]);
+});
+
+test("agent with active 24-hour spending history is prevented from changing vaults", async () => {
+  const vault1 = (
+    await request(app)
+      .post("/api/vaults/local")
+      .send({ owner_pubkey: fixtureWallet })
+  ).body.data;
+
+  const vault2 = (
+    await pool.query(
+      "INSERT INTO vaults(user_id, owner_pubkey, vault_pubkey, key_reference) VALUES($1, $2, $3, $4) RETURNING *",
+      [vault1.user_id, fixtureWallet, "88888888888888888888888888888888", "external-wallet:88888888888888888888888888888888"],
+    )
+  ).rows[0];
+
+  const agent = (
+    await request(app)
+      .post("/api/agents")
+      .send({
+        vault_id: vault1.id,
+        name: "Active History Agent",
+        role: "Worker",
+        agent_pubkey: "99999999999999999999999999999999",
+        daily_cap_lamports: "100",
+        single_tx_cap_lamports: "50",
+      })
+  ).body.data;
+
+  // Insert confirmed transaction in the last 24h
+  await pool.query(
+    `INSERT INTO transactions(agent_id, idempotency_key, request_hash, recipient_pubkey, amount_lamports, decision, settlement_status, approval_status, reserved_at, confirmed_at)
+     VALUES($1, 'confirmed-key-1', '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', '77777777777777777777777777777777', 20, 'APPROVED', 'CONFIRMED', 'NOT_REQUIRED', NOW(), NOW())`,
+    [agent.id],
+  );
+
+  // Attempt to reassign vault
+  const res = await request(app)
+    .patch(`/api/agents/${agent.id}`)
+    .send({ vault_id: vault2.id });
+  expect(res.status).toBe(400);
+  expect(res.body.error).toBe(
+    "Cannot reassign vault: agent has active 24-hour spending history. Deploy a new agent to the target vault to preserve accounting integrity.",
+  );
+
+  // Also verify confirmed payment record via created_at
+  await pool.query("DELETE FROM transactions WHERE agent_id=$1", [agent.id]);
+  await pool.query(
+    `INSERT INTO transactions(agent_id, idempotency_key, request_hash, recipient_pubkey, amount_lamports, decision, settlement_status, approval_status, created_at, confirmed_at)
+     VALUES($1, 'confirmed-key-2', '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', '77777777777777777777777777777777', 20, 'APPROVED', 'CONFIRMED', 'NOT_REQUIRED', NOW(), NOW())`,
+    [agent.id],
+  );
+
+  const res2 = await request(app)
+    .patch(`/api/agents/${agent.id}`)
+    .send({ vault_id: vault2.id });
+  expect(res2.status).toBe(400);
+  expect(res2.body.error).toBe(
+    "Cannot reassign vault: agent has active 24-hour spending history. Deploy a new agent to the target vault to preserve accounting integrity.",
+  );
+
+  // Cleanup
+  await pool.query("DELETE FROM transactions WHERE agent_id=$1", [agent.id]);
   await pool.query(
     "DELETE FROM audit_events WHERE target_id=$1 OR vault_id=$2",
     [agent.id, vault2.id],

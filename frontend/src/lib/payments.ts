@@ -26,11 +26,26 @@ export interface PaymentConfig {
     available_lamports: string | null;
     spent_24h_lamports: string;
 }
-export function paymentLabel(p: Pick<Payment, 'decision' | 'approval_status' | 'settlement_status'>): string {
+export function paymentLabel(p: Pick<Payment, 'decision' | 'approval_status' | 'settlement_status' | 'error_code'>): string {
     if (p.approval_status === 'REJECTED')
         return 'Rejected';
-    if (p.decision === 'BLOCKED')
+    if (p.decision === 'BLOCKED') {
+        if (p.error_code === 'SINGLE_TX_CAP_EXCEEDED')
+            return 'Blocked (Single-tx limit exceeded)';
+        if (p.error_code === 'DAILY_CAP_EXCEEDED')
+            return 'Blocked (Daily limit exceeded)';
+        if (p.error_code === 'VAULT_DAILY_CAP_EXCEEDED')
+            return 'Blocked (Vault daily limit exceeded)';
+        if (p.error_code === 'RECIPIENT_NOT_ALLOWED')
+            return 'Blocked (Recipient not whitelisted)';
+        if (p.error_code === 'INSUFFICIENT_BALANCE')
+            return 'Blocked (Insufficient balance)';
+        if (p.error_code === 'LOW_BALANCE')
+            return 'Blocked (Low balance threshold)';
+        if (p.error_code)
+            return `Blocked (${p.error_code})`;
         return 'Blocked';
+    }
     if (p.settlement_status === 'CONFIRMED')
         return 'Confirmed';
     if (p.settlement_status === 'FAILED')

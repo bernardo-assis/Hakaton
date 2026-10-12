@@ -128,14 +128,17 @@ export function Footer({ onLaunchApp, onOpenDocs }: FooterProps = {}) {
             <h4 className="text-[14px] font-medium text-[#FAFCFA] tracking-wide uppercase mb-1">
               Protocol
             </h4>
-            <a href="#features" className="text-[15px] text-[#FAFCFA]/60 hover:text-[#B6F03F] transition-colors">
-              Features
+            <a href="#about" className="text-[15px] text-[#FAFCFA]/60 hover:text-[#B6F03F] transition-colors">
+              About
             </a>
             <a href="#solutions" className="text-[15px] text-[#FAFCFA]/60 hover:text-[#B6F03F] transition-colors">
               Solutions
             </a>
+            <a href="#features" className="text-[15px] text-[#FAFCFA]/60 hover:text-[#B6F03F] transition-colors">
+              Features
+            </a>
             <a href="#testimonials" className="text-[15px] text-[#FAFCFA]/60 hover:text-[#B6F03F] transition-colors">
-              Testimonials
+              Architecture
             </a>
             <a href="#pricing" className="text-[15px] text-[#FAFCFA]/60 hover:text-[#B6F03F] transition-colors">
               Pricing Plans

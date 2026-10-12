@@ -13,6 +13,8 @@ const pool = new Pool({
   statement_timeout: 3000,
 });
 
+pool.query('CREATE OR REPLACE VIEW payments AS SELECT * FROM transactions').catch(() => {});
+
 // Mensagem bonitinha para sabermos se deu certo quando ligarmos o servidor
 pool.on('connect', () => {
   console.log('[Database] PostgreSQL connection established');

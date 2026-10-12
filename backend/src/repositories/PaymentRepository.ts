@@ -7,7 +7,11 @@ export type Owner = {
 export const paymentError = (message: string, status = 409) => Object.assign(new Error(message), { status });
 export const publicPayment = (t: any) => {
     const { signed_tx_reference, request_hash, encrypted_key, ...safe } = t;
-    return safe;
+    return {
+        ...safe,
+        error_code: safe.error_code ?? safe.reason ?? null,
+        reason: safe.reason ?? safe.error_code ?? null,
+    };
 };
 export class PaymentRepository {
     constructor(private database: Pick<typeof pool,'query'|'connect'> = pool) {}

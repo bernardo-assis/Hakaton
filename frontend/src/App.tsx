@@ -8,6 +8,7 @@ import { Simulator } from "./pages/Simulator";
 import { VaultBudgets } from "./pages/VaultBudgets";
 import { Docs } from "./pages/Docs";
 import { Hero } from "./components/Hero";
+import { AboutProject } from "./components/AboutProject";
 import { Solutions } from "./components/Solutions";
 import { Features } from "./components/Features";
 import { Services } from "./components/Services";
@@ -133,6 +134,7 @@ function App() {
           </div>
 
           <Hero onLaunchApp={() => launchApp("dashboard")} onOpenDocs={openDocs} />
+          <AboutProject onLaunchApp={() => launchApp("dashboard")} onOpenDocs={openDocs} />
           <Solutions onLaunchApp={() => launchApp("dashboard")} onOpenDocs={openDocs} />
           <Features />
           <Services />

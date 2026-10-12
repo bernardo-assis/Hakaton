@@ -190,6 +190,17 @@ export class UiRepository {
           throw Object.assign(new Error("Vault not found"), { status: 404 });
         }
         await c.query("SELECT pg_advisory_xact_lock(hashtext($1))", [input.vault_id]);
+
+        if (input.vault_id !== old.vault_id) {
+          const pending = (await c.query("SELECT 1 FROM payments WHERE agent_id=$1 AND approval_status='PENDING' LIMIT 1", [id])).rows[0];
+          if (pending) {
+            throw Object.assign(new Error("Cannot reassign vault: agent has pending payment requests awaiting approval"), { status: 400 });
+          }
+          const recentTx = (await c.query("SELECT 1 FROM transactions WHERE agent_id=$1 AND reserved_at > NOW() - INTERVAL '24 hours' AND settlement_status='CONFIRMED' UNION ALL SELECT 1 FROM payments WHERE agent_id=$1 AND created_at > NOW() - INTERVAL '24 hours' AND settlement_status='CONFIRMED' LIMIT 1", [id])).rows[0];
+          if (recentTx) {
+            throw Object.assign(new Error("Cannot reassign vault: agent has active 24-hour spending history. Deploy a new agent to the target vault to preserve accounting integrity."), { status: 400 });
+          }
+        }
       }
       if (
         kind === "agents" &&

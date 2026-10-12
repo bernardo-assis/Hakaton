@@ -48,9 +48,10 @@ export function Hero({ onLaunchApp, onOpenDocs }: HeroProps = {}) {
 
         {/* Glass Navigation */}
         <nav className="hidden lg:flex items-center space-x-6 bg-[#202A29]/50 backdrop-blur-[12px] border border-white/10 rounded-[15px] pl-8 pr-2 py-1.5">
+          <a href="#about" className="text-[16px] font-normal hover:text-[#B6F03F] transition-colors">About</a>
           <a href="#solutions" className="text-[16px] font-normal hover:text-[#B6F03F] transition-colors">Solutions</a>
           <a href="#features" className="text-[16px] font-normal hover:text-[#B6F03F] transition-colors">Features</a>
-          <a href="#testimonials" className="text-[16px] font-normal hover:text-[#B6F03F] transition-colors">Testimonials</a>
+          <a href="#testimonials" className="text-[16px] font-normal hover:text-[#B6F03F] transition-colors">Architecture</a>
           <a href="#pricing" className="text-[16px] font-normal hover:text-[#B6F03F] transition-colors">Pricing</a>
           <button
             onClick={onOpenDocs}
