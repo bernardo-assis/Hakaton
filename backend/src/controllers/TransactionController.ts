@@ -9,12 +9,6 @@ export class TransactionController extends BaseController {
   }
 
   async createTransaction(req: Request, res: Response): Promise<void> {
-    res
-      .status(501)
-      .json({
-        success: false,
-        error:
-          "Real transfers require authenticated authorization and safe settlement. Use simulator for policy checks.",
-      });
+    res.status(501).json({success:false,error:"Legacy treasury transfers are disabled. Use /api/payments or /api/agent-payments."});
   }
 }

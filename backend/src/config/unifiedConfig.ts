@@ -1,10 +1,17 @@
 import dotenv from "dotenv";
+import {readFileSync} from 'fs';
 dotenv.config();
+function secret(name:string,fallback=''){
+  const path=process.env[name+'_FILE'];
+  return path?readFileSync(path,'utf8').trim():(process.env[name]??fallback);
+}
+const trustProxyHops=Number(process.env.TRUST_PROXY_HOPS??0);
+if(![0,1].includes(trustProxyHops))throw new Error('TRUST_PROXY_HOPS must be 0 or 1');
 
 export const config = {
   payments: {
     enabled: process.env.DEVNET_PAYMENTS_ENABLED === 'true',
-    signerEncryptionKey: process.env.VAULT_SIGNER_ENCRYPTION_KEY || '',
+    signerEncryptionKey: secret('VAULT_SIGNER_ENCRYPTION_KEY'),
   },
   auth: {
     production: process.env.NODE_ENV === "production",
@@ -19,10 +26,12 @@ export const config = {
       .filter(Boolean),
   },
   server: {
-    port: process.env.PORT || 3001,
+    port: Number(process.env.PORT || 3001),
+    trustProxyHops,
   },
   db: {
-    url: process.env.DATABASE_URL,
+    url: secret('DATABASE_URL')||undefined,
+    ssl: process.env.DATABASE_SSL === 'true' ? {rejectUnauthorized:true} : undefined,
   },
   solana: {
     rpcUrl: process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com",

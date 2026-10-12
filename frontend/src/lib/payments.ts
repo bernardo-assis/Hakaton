@@ -1,4 +1,4 @@
-import { toLamports } from './api.ts';
+import { request, toLamports } from './api.ts';
 export interface Payment {
     id: string;
     agent_id: string;
@@ -28,27 +28,27 @@ export interface PaymentConfig {
 }
 export function paymentLabel(p: Pick<Payment, 'decision' | 'approval_status' | 'settlement_status'>): string {
     if (p.approval_status === 'REJECTED')
-        return 'Recusado';
+        return 'Rejected';
     if (p.decision === 'BLOCKED')
-        return 'Bloqueado';
+        return 'Blocked';
     if (p.settlement_status === 'CONFIRMED')
-        return 'Confirmado';
+        return 'Confirmed';
     if (p.settlement_status === 'FAILED')
-        return 'Falhou';
+        return 'Failed';
     if (p.settlement_status === 'UNKNOWN')
-        return 'Verificando na rede';
+        return 'Checking the network';
     if (p.settlement_status === 'SUBMITTED')
-        return 'Enviado à rede';
+        return 'Sent to the network';
     if (p.approval_status === 'PENDING')
-        return 'Aguardando aprovação';
-    return 'Aguardando envio';
+        return 'Awaiting approval';
+    return 'Awaiting submission';
 }
 export function paymentRequest(agent_id: string, idempotency_key: string, recipient_pubkey: string, value: string, purpose: string) {
     const amount_lamports = toLamports(value);
     if (BigInt(amount_lamports) <= 0n)
-        throw new Error('O valor deve ser maior que zero.');
+        throw new Error('The amount must be greater than zero.');
     if (!agent_id || !recipient_pubkey.trim())
-        throw new Error('Selecione um agente e informe o destinatário.');
+        throw new Error('Select an agent and enter the recipient.');
     return { agent_id, idempotency_key, recipient_pubkey: recipient_pubkey.trim(), amount_lamports, purpose: purpose.trim() };
 }
 export function explorerLink(signature: string): string | null { return /^[1-9A-HJ-NP-Za-km-z]{64,88}$/.test(signature) ? `https://explorer.solana.com/tx/${signature}?cluster=devnet` : null; }
@@ -66,4 +66,19 @@ export function paymentIntent(storage: Pick<Storage, 'getItem' | 'setItem'>, sco
     const key = newId();
     storage.setItem(name, JSON.stringify({ key, fingerprint }));
     return key;
+}
+export async function submitOwnerPayment(
+    storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>,
+    scope: string,
+    draft: ReturnType<typeof paymentRequest>,
+    send: typeof request = request,
+): Promise<Payment> {
+    const fingerprint = JSON.stringify([draft.agent_id, draft.recipient_pubkey, draft.amount_lamports, draft.purpose]);
+    const key = paymentIntent(storage, scope, fingerprint, () => crypto.randomUUID());
+    const payment = await send<Payment>('/payments', {
+        method: 'POST',
+        body: JSON.stringify({ ...draft, idempotency_key: key }),
+    });
+    storage.removeItem(`agentsafe.payment.intent.${scope}`);
+    return payment;
 }

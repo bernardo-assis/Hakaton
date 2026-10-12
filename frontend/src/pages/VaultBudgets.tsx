@@ -42,7 +42,7 @@ export function VaultBudgets() {
         v.some((vault) => vault.id === id) ? id : (v[0]?.id ?? ""),
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro ao carregar cofres.");
+      setError(e instanceof Error ? e.message : "Failed to load vaults.");
     } finally {
       setLoading(false);
     }
@@ -83,7 +83,7 @@ export function VaultBudgets() {
       });
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro ao salvar política.");
+      setError(e instanceof Error ? e.message : "Failed to save policy.");
     } finally {
       setBusy(false);
     }
@@ -124,7 +124,7 @@ export function VaultBudgets() {
         const d = toLamports(daily),
           t = toLamports(single);
         if (BigInt(t) > BigInt(d))
-          throw new Error("Limite por transação excede limite diário.");
+          throw new Error("Per-transaction limit exceeds daily limit.");
         await request(`/agents/${editing.id}`, {
           method: "PATCH",
           body: JSON.stringify({
@@ -134,17 +134,17 @@ export function VaultBudgets() {
         });
       }
       setModal(null);
-      setMessage("Configuração salva no backend.");
+      setMessage("Configuration saved successfully.");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro ao salvar.");
+      setError(e instanceof Error ? e.message : "Failed to save configuration.");
     } finally {
       setBusy(false);
     }
   };
   const recommend = async () => {
     if (!vault) {
-      setError("Cadastre e selecione um cofre primeiro.");
+      setError("Please register and select a vault first.");
       return;
     }
     setBusy(true);
@@ -155,10 +155,10 @@ export function VaultBudgets() {
         transferred: false;
       }>(`/vaults/${vault.id}/optimize`, { method: "POST", body: "{}" });
       setMessage(
-        `Recomendação por regras: ${result.recommendation} Nenhuma transferência realizada.`,
+        `Rule recommendation: ${result.recommendation} No transfers made.`,
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro na recomendação.");
+      setError(e instanceof Error ? e.message : "Failed to generate recommendation.");
     } finally {
       setBusy(false);
     }
@@ -179,14 +179,14 @@ export function VaultBudgets() {
     <div className="max-w-[1280px] mx-auto w-full px-6 mt-8 pb-12">
       {loading && (
         <p role="status" className="text-[#777D85] text-[13px] mb-4">
-          Carregando cofres...
+          Loading vaults...
         </p>
       )}
       {error && (
         <p role="alert" className="text-[#F04448] text-[13px] mb-4">
-          {error} {vault && <span>Dados da última atualização.</span>}{" "}
-          <button onClick={() => void load()} className="underline">
-            Tentar novamente
+          {error} {vault && <span>Data from last update.</span>}{" "}
+          <button onClick={() => void load()} className="underline hover:opacity-80 active:scale-[0.98] transition-all duration-200 cursor-pointer">
+            Try again
           </button>
         </p>
       )}
@@ -195,11 +195,11 @@ export function VaultBudgets() {
           {message}
         </p>
       )}
-      {/* Cabeçalho */}
+      {/* Cabealho */}
       <div className="flex justify-between items-start mb-8">
         <div className="flex flex-col gap-1.5">
           <h1 className="text-[#111827] text-[30px] font-medium font-inter">
-            Orçamentos do Cofre
+            Vault Budgets
           </h1>
           <span className="text-[#777D85] text-[13px] font-normal">
             Allocate capital, manage liquidity, and set global spending rules
@@ -210,7 +210,7 @@ export function VaultBudgets() {
           <button
             disabled={busy}
             onClick={openPolicy}
-            className="bg-white border border-[#E8EAEC] text-[#111827] px-4 py-2.5 rounded-full text-[13px] font-semibold hover:bg-gray-50 transition-colors cursor-pointer flex items-center gap-2 shadow-sm"
+            className="bg-white border border-[#E8EAEC] text-[#111827] px-4 py-2.5 rounded-full text-[13px] font-semibold hover:bg-gray-50 active:scale-[0.98] hover:shadow-sm transition-all duration-200 cursor-pointer flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             <svg
               className="w-4 h-4"
@@ -225,12 +225,12 @@ export function VaultBudgets() {
                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"
               />
             </svg>
-            {vault ? "Configurar política" : "Cadastrar carteira"}
+            {vault ? "Configure policy" : "Register wallet"}
           </button>
           <button
             disabled={busy}
             onClick={() => void recommend()}
-            className="bg-[#064E3B] text-white px-5 py-2.5 rounded-full text-[13px] font-semibold hover:bg-[#054030] transition-colors cursor-pointer flex items-center gap-2 shadow-sm"
+            className="bg-[#064E3B] text-white px-5 py-2.5 rounded-full text-[13px] font-semibold hover:bg-[#054030] active:scale-[0.98] hover:shadow-sm transition-all duration-200 cursor-pointer flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             <svg
               className="w-4 h-4"
@@ -245,22 +245,22 @@ export function VaultBudgets() {
                 d="M13 10V3L4 14h7v7l9-11h-7z"
               />
             </svg>
-            Recomendação de liquidez
+            Liquidity recommendation
           </button>
         </div>
       </div>
 
       <div className="flex items-center gap-3 mb-6">
         <select
-          aria-label="Cofre selecionado"
+          aria-label="Selected vault"
           value={selected}
           onChange={(e) => setSelected(e.target.value)}
-          className="bg-white border border-[#E8EAEC] rounded-[10px] px-4 py-2 text-[13px]"
+          className="bg-white border border-[#E8EAEC] rounded-[10px] px-4 py-2 text-[13px] outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200 cursor-pointer"
         >
-          <option value="">Selecione um cofre</option>
+          <option value="">Select a vault...</option>
           {vaults.map((v) => (
             <option value={v.id} key={v.id}>
-              {v.vault_pubkey.slice(0, 8)}… · {v.status}
+              {v.vault_pubkey.slice(0, 8)}  {v.status}
             </option>
           ))}
         </select>
@@ -269,33 +269,33 @@ export function VaultBudgets() {
             setError("");
             setModal("create");
           }}
-          className="bg-white border border-[#E8EAEC] text-[#111827] px-4 py-2 rounded-full text-[13px] font-semibold"
+          className="bg-white border border-[#E8EAEC] text-[#111827] px-4 py-2 rounded-full text-[13px] font-semibold hover:bg-gray-50 active:scale-[0.98] transition-all duration-200 cursor-pointer"
         >
-          Nova carteira
+          New vault
         </button>
         <button
           disabled={!vault}
           onClick={exportData}
-          className="bg-white border border-[#E8EAEC] text-[#111827] px-4 py-2 rounded-full text-[13px] font-semibold"
+          className="bg-white border border-[#E8EAEC] text-[#111827] px-4 py-2 rounded-full text-[13px] font-semibold hover:bg-gray-50 active:scale-[0.98] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
-          Exportar
+          Export
         </button>
       </div>
       {!vault && !loading && !error && (
         <p className="text-[#777D85] text-[13px] mb-4">
-          Cadastre sua carteira autenticada para acompanhar o saldo Devnet. Sua
-          chave privada permanece na Phantom.
+          Register your authenticated wallet to track your Devnet balance. Your
+          private key stays safely inside Phantom.
         </p>
       )}
       <DevnetPayments />
-      <p className="text-[#777D85] text-[13px] mb-4">As políticas abaixo controlam as avaliações do simulador. Pagamentos Devnet são acompanhados no painel acima.</p>
-      {/* Grid de Métricas do Cofre */}
+      <p className="text-[#777D85] text-[13px] mb-4">The policies below apply to the vault selected at the top of this page. Simulations do not move funds. Real payments also follow the payment mode and rolling 24-hour limit of the separate test vault selected above.</p>
+      {/* Vault metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Saldo Total */}
-        <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+        <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
           <div className="flex justify-between items-start mb-4">
             <span className="text-[#777D85] text-[13px] font-medium">
-              Liquidez Disponível
+              Available Liquidity
             </span>
             <div className="w-8 h-8 rounded-full bg-[#E6F8F0] flex items-center justify-center">
               <svg
@@ -316,7 +316,7 @@ export function VaultBudgets() {
           <div>
             <h2 className="text-[#111827] text-[32px] font-semibold tracking-tight">
               {vault?.balance_lamports == null
-                ? "Indisponível"
+                ? "Unavailable"
                 : sol(fromLamports(vault.balance_lamports))}
             </h2>
             <p className="text-[#24865E] text-[12px] font-medium mt-1 flex items-center gap-1">
@@ -333,16 +333,16 @@ export function VaultBudgets() {
                   d="M5 10l7-7m0 0l7 7m-7-7v18"
                 />
               </svg>
-              Saldo consultado na Devnet
+              Balance fetched from Devnet
             </p>
           </div>
         </div>
 
         {/* Capital Travado */}
-        <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+        <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
           <div className="flex justify-between items-start mb-4">
             <span className="text-[#777D85] text-[13px] font-medium">
-              Limites dos agentes
+              Agent limits
             </span>
             <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
               <svg
@@ -362,19 +362,19 @@ export function VaultBudgets() {
           </div>
           <div>
             <h2 className="text-[#111827] text-[32px] font-semibold tracking-tight">
-              {vault ? sol(totalCap) : "—"}
+              {vault ? sol(totalCap) : ""}
             </h2>
             <p className="text-[#777D85] text-[12px] font-medium mt-1">
-              Soma dos limites; não representa reserva de saldo
+              Sum of limits; does not represent reserved balance
             </p>
           </div>
         </div>
 
         {/* Consumo Hoje */}
-        <div className="bg-[#064E3B] rounded-[22px] p-6 shadow-sm flex flex-col justify-between">
+        <div className="bg-[#064E3B] rounded-[22px] p-6 shadow-sm flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
           <div className="flex justify-between items-start mb-4">
             <span className="text-[#A5C0B4] text-[13px] font-medium">
-              Gastos confirmados hoje
+              Confirmed spent today
             </span>
             <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
               <svg
@@ -394,34 +394,34 @@ export function VaultBudgets() {
           </div>
           <div>
             <h2 className="text-white text-[32px] font-semibold tracking-tight">
-              {vault ? sol(spent) : "—"}
+              {vault ? sol(spent) : ""}
             </h2>
             <div className="w-full bg-[#054030] rounded-full h-[6px] mt-3 overflow-hidden">
               <div
-                className="bg-[#B6F03F] h-full rounded-full"
+                className="bg-[#B6F03F] h-full rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${usagePercent(spent, totalCap)}%` }}
               ></div>
             </div>
             <p className="text-[#A5C0B4] text-[11px] font-medium mt-2">
-              {usagePercent(spent, totalCap).toFixed(0)}% do limite diário
-              consumido
+              {usagePercent(spent, totalCap).toFixed(0)}% of daily limit
+              consumed
             </p>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Coluna da Esquerda: Alocação por Agente */}
+        {/* Coluna da Esquerda: Alocao por Agente */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 h-full">
             <h3 className="text-[#111827] text-[16px] font-semibold mb-6">
-              Distribuição de Orçamento por Agente
+              Agent Budget Distribution
             </h3>
 
             <div className="flex flex-col gap-6">
               {!loading && !error && !fleet.length && (
                 <p className="text-[#777D85] text-[13px]">
-                  Nenhum agente neste cofre.
+                  No agents in this vault.
                 </p>
               )}
               {fleet.map((agent) => (
@@ -455,7 +455,7 @@ export function VaultBudgets() {
                     </div>
                     <div className="w-full bg-[#F6F7F7] rounded-full h-[6px] overflow-hidden">
                       <div
-                        className="bg-[#F04448] h-full rounded-full"
+                        className="bg-[#F04448] h-full rounded-full transition-all duration-500 ease-out"
                         style={{
                           width: `${usagePercent(fromLamports(agent.spent_today_lamports), fromLamports(agent.daily_cap_lamports))}%`,
                         }}
@@ -464,7 +464,7 @@ export function VaultBudgets() {
                   </div>
                   <button
                     onClick={() => adjust(agent)}
-                    className="text-[12px] font-medium text-[#111827] border border-[#E8EAEC] px-3 py-1.5 rounded-md hover:bg-gray-50 transition-colors"
+                    className="text-[12px] font-medium text-[#111827] border border-[#E8EAEC] px-3 py-1.5 rounded-md hover:bg-gray-50 active:scale-[0.98] transition-all duration-200 cursor-pointer"
                   >
                     Adjust
                   </button>
@@ -474,7 +474,7 @@ export function VaultBudgets() {
           </div>
         </div>
 
-        {/* Coluna da Direita: Políticas Globais */}
+        {/* Coluna da Direita: Global Policies */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 h-full">
             <div className="flex items-center gap-2 mb-6">
@@ -492,7 +492,7 @@ export function VaultBudgets() {
                 />
               </svg>
               <h3 className="text-[#111827] text-[16px] font-semibold">
-                Políticas Globais (Cofre)
+                Global Policies (Vault)
               </h3>
             </div>
 
@@ -504,7 +504,7 @@ export function VaultBudgets() {
                     Pause fleet on low balance
                   </h4>
                   <p className="text-[#777D85] text-[11px] leading-tight">
-                    Bloqueia a avaliação se o saldo ficar abaixo de{" "}
+                    Blocks evaluation below{" "}
                     {sol(fromLamports(policies.low_balance_threshold_lamports))}
                     .
                   </p>
@@ -515,10 +515,10 @@ export function VaultBudgets() {
                   aria-checked={policies.pause_on_low_balance}
                   disabled={busy || !vault}
                   onClick={() => void togglePolicy("pause_on_low_balance")}
-                  className={`w-10 h-6 ${policies.pause_on_low_balance ? "bg-[#064E3B]" : "bg-gray-200"} rounded-full flex items-center p-1 cursor-pointer shrink-0`}
+                  className={`w-10 h-6 ${policies.pause_on_low_balance ? "bg-[#064E3B]" : "bg-gray-200"} rounded-full flex items-center p-1 cursor-pointer shrink-0 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
                 >
                   <div
-                    className={`w-4 h-4 bg-[#B6F03F] rounded-full ${policies.pause_on_low_balance ? "translate-x-4" : ""} transition-transform`}
+                    className={`w-4 h-4 bg-[#B6F03F] rounded-full ${policies.pause_on_low_balance ? "translate-x-4" : ""} transition-transform duration-200 ease-out`}
                   ></div>
                 </button>
               </div>
@@ -529,24 +529,24 @@ export function VaultBudgets() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h4 className="text-[#111827] text-[13px] font-medium mb-1">
-                    Exigir aprovação humana
+                    Require human approval
                   </h4>
                   <p className="text-[#777D85] text-[11px] leading-tight">
-                    Bloqueia solicitações acima de{" "}
+                    Blocks requests above{" "}
                     {sol(fromLamports(policies.approval_threshold_lamports))};
-                    aprovação ainda indisponível.
+                    pending human authorization.
                   </p>
                 </div>
                 <button
-                  aria-label="Exigir aprovação humana"
+                  aria-label="Require human approval"
                   role="switch"
                   aria-checked={policies.require_human_approval}
                   disabled={busy || !vault}
                   onClick={() => void togglePolicy("require_human_approval")}
-                  className={`w-10 h-6 ${policies.require_human_approval ? "bg-[#064E3B]" : "bg-gray-200"} rounded-full flex items-center p-1 cursor-pointer shrink-0`}
+                  className={`w-10 h-6 ${policies.require_human_approval ? "bg-[#064E3B]" : "bg-gray-200"} rounded-full flex items-center p-1 cursor-pointer shrink-0 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
                 >
                   <div
-                    className={`w-4 h-4 bg-[#B6F03F] rounded-full ${policies.require_human_approval ? "translate-x-4" : ""} transition-transform`}
+                    className={`w-4 h-4 bg-[#B6F03F] rounded-full ${policies.require_human_approval ? "translate-x-4" : ""} transition-transform duration-200 ease-out`}
                   ></div>
                 </button>
               </div>
@@ -557,22 +557,22 @@ export function VaultBudgets() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h4 className="text-[#111827] text-[13px] font-medium mb-1">
-                    Restringir destinatários
+                    Restrict recipients
                   </h4>
                   <p className="text-[#777D85] text-[11px] leading-tight">
-                    Bloqueia destinatários fora da lista de cada agente.
+                    Blocks recipients not whitelisted for the agent.
                   </p>
                 </div>
                 <button
-                  aria-label="Restringir destinatários"
+                  aria-label="Restrict recipients"
                   role="switch"
                   aria-checked={policies.block_unlisted_recipients}
                   disabled={busy || !vault}
                   onClick={() => void togglePolicy("block_unlisted_recipients")}
-                  className={`w-10 h-6 ${policies.block_unlisted_recipients ? "bg-[#064E3B]" : "bg-gray-200"} rounded-full flex items-center p-1 cursor-pointer shrink-0`}
+                  className={`w-10 h-6 ${policies.block_unlisted_recipients ? "bg-[#064E3B]" : "bg-gray-200"} rounded-full flex items-center p-1 cursor-pointer shrink-0 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
                 >
                   <div
-                    className={`w-4 h-4 bg-[#B6F03F] rounded-full ${policies.block_unlisted_recipients ? "translate-x-4" : ""} transition-transform`}
+                    className={`w-4 h-4 bg-[#B6F03F] rounded-full ${policies.block_unlisted_recipients ? "translate-x-4" : ""} transition-transform duration-200 ease-out`}
                   ></div>
                 </button>
               </div>
@@ -582,29 +582,31 @@ export function VaultBudgets() {
       </div>
 
       {modal && (
-        <div className="fixed inset-0 bg-[#111827]/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[#111827]/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
           <div
             role="dialog"
             aria-modal="true"
-            aria-label="Configuração do cofre"
-            className="bg-white w-full max-w-[600px] rounded-[24px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+            aria-label="Vault configuration"
+            className="bg-white w-full max-w-[600px] rounded-[24px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
           >
             <div className="flex justify-between items-center p-6 pb-4 border-b border-gray-100">
               <h2 className="text-[#111827] text-[20px] font-semibold">
                 {modal === "create"
-                  ? "Cadastrar carteira Devnet"
+                  ? "Register Devnet Wallet"
                   : modal === "agent"
-                    ? "Ajustar limites"
-                    : "Configurar política global"}
+                    ? "Adjust agent limits"
+                    : "Configure global policy"}
               </h2>
               <button
-                aria-label="Fechar"
-                disabled={busy}
-                onClick={() => setModal(null)}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 text-gray-500"
-              >
-                ×
-              </button>
+                  aria-label="Close modal"
+                  disabled={busy}
+                  onClick={() => setModal(null)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 hover:bg-gray-100 text-gray-500 active:scale-95 transition-all duration-200 cursor-pointer"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
             </div>
             <div className="p-6 overflow-y-auto flex flex-col gap-4">
               {error && (
@@ -614,70 +616,77 @@ export function VaultBudgets() {
               )}
               {modal === "create" ? (
                 <label className="text-[#111827] text-[13px]">
-                  Endereço público da carteira
+                  Wallet public address
                   <input
                     value={owner}
                     readOnly
-                    placeholder="Endereço Solana público"
-                    className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 mt-2"
+                    placeholder="Solana public address"
+                    className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 mt-2 outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200"
                   />
                   <p className="text-[#777D85] text-[12px] mt-3">
-                    Esta é a carteira autenticada pela Phantom. O cadastro
-                    acompanha seu saldo Devnet e não autoriza saques. Não
-                    informe chave privada.
+                    This is the wallet authenticated by Phantom. Registration
+                    tracks your Devnet balance and does not authorize withdrawals. Do not
+                    enter your private key.
                   </p>
                 </label>
               ) : modal === "agent" ? (
                 <>
                   <label className="text-[#111827] text-[13px]">
-                    Limite diário (SOL)
+                    Daily Limit (SOL)
                     <input
                       value={daily}
                       onChange={(e) => setDaily(e.target.value)}
-                      className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 mt-2"
+                      className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 mt-2 outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200"
                     />
                   </label>
                   <label className="text-[#111827] text-[13px]">
-                    Limite por transação (SOL)
+                    Per-Transaction Limit (SOL)
                     <input
                       value={single}
                       onChange={(e) => setSingle(e.target.value)}
-                      className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 mt-2"
+                      className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 mt-2 outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200"
                     />
                   </label>
                 </>
               ) : (
                 <>
                   <label className="text-[#111827] text-[13px]">
-                    Saldo mínimo (SOL)
+                    Low Balance Floor (SOL)
                     <input
                       value={low}
                       onChange={(e) => setLow(e.target.value)}
-                      className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 mt-2"
+                      className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 mt-2 outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200"
                     />
                   </label>
                   <label className="text-[#111827] text-[13px]">
-                    Valor para exigir aprovação (SOL)
+                    Human Approval Threshold (SOL)
                     <input
                       value={approval}
                       onChange={(e) => setApproval(e.target.value)}
-                      className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 mt-2"
+                      className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 mt-2 outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200"
                     />
                   </label>
                   <p className="text-[#777D85] text-[12px]">
-                    Ative as regras nos controles do painel. Solicitações acima
-                    do limite de aprovação serão bloqueadas nesta versão.
+                    Enable rules in the dashboard panel. Requests exceeding the
+                    approval threshold are halted pending human authorization.
                   </p>
                 </>
               )}
             </div>
-            <div className="p-6 pt-4 border-t border-gray-100 flex justify-end">
+            <div className="p-6 pt-4 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                disabled={busy}
+                onClick={() => setModal(null)}
+                className="px-6 py-3 rounded-full text-[14px] font-semibold text-gray-500 hover:text-gray-700 active:scale-[0.98] transition-all duration-200 cursor-pointer"
+              >
+                Cancel
+              </button>
               <button
                 disabled={busy}
                 onClick={() => void save()}
-                className="bg-[#B6F03F] text-[#111827] px-8 py-3 rounded-full text-[14px] font-semibold"
+                className="bg-[#B6F03F] text-[#111827] px-8 py-3 rounded-full text-[14px] font-semibold hover:opacity-90 active:scale-[0.98] hover:shadow-md transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
-                {busy ? "Salvando..." : "Salvar"}
+                {busy ? "Saving..." : "Save"}
               </button>
             </div>
           </div>

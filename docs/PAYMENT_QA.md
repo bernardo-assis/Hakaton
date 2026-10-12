@@ -1,5 +1,9 @@
 # QA independente de pagamentos — 2026-10-11
 
+## Integrated release validation
+
+After preserving the local payment delivery and integrating dev-jotaf77057a1, the combined release passed42 backend tests in11 suites and14 frontend tests, with successful builds. Financial Chromium checks used API fixtures; authentication Chromium checks ran against the new Docker API at8088 using two generated Ed25519 keys, without real Phantom or funds. Session cookies, restoration, switching and logout passed; both generated wallet fixtures were explicitly removed. Docker services, persistent secrets, migration history and data survived container recreation. Deployment/configuration evidence is recorded in `DEPLOYMENT.md` and story06. Real hosted HTTPS and a funded finalized Devnet payment remain unverified.
+
 Revisão preparatória e regressões executadas por agente de contrato/QA delegado. Skills QA e Security lidas fisicamente via terminal. Nenhum envio real ou fundos de teste utilizados; PostgreSQL real com fixtures próprias e adaptador de rede determinístico. Somente `backend/src/__tests__/paymentSafety.test.ts` foi editado como código nesta delegação.
 
 ## Evidência executada

@@ -33,7 +33,7 @@ export async function connectWallet(
 ): Promise<string> {
   if (!provider?.isPhantom)
     throw new Error(
-      "Instale a extensão Phantom neste navegador para conectar a carteira.",
+      "Install the Phantom extension in this browser to connect your wallet.",
     );
   const result = await provider.connect();
   return result.publicKey.toString();
@@ -51,18 +51,18 @@ export async function signWalletMessage(
 ): Promise<string> {
   if (!provider.signMessage)
     throw new Error(
-      "Esta carteira não oferece assinatura de mensagens. Use a extensão Phantom.",
+      "This wallet does not support message signing. Please use the Phantom extension.",
     );
   const signed = await provider.signMessage(
     new TextEncoder().encode(message),
     "utf8",
   );
   if (signed.publicKey && signed.publicKey.toString() !== expectedAddress)
-    throw new Error("A carteira mudou durante a assinatura. Tente novamente.");
+    throw new Error("Wallet changed during signing. Please try again.");
   if (
     !(signed.signature instanceof Uint8Array) ||
     signed.signature.length !== 64
   )
-    throw new Error("A carteira retornou uma assinatura inválida.");
+    throw new Error("Wallet returned an invalid signature.");
   return btoa(String.fromCharCode(...signed.signature));
 }

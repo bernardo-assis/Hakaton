@@ -40,7 +40,7 @@ export function AgentFleet() {
       setAgents(a);
       setVaults(v);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro ao carregar agentes.");
+      setError(e instanceof Error ? e.message : "Error loading agents.");
     } finally {
       setLoading(false);
     }
@@ -85,9 +85,9 @@ export function AgentFleet() {
       const daily = toLamports(form.daily),
         single = toLamports(form.single);
       if (!form.name.trim() || !form.role.trim() || !form.vault)
-        throw new Error("Preencha nome, função e selecione um cofre.");
+        throw new Error("Enter name, role, and select a vault.");
       if (BigInt(single) > BigInt(daily))
-        throw new Error("Limite por transação não pode superar o diário.");
+        throw new Error("Per-transaction limit cannot exceed daily limit.");
       const recipients = [
         ...new Set(
           form.recipients
@@ -104,9 +104,9 @@ export function AgentFleet() {
           (r) => !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(r.recipient_pubkey),
         )
       )
-        throw new Error("Endereço permitido inválido.");
+        throw new Error("Invalid allowed recipient address.");
       if (form.whitelist && !recipients.length)
-        throw new Error("Adicione pelo menos um destinatário permitido.");
+        throw new Error("Add at least one allowed recipient.");
       const body = {
         name: form.name.trim(),
         role: form.role.trim(),
@@ -138,13 +138,13 @@ export function AgentFleet() {
         });
       } catch (e) {
         throw new Error(
-          `Agente salvo. Não foi possível atualizar os destinatários: ${e instanceof Error ? e.message : "tente novamente"}`,
+          `Agent saved. Could not update recipients: ${e instanceof Error ? e.message : "try again"}`,
         );
       }
       setIsDeployModalOpen(false);
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro ao salvar agente.");
+      setError(e instanceof Error ? e.message : "Error saving agent.");
     } finally {
       setBusy(false);
     }
@@ -161,7 +161,7 @@ export function AgentFleet() {
       });
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro ao atualizar agente.");
+      setError(e instanceof Error ? e.message : "Error updating agent.");
     } finally {
       setBusy(false);
     }
@@ -173,7 +173,7 @@ export function AgentFleet() {
       await request("/agents/panic", { method: "POST", body: "{}" });
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro ao congelar agentes.");
+      setError(e instanceof Error ? e.message : "Error freezing agents.");
     } finally {
       setBusy(false);
     }
@@ -196,20 +196,20 @@ export function AgentFleet() {
     <div className="max-w-[1280px] mx-auto w-full px-6 mt-8 pb-12 relative">
       {loading && (
         <p role="status" className="text-[#777D85] text-[13px] mb-4">
-          Carregando agentes...
+          Loading agents...
         </p>
       )}
       {error && (
         <p role="alert" className="text-[#F04448] text-[13px] mb-4">
           {error}{" "}
-          <button onClick={() => void load()} className="underline">
-            Tentar novamente
+          <button onClick={() => void load()} className="underline cursor-pointer">
+            Try again
           </button>
         </p>
       )}
       {!loading && !error && visible.length === 0 && (
         <p className="text-[#777D85] text-[13px] mb-4">
-          Nenhum agente encontrado.
+          No agents found.
         </p>
       )}
       {/* Primeira Linha: Título e Botões de Ação */}
@@ -217,11 +217,10 @@ export function AgentFleet() {
         {/* Título e Subtítulo */}
         <div className="flex flex-col gap-1.5">
           <h1 className="text-[#111827] text-[30px] font-medium font-inter">
-            Gestão da Frota de Agentes
+            Agent Fleet Management
           </h1>
           <span className="text-[#777D85] text-[13px] font-normal">
-            Gerencie orçamentos, políticas e segurança para sua força de
-            trabalho de IA autônoma
+            Manage budgets, policies, and security guardrails for your autonomous AI workforce
           </span>
         </div>
 
@@ -230,7 +229,7 @@ export function AgentFleet() {
           <button
             disabled={loading || busy}
             onClick={() => open()}
-            className="bg-[#B6F03F] text-[#111827] px-5 py-2.5 rounded-full text-[13px] font-semibold hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-2"
+            className="bg-[#B6F03F] text-[#111827] px-5 py-2.5 rounded-full text-[13px] font-semibold hover:opacity-90 hover:shadow-md active:scale-[0.98] transition-all duration-200 cursor-pointer flex items-center gap-2"
           >
             <svg
               className="w-4 h-4"
@@ -251,7 +250,7 @@ export function AgentFleet() {
           <button
             disabled={busy}
             onClick={() => void panic()}
-            className="bg-[#F04448] text-white px-5 py-2.5 rounded-full text-[13px] font-semibold hover:bg-red-600 transition-colors cursor-pointer flex items-center gap-2"
+            className="bg-[#F04448] text-white px-5 py-2.5 rounded-full text-[13px] font-semibold hover:bg-red-600 hover:shadow-[0_0_15px_rgba(240,68,72,0.3)] active:scale-[0.98] transition-all duration-200 cursor-pointer flex items-center gap-2"
           >
             <svg
               className="w-4 h-4"
@@ -266,14 +265,14 @@ export function AgentFleet() {
                 d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            Emergência: Congelar Todos
+            Emergency: Freeze Fleet
           </button>
         </div>
       </div>
 
       {/* Barra de Busca e Filtros */}
       <div className="bg-white rounded-[22px] p-4 shadow-sm border border-gray-100 mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div className="flex items-center gap-2 border border-[#E8EAEC] rounded-[10px] px-3 h-[40px] w-full sm:w-[320px]">
+        <div className="flex items-center gap-2 border border-[#E8EAEC] rounded-[10px] px-3 h-[40px] w-full sm:w-[320px] focus-within:ring-2 focus-within:ring-[#064E3B]/20 focus-within:border-[#064E3B] transition-all duration-200">
           <svg
             className="w-4 h-4 text-[#777D85]"
             fill="none"
@@ -303,7 +302,7 @@ export function AgentFleet() {
                 v === "ALL" ? "ACTIVE" : v === "ACTIVE" ? "FROZEN" : "ALL",
               )
             }
-            className="flex items-center justify-between gap-2 border border-[#E8EAEC] rounded-[10px] px-4 h-[40px] hover:bg-gray-50 transition-colors cursor-pointer w-full sm:w-auto"
+            className="flex items-center justify-between gap-2 border border-[#E8EAEC] rounded-[10px] px-4 h-[40px] hover:bg-gray-50 active:scale-[0.98] transition-all duration-200 cursor-pointer w-full sm:w-auto"
           >
             <span className="text-[#111827] text-[13px] font-medium">
               Status: {status}
@@ -326,7 +325,7 @@ export function AgentFleet() {
             onClick={() =>
               setSort((v) => (v === "spending" ? "name" : "spending"))
             }
-            className="flex items-center justify-between gap-2 border border-[#E8EAEC] rounded-[10px] px-4 h-[40px] hover:bg-gray-50 transition-colors cursor-pointer w-full sm:w-auto"
+            className="flex items-center justify-between gap-2 border border-[#E8EAEC] rounded-[10px] px-4 h-[40px] hover:bg-gray-50 active:scale-[0.98] transition-all duration-200 cursor-pointer w-full sm:w-auto"
           >
             <span className="text-[#111827] text-[13px] font-medium">
               Sort by: {sort === "spending" ? "Spending" : "Name"}
@@ -348,24 +347,24 @@ export function AgentFleet() {
         </div>
       </div>
 
-      {/* Grade de Agentes */}
+      {/* Agents Grid */}
       <div>
-        {/* Cabeçalho da Lista */}
+        {/* List Header */}
         <div className="flex items-center gap-3 mb-6">
           <div className="bg-[#111827] text-white px-2.5 py-0.5 rounded-md text-[13px] font-semibold">
-            {loading || (error && agents.length === 0) ? "—" : visible.length}
+            {loading || (error && agents.length === 0) ? "" : visible.length}
           </div>
           <h2 className="text-[#111827] text-[16px] font-medium">
-            Agentes em Operação
+            Active Agents in Fleet
           </h2>
         </div>
 
-        {/* Grid de Cards */}
+        {/* Grid of Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {visible.map((agent) => (
             <div
               key={agent.id}
-              className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 flex flex-col hover:border-gray-300 transition-colors cursor-default"
+              className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 flex flex-col hover:border-gray-300 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 cursor-default"
             >
               {/* Top: Avatar & Status */}
               <div className="flex justify-between items-start mb-4">
@@ -415,7 +414,7 @@ export function AgentFleet() {
                     />
                   </svg>
                   <span className="font-mono">
-                    {agent.agent_pubkey.slice(0, 4)}…
+                    {agent.agent_pubkey.slice(0, 4)}...
                     {agent.agent_pubkey.slice(-4)}
                   </span>
                 </div>
@@ -425,7 +424,7 @@ export function AgentFleet() {
               <div className="flex items-center gap-4 mb-5 pb-5 border-b border-gray-100">
                 <div className="flex-1">
                   <span className="block text-[#777D85] text-[11px] font-medium mb-0.5">
-                    Limite Diário
+                    Daily Limit
                   </span>
                   <span className="text-[#111827] text-[14px] font-semibold">
                     {sol(fromLamports(agent.daily_cap_lamports))}
@@ -445,7 +444,7 @@ export function AgentFleet() {
               {/* Whitelist */}
               <div className="mb-5">
                 <span className="block text-[#111827] text-[12px] font-medium mb-2.5">
-                  Serviços Permitidos
+                  Allowed Services & Recipients
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {(agent.recipients ?? []).length ? (
@@ -461,8 +460,8 @@ export function AgentFleet() {
                   ) : (
                     <span className="text-[#777D85] text-[11px]">
                       {agent.whitelist_enabled
-                        ? "Nenhum destinatário permitido"
-                        : "Lista de destinatários desativada"}
+                        ? "No recipients whitelisted"
+                        : "Recipient whitelist disabled"}
                     </span>
                   )}
                 </div>
@@ -480,7 +479,7 @@ export function AgentFleet() {
                 </div>
                 <div className="w-full bg-[#F6F7F7] rounded-full h-[6px] overflow-hidden">
                   <div
-                    className="bg-[#064E3B] h-full rounded-full"
+                    className="bg-[#064E3B] h-full rounded-full transition-all duration-500 ease-out"
                     style={{
                       width: `${usagePercent(fromLamports(agent.spent_today_lamports), fromLamports(agent.daily_cap_lamports))}%`,
                     }}
@@ -493,25 +492,25 @@ export function AgentFleet() {
                 <button
                   disabled={busy}
                   onClick={() => open(agent)}
-                  className="flex-1 border border-[#E8EAEC] text-[#111827] py-2.5 rounded-full text-[12px] font-semibold hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="flex-1 border border-[#E8EAEC] text-[#111827] py-2.5 rounded-full text-[12px] font-semibold hover:bg-gray-50 active:scale-[0.98] transition-all duration-200 cursor-pointer"
                 >
                   Edit Limits
                 </button>
                 <button
                   disabled={busy}
                   onClick={() => void mutate(agent)}
-                  className="flex-1 border border-[#E8EAEC] text-[#F04448] py-2.5 rounded-full text-[12px] font-semibold hover:bg-red-50 hover:border-red-100 transition-colors cursor-pointer"
+                  className="flex-1 border border-[#E8EAEC] text-[#F04448] py-2.5 rounded-full text-[12px] font-semibold hover:bg-red-50 hover:border-red-100 active:scale-[0.98] transition-all duration-200 cursor-pointer"
                 >
                   {agent.status === "ACTIVE" ? "Pause" : "Resume"}
                 </button>
               </div>
             </div>
           ))}
-          {/* Card 3: Adicionar Novo Agente (Placeholder) */}
+          {/* Card 3: Adicionar Deploy Agent (Placeholder) */}
           <button
             disabled={loading || busy}
             onClick={() => open()}
-            className="bg-transparent rounded-[22px] p-6 border-2 border-dashed border-[#E8EAEC] flex flex-col items-center justify-center text-center hover:border-gray-300 hover:bg-gray-50/50 transition-all cursor-pointer min-h-[420px]"
+            className="bg-transparent rounded-[22px] p-6 border-2 border-dashed border-[#E8EAEC] flex flex-col items-center justify-center text-center hover:border-gray-400 hover:bg-gray-50/80 active:scale-[0.99] transition-all duration-200 cursor-pointer min-h-[420px]"
           >
             <div className="w-12 h-12 bg-white border border-gray-100 rounded-full flex items-center justify-center mb-4 shadow-sm">
               <svg
@@ -532,14 +531,14 @@ export function AgentFleet() {
               Deploy Agent
             </h3>
             <p className="text-[#777D85] text-[12px] max-w-[200px]">
-              Crie um novo agente autônomo e configure suas políticas de
-              segurança.
+              Create a new autonomous agent and configure its policies for
+              security.
             </p>
           </button>
         </div>
       </div>
 
-      {/* Rodapé de Confiança */}
+      {/* Rodap de Confiana */}
       <div className="mt-16 flex items-center justify-center gap-2 text-[#777D85]">
         <svg
           className="w-4 h-4 text-[#B6F03F]"
@@ -555,14 +554,14 @@ export function AgentFleet() {
           />
         </svg>
         <span className="text-[12px] font-medium tracking-wide uppercase">
-          Cada agente. Cada transação. Protegidos.
+          Every agent. Every transaction. Protected.
         </span>
       </div>
 
       {/* Modal: Deploy New Agent */}
       {isDeployModalOpen && (
-        <div className="fixed inset-0 bg-[#111827]/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-[600px] rounded-[24px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 bg-[#111827]/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-[600px] rounded-[24px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
             {/* Modal Header */}
             <div className="flex justify-between items-center p-6 pb-4 border-b border-gray-100">
               <h2 className="text-[#111827] text-[20px] font-semibold">
@@ -570,7 +569,7 @@ export function AgentFleet() {
               </h2>
               <button
                 onClick={() => setIsDeployModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 hover:bg-gray-100 text-gray-500 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 hover:bg-gray-100 text-gray-500 active:scale-[0.98] transition-all duration-200 cursor-pointer"
               >
                 <svg
                   className="w-5 h-5"
@@ -595,30 +594,30 @@ export function AgentFleet() {
                 </p>
               )}
               <label className="text-[#111827] text-[13px] font-medium">
-                Cofre
+                Treasury Vault
                 <select
                   disabled={!!editing}
                   value={form.vault}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, vault: e.target.value }))
                   }
-                  className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 mt-2"
+                  className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 mt-2 outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200"
                 >
-                  <option value="">Selecione um cofre</option>
+                  <option value="">Select a vault...</option>
                   {vaults.map((v) => (
                     <option key={v.id} value={v.id}>
-                      {v.vault_pubkey.slice(0, 8)}… · {v.status}
+                      {v.vault_pubkey.slice(0, 8)}... — {v.status}
                     </option>
                   ))}
                 </select>
               </label>
               {!loading && !error && !vaults.length && (
                 <p className="text-[#777D85] text-[12px]">
-                  Cadastre primeiro uma carteira em Vault Budgets.
+                  Please create a treasury vault in Vault Budgets first.
                 </p>
               )}
 
-              {/* Seção 1: Agent Identity */}
+              {/* Seo 1: Agent Identity */}
               <div>
                 <h3 className="text-[#111827] text-[15px] font-semibold mb-4">
                   Agent Identity
@@ -637,14 +636,14 @@ export function AgentFleet() {
                       }
                       type="text"
                       placeholder="Ex: Trading Bot"
-                      className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 text-[14px] text-[#111827] placeholder-[#777D85] outline-none focus:border-[#064E3B] transition-colors"
+                      className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 text-[14px] text-[#111827] placeholder-[#777D85] outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200"
                     />
                   </div>
 
-                  {/* Propósito */}
+                  {/* Propsito */}
                   <div>
                     <label className="block text-[#111827] text-[13px] font-medium mb-1.5">
-                      Função / Propósito
+                      Purpose
                     </label>
                     <input
                       value={form.role}
@@ -653,14 +652,14 @@ export function AgentFleet() {
                       }
                       type="text"
                       placeholder="Ex: Market research & data API scraping"
-                      className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 text-[14px] text-[#111827] placeholder-[#777D85] outline-none focus:border-[#064E3B] transition-colors"
+                      className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 text-[14px] text-[#111827] placeholder-[#777D85] outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200"
                     />
                   </div>
 
-                  {/* Chave Pública */}
+                  {/* Chave Pblica */}
                   <div>
                     <label className="block text-[#111827] text-[13px] font-medium mb-1.5">
-                      Chave Pública Solana (Wallet)
+                      Solana Public Key (Wallet)
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -685,15 +684,15 @@ export function AgentFleet() {
                           setForm((f) => ({ ...f, pubkey: e.target.value }))
                         }
                         type="text"
-                        placeholder="Cole o endereço da carteira do agente..."
-                        className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] pl-10 pr-4 py-2.5 text-[14px] font-mono text-[#111827] placeholder-[#777D85] outline-none focus:border-[#064E3B] transition-colors"
+                        placeholder="Paste agent wallet public key..."
+                        className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] pl-10 pr-4 py-2.5 text-[14px] font-mono text-[#111827] placeholder-[#777D85] outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200"
                       />
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Seção 2: Políticas de Segurança */}
+              {/* Section 2: Security Policies */}
               <div className="bg-[#F6F7F7] rounded-[16px] p-5">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-8 h-8 rounded-full bg-white border border-[#E8EAEC] flex items-center justify-center">
@@ -712,7 +711,7 @@ export function AgentFleet() {
                     </svg>
                   </div>
                   <h3 className="text-[#111827] text-[15px] font-semibold">
-                    Políticas de Segurança
+                    Security Policies
                   </h3>
                   <div className="flex items-center gap-1.5 bg-[#E6F8F0] px-2.5 py-1 rounded-full ml-auto">
                     <div className="w-1.5 h-1.5 bg-[#24865E] rounded-full"></div>
@@ -723,12 +722,12 @@ export function AgentFleet() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Cap Diário */}
+                  {/* Daily Cap */}
                   <div>
                     <label className="block text-[#111827] text-[12px] font-medium mb-1.5">
-                      Limite Diário (SOL)
+                      Daily Limit (SOL)
                     </label>
-                    <div className="flex items-center bg-white border border-[#E8EAEC] rounded-[10px] overflow-hidden">
+                    <div className="flex items-center bg-white border border-[#E8EAEC] rounded-[10px] overflow-hidden focus-within:ring-2 focus-within:ring-[#064E3B]/20 focus-within:border-[#064E3B] transition-all duration-200">
                       <span className="pl-3 text-[#777D85] text-[14px] font-medium">
                         SOL
                       </span>
@@ -742,14 +741,14 @@ export function AgentFleet() {
                       />
                       <div className="flex flex-col border-l border-[#E8EAEC]">
                         <button
-                          aria-label="Aumentar limite"
+                          aria-label="Increase limit"
                           onClick={() =>
                             setForm((f) => ({
                               ...f,
                               daily: String(Number(f.daily) + 1),
                             }))
                           }
-                          className="px-2 py-1 hover:bg-gray-50 border-b border-[#E8EAEC]"
+                          className="px-2 py-1 hover:bg-gray-50 active:bg-gray-100 border-b border-[#E8EAEC] transition-colors"
                         >
                           <svg
                             className="w-3 h-3 text-[#777D85]"
@@ -766,14 +765,14 @@ export function AgentFleet() {
                           </svg>
                         </button>
                         <button
-                          aria-label="Diminuir limite"
+                          aria-label="Decrease limit"
                           onClick={() =>
                             setForm((f) => ({
                               ...f,
                               daily: String(Math.max(0, Number(f.daily) - 1)),
                             }))
                           }
-                          className="px-2 py-1 hover:bg-gray-50"
+                          className="px-2 py-1 hover:bg-gray-50 active:bg-gray-100 transition-colors"
                         >
                           <svg
                             className="w-3 h-3 text-[#777D85]"
@@ -794,12 +793,12 @@ export function AgentFleet() {
                     </div>
                   </div>
 
-                  {/* Cap por TX */}
+                  {/* Max per TX */}
                   <div>
                     <label className="block text-[#111827] text-[12px] font-medium mb-1.5">
-                      Limite por Transação (SOL)
+                      Per-Transaction Limit (SOL)
                     </label>
-                    <div className="flex items-center bg-white border border-[#E8EAEC] rounded-[10px] overflow-hidden">
+                    <div className="flex items-center bg-white border border-[#E8EAEC] rounded-[10px] overflow-hidden focus-within:ring-2 focus-within:ring-[#064E3B]/20 focus-within:border-[#064E3B] transition-all duration-200">
                       <span className="pl-3 text-[#777D85] text-[14px] font-medium">
                         SOL
                       </span>
@@ -813,14 +812,14 @@ export function AgentFleet() {
                       />
                       <div className="flex flex-col border-l border-[#E8EAEC]">
                         <button
-                          aria-label="Aumentar limite"
+                          aria-label="Increase limit"
                           onClick={() =>
                             setForm((f) => ({
                               ...f,
                               single: String(Number(f.single) + 1),
                             }))
                           }
-                          className="px-2 py-1 hover:bg-gray-50 border-b border-[#E8EAEC]"
+                          className="px-2 py-1 hover:bg-gray-50 active:bg-gray-100 border-b border-[#E8EAEC] transition-colors"
                         >
                           <svg
                             className="w-3 h-3 text-[#777D85]"
@@ -837,14 +836,14 @@ export function AgentFleet() {
                           </svg>
                         </button>
                         <button
-                          aria-label="Diminuir limite"
+                          aria-label="Decrease limit"
                           onClick={() =>
                             setForm((f) => ({
                               ...f,
                               single: String(Math.max(0, Number(f.single) - 1)),
                             }))
                           }
-                          className="px-2 py-1 hover:bg-gray-50"
+                          className="px-2 py-1 hover:bg-gray-50 active:bg-gray-100 transition-colors"
                         >
                           <svg
                             className="w-3 h-3 text-[#777D85]"
@@ -868,34 +867,36 @@ export function AgentFleet() {
               </div>
             </div>
             <div className="px-6 pb-6">
-              <label className="text-[#111827] text-[13px] font-medium flex gap-2 mb-3">
+              <label className="text-[#111827] text-[13px] font-medium flex items-center gap-2 mb-3 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={form.whitelist}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, whitelist: e.target.checked }))
                   }
+                  className="w-4 h-4 rounded text-[#064E3B] focus:ring-[#064E3B]/20 transition-all duration-200 cursor-pointer"
                 />
-                Restringir destinatários
+                Restrict allowed recipients (Whitelist)
               </label>
               <label className="text-[#777D85] text-[12px]">
-                Endereços permitidos, separados por vírgula
+                Allowed addresses (comma-separated public keys)
                 <textarea
                   value={form.recipients}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, recipients: e.target.value }))
                   }
-                  className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 mt-2"
+                  placeholder="e.g. 9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin, 7nYx..."
+                  className="w-full bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-4 py-2.5 mt-2 outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200 text-[13px] text-[#111827]"
                 />
               </label>
             </div>
 
-            {/* Footer com Botão */}
+            {/* Footer with Button */}
             <div className="p-6 pt-4 border-t border-gray-100 mt-auto flex justify-end">
               <button
                 disabled={busy}
                 onClick={() => void save()}
-                className="bg-[#B6F03F] text-[#111827] w-full sm:w-auto px-8 py-3 rounded-full text-[14px] font-semibold hover:opacity-90 transition-opacity flex justify-center items-center gap-2"
+                className="bg-[#B6F03F] text-[#111827] w-full sm:w-auto px-8 py-3 rounded-full text-[14px] font-semibold hover:opacity-90 hover:shadow-md active:scale-[0.98] transition-all duration-200 flex justify-center items-center gap-2 cursor-pointer"
               >
                 <svg
                   className="w-4 h-4"
@@ -910,7 +911,7 @@ export function AgentFleet() {
                     d="M12 4v16m8-8H4"
                   />
                 </svg>
-                {busy ? "Salvando..." : editing ? "Save Agent" : "Deploy Agent"}
+                {busy ? "Saving..." : editing ? "Save Agent" : "Deploy Agent"}
               </button>
             </div>
           </div>

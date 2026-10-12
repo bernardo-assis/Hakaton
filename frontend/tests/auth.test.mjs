@@ -69,7 +69,7 @@ test("signature rejection never verifies and stale account change cannot publish
   };
   await assert.rejects(
     authenticateWallet(provider, client, () => generation.isCurrent(current)),
-    /carteira|interromp/i,
+    /wallet|aborted/i,
   );
   assert.equal(verified, 0);
   provider.signMessage = async () => {

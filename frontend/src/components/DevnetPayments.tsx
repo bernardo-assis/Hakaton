@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ApiError, request, fromLamports, sol, toLamports } from '../lib/api';
 import type { Agent, Vault } from '../lib/api';
-import { explorerLink, paymentLabel, paymentRequest, paymentIntent } from '../lib/payments';
+import { explorerLink, paymentLabel, paymentRequest, submitOwnerPayment } from '../lib/payments';
 import { useWalletAuth } from './WalletAuth';
 import type { Payment, PaymentConfig } from '../lib/payments';
 type TestVault = Vault & {
@@ -19,7 +19,7 @@ export function DevnetPayments() {
     const scope = `${auth.session?.owner_pubkey ?? ''}:${selected}`;
     const alive = useRef(true);
     const epoch = useRef(0);
-    const explain = (e: unknown) => e instanceof ApiError && e.status === 501 ? 'O cofre de teste ainda não está habilitado no servidor.' : e instanceof Error ? e.message : 'Não foi possível atualizar os pagamentos.';
+    const explain = (e: unknown) => e instanceof ApiError && e.status === 501 ? 'The test vault is not enabled on the server yet.' : e instanceof Error ? e.message : 'Payments could not be refreshed.';
     const load = async (id = selected) => {
         const generation = ++epoch.current;
         setLoading(true);
@@ -105,14 +105,14 @@ export function DevnetPayments() {
         if (!alive.current)
             return;
         await load(v.id);
-        setMessage('Cofre de teste criado. Envie apenas SOL da Devnet para o endereço exibido.');
+        setMessage('Test vault created. Send only Devnet SOL to the address shown.');
     });
     const mode = (execution_mode: 'AUTOMATIC' | 'MANUAL') => act(async () => {
         if (!config)
             return;
         await request(`/vaults/${selected}/payment-config`, { method: 'PATCH', body: JSON.stringify({ execution_mode, expected_mode_version: String(config.mode_version) }) });
         await load();
-        setMessage(execution_mode === 'AUTOMATIC' ? 'Novos pedidos podem ser enviados automaticamente. A fila anterior continua aguardando aprovação.' : 'Pedidos ainda não enviados passam a exigir aprovação.');
+        setMessage(execution_mode === 'AUTOMATIC' ? 'New requests can be sent automatically. Earlier requests still await approval.' : 'Requests that have not been sent now require approval.');
     });
     const saveCap = () => act(async () => {
         if (!config)
@@ -120,19 +120,15 @@ export function DevnetPayments() {
         await request(`/vaults/${selected}/payment-config`, { method: 'PATCH', body: JSON.stringify({ execution_mode: config.execution_mode, expected_mode_version: String(config.mode_version), daily_cap_lamports: toLamports(cap) }) });
         capDirty.current = false;
         await load();
-        setMessage('Limite de 24 horas atualizado.');
+        setMessage('Rolling 24-hour limit updated.');
     });
     const submit = () => act(async () => {
         const draft = paymentRequest(agent, 'draft', recipient, amount, purpose);
-        const fingerprint = JSON.stringify([draft.agent_id, draft.recipient_pubkey, draft.amount_lamports, draft.purpose]);
-        const key = paymentIntent(localStorage, scope, fingerprint, () => crypto.randomUUID());
-        const payload = paymentRequest(agent, key, recipient, amount, purpose);
-        const p = await request<Payment>('/payments', { method: 'POST', body: JSON.stringify(payload) });
-        localStorage.removeItem(`agentsafe.payment.intent.${scope}`);
+        const p = await submitOwnerPayment(localStorage, scope, draft);
         setAmount('');
         setPurpose('');
         await load();
-        setMessage(`Pedido registrado: ${paymentLabel(p)}.`);
+        setMessage(`Request recorded: ${paymentLabel(p)}.`);
     });
     const morePending = () => act(async () => {
         const q = await request<Payment[]>(`/payments?vault_id=${encodeURIComponent(selected)}&approval_status=PENDING&limit=100&offset=${pendingOffset}`);
@@ -146,25 +142,25 @@ export function DevnetPayments() {
     const review = (p: Payment, approve: boolean) => act(async () => {
         await request(`/payments/${p.id}/${approve ? 'approve' : 'reject'}`, { method: 'POST', body: JSON.stringify(approve ? { expected_mode_version: String(config?.mode_version) } : {}) });
         await load();
-        setMessage(approve ? 'Aprovação registrada. Acompanhe o resultado na rede.' : 'Pedido recusado.');
+        setMessage(approve ? 'Approval recorded. Follow the network result.' : 'Request rejected.');
     });
     const vault = vaults.find(v => v.id === selected);
     const disabled = busy || loading;
     const enabled = config?.payments_enabled !== false;
-    return <section aria-label="Pagamentos Devnet" className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 mb-8 min-w-0">
+    return <section aria-label="Devnet Payments" className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 mb-8 min-w-0">
  <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
     <div>
-    <h2 className="text-[#111827] text-[20px] font-semibold">Pagamentos Devnet</h2>
-    <p className="text-[#777D85] text-[13px] mt-1">Cofre separado para SOL de teste, com limites e aprovação opcional.</p>
+    <h2 className="text-[#111827] text-[20px] font-semibold">Devnet Payments</h2>
+    <p className="text-[#777D85] text-[13px] mt-1">A separate vault for test SOL, with spending limits and optional approval.</p>
     </div>
-    <button className={button} disabled={disabled} onClick={() => void create()}>Criar cofre de teste</button>
+    <button className={button} disabled={disabled} onClick={() => void create()}>Create test vault</button>
     </div>
- {error && <p role="alert" className="text-[#F04448] text-[13px] mb-3">{error} <button className="underline" onClick={() => void load()}>Atualizar pagamentos</button>
-        </p>}{message && <p role="status" className="text-[#24865E] text-[13px] mb-3">{message}</p>}{loading && <p role="status" className="text-[#777D85] text-[13px] mb-3">Atualizando pagamentos...</p>}
- {!vault && !loading && <p className="text-[#777D85] text-[13px]">Crie um cofre de teste para começar. Sua carteira Phantom continua sendo usada para entrar no painel.</p>}
+ {error && <p role="alert" className="text-[#F04448] text-[13px] mb-3">{error} <button className="underline" onClick={() => void load()}>Refresh payments</button>
+        </p>}{message && <p role="status" className="text-[#24865E] text-[13px] mb-3">{message}</p>}{loading && <p role="status" className="text-[#777D85] text-[13px] mb-3">Refreshing payments...</p>}
+ {!vault && !loading && <p className="text-[#777D85] text-[13px]">Create a test vault to begin. Your Phantom wallet is still used to sign in.</p>}
  {vault && <>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-        <label className="text-[13px]">Cofre de teste<select className={field} aria-label="Cofre de pagamentos" value={selected} disabled={disabled} onChange={e => {
+        <label className="text-[13px]">Test vault<select className={field} aria-label="Payment vault" value={selected} disabled={disabled} onChange={e => {
                 capDirty.current = false;
                 pendingDepth.current = 100;
                 setConfig(null);
@@ -173,70 +169,70 @@ export function DevnetPayments() {
                 void load(e.target.value);
             }}>{vaults.map(v => <option key={v.id} value={v.id}>{v.vault_pubkey.slice(0, 8)}…</option>)}</select>
         </label>
-        <div className="text-[13px] min-w-0">Endereço para SOL Devnet<p className="break-all text-[#777D85] mt-2">{vault.vault_pubkey}</p>
+        <div className="text-[13px] min-w-0">Devnet SOL deposit address<p className="break-all text-[#777D85] mt-2">{vault.vault_pubkey}</p>
         </div>
         </div>
  {config && <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-            <label className="text-[13px]">Modo de pagamento<select aria-label="Modo de pagamento" className={field} value={config.execution_mode} disabled={disabled || !enabled} onChange={e => void mode(e.target.value as 'AUTOMATIC' | 'MANUAL')}>
-            <option value="AUTOMATIC">Automático</option>
-            <option value="MANUAL">Aprovação manual</option>
+            <label className="text-[13px]">Payment mode<select aria-label="Payment mode" className={field} value={config.execution_mode} disabled={disabled || !enabled} onChange={e => void mode(e.target.value as 'AUTOMATIC' | 'MANUAL')}>
+            <option value="AUTOMATIC">Automatic</option>
+            <option value="MANUAL">Manual approval</option>
             </select>
             </label>
             <div>
-            <label className="text-[13px]">Limite do cofre em 24 horas (SOL)<input aria-label="Limite do cofre em 24 horas (SOL)" className={field} inputMode="decimal" value={cap} onChange={e => {
+            <label className="text-[13px]">Vault rolling 24-hour limit (SOL)<input aria-label="Vault rolling 24-hour limit (SOL)" className={field} inputMode="decimal" value={cap} onChange={e => {
                     capDirty.current = true;
                     setCap(e.target.value);
                 }}/>
             </label>
-            <button className="text-[12px] underline mt-2" disabled={disabled} onClick={() => void saveCap()}>Salvar limite</button>
+            <button className="text-[12px] underline mt-2" disabled={disabled} onClick={() => void saveCap()}>Save limit</button>
             </div>
             </div>
- <p className="text-[#777D85] text-[12px] mb-4">A troca de modo mantém o mesmo cofre. Pedidos anteriores na fila precisam ser aprovados individualmente. Valores enviados continuam sendo verificados.</p>{!enabled && <p role="status" className="text-[#777D85] text-[13px] mb-4">O envio de pagamentos está desabilitado no servidor.</p>}
- <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">{[['Saldo disponível', config.available_lamports], ['Reservado para pedidos', config.reserved_lamports], ['Gasto em 24 horas', config.spent_24h_lamports]].map(([label, value]) => <div key={label} className="bg-[#F6F7F7] rounded-[12px] p-4">
+ <p className="text-[#777D85] text-[12px] mb-4">Changing mode keeps the same vault. Earlier queued requests need individual approval. Sent payments continue to be checked.</p>{!enabled && <p role="status" className="text-[#777D85] text-[13px] mb-4">Payment sending is disabled on the server.</p>}
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">{[['Available balance', config.available_lamports], ['Reserved for requests', config.reserved_lamports], ['Spent in 24 hours', config.spent_24h_lamports]].map(([label, value]) => <div key={label} className="bg-[#F6F7F7] rounded-[12px] p-4">
                 <p className="text-[#777D85] text-[12px]">{label}</p>
-                <p className="text-[#111827] font-semibold mt-1">{value == null ? 'Indisponível' : sol(fromLamports(value))}</p>
+                <p className="text-[#111827] font-semibold mt-1">{value == null ? 'Unavailable' : sol(fromLamports(value))}</p>
                 </div>)}</div>
  <form onSubmit={e => {
                     e.preventDefault();
                     void submit();
                 }} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <label className="text-[13px]">Agente do pagamento<select required aria-label="Agente do pagamento" className={field} value={agent} onChange={e => setAgent(e.target.value)}>
-            <option value="">Selecione</option>{agents.filter(a => a.vault_id === selected).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select>
+            <label className="text-[13px]">Payment agent<select required aria-label="Payment agent" className={field} value={agent} onChange={e => setAgent(e.target.value)}>
+            <option value="">Select</option>{agents.filter(a => a.vault_id === selected).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select>
             </label>
-            <label className="text-[13px]">Destinatário Devnet<input required aria-label="Destinatário Devnet" className={field} value={recipient} onChange={e => setRecipient(e.target.value)}/>
+            <label className="text-[13px]">Devnet recipient<input required aria-label="Devnet recipient" className={field} value={recipient} onChange={e => setRecipient(e.target.value)}/>
             </label>
-            <label className="text-[13px]">Valor do pagamento (SOL)<input required aria-label="Valor do pagamento (SOL)" inputMode="decimal" className={field} value={amount} onChange={e => setAmount(e.target.value)}/>
+            <label className="text-[13px]">Payment amount (SOL)<input required aria-label="Payment amount (SOL)" inputMode="decimal" className={field} value={amount} onChange={e => setAmount(e.target.value)}/>
             </label>
-            <label className="text-[13px]">Finalidade<input aria-label="Finalidade do pagamento" maxLength={280} className={field} value={purpose} onChange={e => setPurpose(e.target.value)}/>
+            <label className="text-[13px]">Purpose<input aria-label="Payment purpose" maxLength={280} className={field} value={purpose} onChange={e => setPurpose(e.target.value)}/>
             </label>
             <div className="md:col-span-2">
-            <button type="submit" className={button} disabled={disabled || !enabled || !agent}>{busy ? 'Processando...' : 'Solicitar pagamento'}</button>
-            <p className="text-[#777D85] text-[12px] mt-2">No modo automático, este pedido pode enviar SOL de teste imediatamente. Limites e destinatários permitidos continuam valendo.</p>
+            <button type="submit" className={button} disabled={disabled || !enabled || !agent}>{busy ? 'Processing...' : 'Request payment'}</button>
+            <p className="text-[#777D85] text-[12px] mt-2">In automatic mode, this request may send test SOL immediately. Limits and allowed recipients still apply.</p>
             </div>
             </form>
- <h3 className="text-[#111827] text-[16px] font-semibold mb-3">Fila de aprovação</h3>{!pending.length && <p className="text-[#777D85] text-[13px] mb-5">Nenhum pedido aguardando aprovação.</p>}<div className="space-y-3 mb-6">{pending.map(p => <div key={p.id} className="border border-[#E8EAEC] rounded-[12px] p-4 flex flex-wrap gap-3 items-center justify-between">
+ <h3 className="text-[#111827] text-[16px] font-semibold mb-3">Approval queue</h3>{!pending.length && <p className="text-[#777D85] text-[13px] mb-5">No requests awaiting approval.</p>}<div className="space-y-3 mb-6">{pending.map(p => <div key={p.id} className="border border-[#E8EAEC] rounded-[12px] p-4 flex flex-wrap gap-3 items-center justify-between">
                 <div className="min-w-0">
-                <p className="text-[13px] font-medium">{sol(fromLamports(p.amount_lamports))} · {agents.find(a => a.id === p.agent_id)?.name ?? 'Agente'}</p>
-                <p className="text-[#777D85] text-[12px] break-words">{p.purpose || 'Sem finalidade informada'}</p>
-                <p className="text-[#777D85] text-[12px] break-all">Destinatário: {p.recipient_pubkey}</p>
+                <p className="text-[13px] font-medium">{sol(fromLamports(p.amount_lamports))} · {agents.find(a => a.id === p.agent_id)?.name ?? 'Agent'}</p>
+                <p className="text-[#777D85] text-[12px] break-words">{p.purpose || 'No purpose provided'}</p>
+                <p className="text-[#777D85] text-[12px] break-all">Recipient: {p.recipient_pubkey}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                <button aria-label="Aprovar pagamento" className={button} disabled={disabled || !enabled} onClick={() => void review(p, true)}>Aprovar</button>
-                <button aria-label="Recusar pagamento" className="border border-[#E8EAEC] rounded-full px-4 py-2 text-[13px] disabled:opacity-50" disabled={disabled} onClick={() => void review(p, false)}>Recusar</button>
+                <button aria-label="Approve payment" className={button} disabled={disabled || !enabled} onClick={() => void review(p, true)}>Approve</button>
+                <button aria-label="Reject payment" className="border border-[#E8EAEC] rounded-full px-4 py-2 text-[13px] disabled:opacity-50" disabled={disabled} onClick={() => void review(p, false)}>Reject</button>
                 </div>
-                </div>)}</div>{hasMorePending && <button className="text-[#24865E] underline text-[13px] mb-5" disabled={disabled} onClick={() => void morePending()}>Carregar mais pedidos aguardando aprovação</button>}
- <h3 className="text-[#111827] text-[16px] font-semibold mb-3">Histórico de pagamentos</h3>
-            <p className="text-[#777D85] text-[12px] mb-3">Até 100 pedidos recentes. Simulações não aparecem aqui. Taxas da rede entram no limite do cofre.</p>{!payments.length && <p className="text-[#777D85] text-[13px]">Nenhum pagamento registrado.</p>}<div className="space-y-3">{payments.map(p => {
+                </div>)}</div>{hasMorePending && <button className="text-[#24865E] underline text-[13px] mb-5" disabled={disabled} onClick={() => void morePending()}>Load more requests awaiting approval</button>}
+ <h3 className="text-[#111827] text-[16px] font-semibold mb-3">Payment history</h3>
+            <p className="text-[#777D85] text-[12px] mb-3">Up to 100 recent requests. Simulations are excluded. Paid network fees count toward the vault limit, including failed on-chain transactions.</p>{!payments.length && <p className="text-[#777D85] text-[13px]">No payments recorded.</p>}<div className="space-y-3">{payments.map(p => {
                     const link = explorerLink(p.solana_signature ?? '');
                     return <div key={p.id} className="border border-[#E8EAEC] rounded-[12px] p-4 flex flex-wrap items-center justify-between gap-3">
                     <div className="min-w-0">
                     <p className="text-[13px] font-medium">{sol(fromLamports(p.amount_lamports))}</p>
-                    <p className="text-[#777D85] text-[12px] break-words">{p.purpose || 'Sem finalidade informada'}</p>
-                    <p className="text-[#777D85] text-[12px] break-all">Destinatário: {p.recipient_pubkey}</p>
+                    <p className="text-[#777D85] text-[12px] break-words">{p.purpose || 'No purpose provided'}</p>
+                    <p className="text-[#777D85] text-[12px] break-all">Recipient: {p.recipient_pubkey}</p>
                     </div>
                     <div className="text-[13px]">
-                    <p>{paymentLabel(p)}</p>{link && <a className="text-[#24865E] underline text-[12px]" href={link} target="_blank" rel="noreferrer">Ver na Solana Devnet</a>}</div>
+                    <p>{paymentLabel(p)}</p>{link && <a className="text-[#24865E] underline text-[12px]" href={link} target="_blank" rel="noreferrer">View on Solana Devnet</a>}</div>
                     </div>;
                 })}</div>
  </>}</>}

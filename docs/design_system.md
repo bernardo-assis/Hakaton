@@ -102,4 +102,72 @@ O **AgentSafe** adota uma estética **Fintech Neo-Bank de Alto Padrão** (estilo
 A imagem original de referência foi baixada e arquivada localmente em:
 * [`docs/inspiration_dashboard.png`](file:///c:/Users/jotaf/OneDrive/Desktop/projetos/hackaton/docs/inspiration_dashboard.png)
 
-O Design System está formalizado e pronto para ser aplicado pelo `@dev-front` quando a Fase 2 (execução do Frontend) for iniciada!
+---
+
+## 7. Landing Page — Seção 3: Features Grid (Extração Visual)
+
+**Referência:** Tela "AI Finance / Features" enviada pelo usuário (3 esferas 3D holográficas, tema escuro).
+
+### 7.1 Paleta da Seção
+* **Background Seção:** `#070A08` / `#0C1411` (Deep Obsidian / Forest Dark)
+* **Card Surface:** `#0D1311`/80 com backdrop-blur-xl e borda suave `1px solid rgba(255, 255, 255, 0.08)`
+* **Acento Primário:** `#B6F03F` (Neon Lime) para tags, micro-dots e glow no hover
+* **Acento Secundário:** `#38BDF8` / `#00D2FF` (Cyan Glow) em harmonia com os nós de dados
+* **Texto Primário:** `#FAFCFA` / `#FFFFFF` (Heading 1 & Card Titles)
+* **Texto Secundário:** `#94A3B8` (Subtítulo e descrições)
+
+### 7.2 Tipografia & Hierarquia
+* **Eyebrow Tag:** `text-[12px] md:text-[14px]`, `tracking-[0.25em]`, `uppercase`, `text-[#B6F03F]`
+* **Headline:** `text-[36px] md:text-[48px] lg:text-[52px]`, `font-medium`, `tracking-tight`, `leading-[1.15]`
+* **Subtitle:** `text-[16px] md:text-[18px]`, `text-[#94A3B8]`, `max-w-2xl`
+* **Card Titles:** `text-[20px] md:text-[22px]`, `font-semibold`, `text-white`
+* **Card Description:** `text-[14px] md:text-[15px]`, `text-[#94A3B8]`, `leading-relaxed`
+
+### 7.3 Grid & Composição
+* Grid horizontal com 3 colunas simétricas (`grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8`).
+* Cards com cantos generosos (`rounded-[24px]`), padding interno e proporção vertical elegante.
+* Topo do Card: Arte 3D holográfica 1:1 com bordas arredondadas internas (`rounded-[18px]`), sobreposição de gradiente de sombra suave.
+* Rodapé do Card: Título + Descrição concisa com alinhamento à esquerda.
+
+### 7.4 Motion Design
+* Hover sutil com elevação `translate-y-[-4px]` e aumento do brilho da borda (`border-[#B6F03F]/30`).
+* Brilho de fundo radial suave (`radial-gradient`) que acompanha o card no hover.
+
+---
+
+## 8. Landing Page — Seção 4: Testimonials (Extração Visual)
+
+**Referência:** Tela "What our clients say." (fundo sólido, 3 colunas limpas sem container).
+
+### 8.1 Regras de Design
+* **Fundo Sólido Matte (`#070814`):** Rompe temporariamente a transparência/vidro para dar descanso visual e foco na leitura humana, enquanto o vídeo de fundo permanece rodando globalmente por trás da camada.
+* **Layout:** 3 colunas horizontais limpas e simétricas, sem bordas nem caixas rígidas.
+* **Componentes por Coluna:**
+  * Avatar circular (`w-12 h-12 rounded-full border border-white/10`)
+  * Nome do cliente (16px, font-semibold, branco `#FFFFFF`)
+  * Cargo e Empresa (12px, font-medium, uppercase, `#94A3B8`, tracking largo)
+  * Depoimento (15px-16px, leading-[1.65], `#CBD5E1`)
+
+---
+
+## 9. Landing Page — Seção 5: Pricing (Extração Visual)
+
+**Referência:** Tela "Plans for every scale." (fundo sólido, destaque do plano Professional).
+
+### 9.1 Regras de Design
+* **Fundo Sólido Matte (`#070814`):** Mantém a consistência com a seção de depoimentos e contraste elevado.
+* **Grid de 3 Planos:** Starter ($199/mo), Professional ($499/mo), Enterprise ($899/mo).
+* **Tratamento Diferenciado por Nível:**
+  * **Planos Laterais (Starter & Enterprise):** Flat contra o fundo escuro, texto limpo, botão pill dark com borda sutil.
+  * **Plano Central (Professional - Featured):** Container em caixa preta elevada (`bg-[#030408] border border-white/15 rounded-[26px]`), linha divisória fina abaixo do subtítulo, sombra profunda e botão de ação branco sólido (`bg-white text-black font-semibold`).
+* **Marcadores:** Losangos técnicos em ciano/azul (`◆`) com espaçamento confortável.
+
+---
+
+## 10. Landing Page — Seção 6: Footer & Pre-CTA (Extração Visual)
+
+### 10.1 Regras de Design
+* **Fundo:** `#060D0C` com linha divisória superior sutil `border-t border-white/10`.
+* **Pre-Footer CTA Banner:** Card escuro elevado (`bg-[#0C1411] border border-white/10 rounded-[24px]`) com chamada para ação ("Ready to safeguard your AI agent fleet?"), botão principal em Verde Neon (`#B6F03F`) e botão secundário dark com borda sutil.
+* **Colunas de Navegação:** Grid responsivo (Branding + Status Pill operacional, Protocolo, Recursos e Comunidade).
+* **Rodapé Inferior:** Copyright, status da Solana Devnet e links legais discretos em `#FAFCFA]/50`.

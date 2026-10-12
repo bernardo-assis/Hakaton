@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+.env.*
+*.key
+*.pem
+tests
+src/__tests__
+src/testUtils
+*.log
+.git

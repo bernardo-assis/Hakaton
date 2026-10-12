@@ -1,65 +1,68 @@
-# 🛡️ AgentSafe — Autonomous AI Agent Budget & Security Vault
+# AgentSafe
 
-> **"The Brex for AI Agents on Solana"**  
-> Hackathon Submission: **Crypto World’s Fair (Colosseum)** — Track: *Solana / Agentic Payments*
+![Solana Devnet](https://img.shields.io/badge/Solana-Devnet-9945FF?logo=solana) ![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react) ![Node.js 22](https://img.shields.io/badge/Node.js-22-339933?logo=nodedotjs) ![TypeScript](https://img.shields.io/badge/TypeScript-typed-3178C6?logo=typescript) [![License metadata](https://img.shields.io/badge/package_license_metadata-MIT-lightgrey)](backend/package.json)
 
----
+**A Treasury Firewall for Autonomous AI Agents — zero custody of the owner’s Phantom wallet.** Give agents a separate Solana Devnet test budget, enforce payment policies, and switch between automatic execution and human approval from one dashboard.
 
-## 📌 Visão Geral
+Phantom signs a login message and keeps its private key. Payments use a separate Devnet vault whose signer is encrypted in the backend; the operator can sign for that test vault. “Zero custody” applies to the owner’s Phantom wallet, while spending policies are enforced by the backend.
 
-O **AgentSafe** é um protocolo e dashboard de **Cofres Inteligentes com Políticas de Gastos Programáveis** construído na rede de alta performance da Solana. Ele resolve o dilema de segurança na economia de agentes de IA: conceder autonomia financeira a robôs autônomos sem expor a carteira mestre do usuário a riscos de drenagem (prompt injection, loops de execução ou alucinações).
+## What you can do
 
----
+- Create a separate SOL test vault and agents with per-payment and rolling 24-hour limits.
+- Restrict recipients, require human approval, freeze an agent, or use the owner-scoped panic button.
+- Change automatic/manual execution without releasing an existing approval queue.
+- Track approval, reserved budget and settlement separately; inspect finalized transfers in Solana Explorer.
+- Recover uncertain requests with durable signed bytes and idempotency keys, without signing replacement transfers after a timeout.
+- Explore the landing page, dashboard, simulator and in-app documentation. Simulation never transfers funds.
 
-## ⚡ Principais Funcionalidades
+```mermaid
+flowchart LR
+    Wallet[User wallet / Phantom] -->|Sign-in message only| Firewall[Policy firewall / API]
+    Agent[Agent credential or owner session] --> Firewall
+    Firewall -->|Limits / whitelist / approval / panic| Vault[Separate encrypted Devnet signer]
+    Vault -->|Signed SOL transfer| Devnet[Solana Devnet]
+    Firewall <--> DB[(PostgreSQL: requests / reservations / audit)]
+    Devnet -->|Finalized result| Firewall
+```
 
-- 💰 **Cofre Delegado Segregado:** Os agentes nunca recebem a chave privada mestre da carteira.
-- ⏱️ **Teto Diário & Teto por Transação:** Limites máximos configuráveis com renovação contínua a cada 24h.
-- 🎯 **Whitelist de Fornecedores:** Restrição de pagamentos exclusivamente para prestadores de serviço autorizados (APIs, oráculos, nós de GPU).
-- 🛑 **Kill Switch Instantâneo (Botão de Pânico):** Congelamento em tempo real de um ou todos os agentes com 1 clique.
-- 🔍 **Histórico de decisões e pagamentos:** Decisões, reservas e alterações de controle ficam no PostgreSQL. Pagamentos enviados têm assinatura consultável na Devnet; só entram como confirmados após finalização, sem promessa de tempo fixo.
-- 🔀 **Execução automática ou aprovação manual:** O mesmo cofre separado atende ambos os modos. Trocar para automático não libera pedidos manuais antigos silenciosamente.
-- 🚀 **Simulador de Pitch (3 Minutos):** Painel interativo para demonstração ao vivo para a banca avaliadora.
+## Quick start — three steps
 
----
+Requires Docker with Compose. The isolated demo stack does not reuse the project's existing PostgreSQL container or volume.
 
-## 🏛️ Arquitetura
+1. Clone the demo branch and enter the repository:
+   ```bash
+   git clone --branch bernardo https://github.com/bernardo-assis/Hakaton.git
+   cd Hakaton
+   ```
+2. Build and start the frontend, API and PostgreSQL (configuration is initialized automatically):
+   ```bash
+   ./scripts/demo.sh up
+   ```
+3. Open **http://localhost:8088**, enter the application and sign in with Phantom. Payment execution is disabled by default. Follow the [deployment guide](docs/DEPLOYMENT.md) to explicitly enable Devnet payments; then create and deliberately fund a **test** vault before requesting a payment.
 
-- **Frontend:** React 19 + TypeScript + Vite + Tailwind CSS; integração com o provider da extensão Phantom.
-- **Backend:** Node.js + Express + TypeScript + Zod
-- **Banco de Dados em execução:** PostgreSQL 15 (`pg`); migrações em `backend/src/db/migrations`. O schema SQLite histórico e seus testes não são a persistência do servidor atual.
-- **Web3 Engine:** `@solana/web3.js` conectado à **Solana Devnet**
+To initialize configuration without starting containers, run `./scripts/demo.sh bootstrap`.
 
-O responsável entra por assinatura de mensagem com Phantom. Isso autentica sua identidade, sem delegar sua carteira pessoal. O executor usa uma carteira nova por cofre de teste, com chave criptografada no servidor. Tokens de agente têm escopo, expiração e revogação; nunca precisam ficar no navegador do painel.
+The helper uses `compose.demo.yml`, generates non-secret flags in `.env.demo`, and stores persistent keys and database credentials in the ignored `.demo-secrets/` directory (mode 0700, mounted read-only into containers). Keep the encryption key stable: losing or replacing it makes existing encrypted signers unusable. Never commit real secrets. No public deployment URL is claimed by this repository.
 
-## Execução e validação
+## Implementation and evidence
 
-O backend conserva valores inteiros em lamports, idempotência por agente, reservas atômicas, whitelist, congelamento e limites móveis de 24h. O limite do agente considera o valor enviado; o limite independente do cofre também cobre taxas. Pagamentos manuais aguardam aprovação sem reservar saldo e revalidam as regras ao aprovar.
+Frontend: React 19, TypeScript, Vite and Tailwind CSS. Backend: Node.js, Express, Zod, PostgreSQL and `@solana/web3.js`. Runtime migrations live in `backend/src/db/migrations`; the historical SQLite schema is not the server's persistence layer.
 
-Bytes assinados e assinatura são gravados antes de transmitir. Após timeout, `UNKNOWN` mantém a reserva. O servidor concilia ao iniciar e a cada 15 segundos; recupera a mesma assinatura e pode retransmitir os mesmos bytes válidos, sem assinar uma transferência substituta. A fila distribui verificações entre pedidos, evitando que cem incertezas antigas impeçam acompanhar pedidos novos.
+The integrated build passed **42 backend tests in eleven suites**, **14 frontend tests**, production builds and browser checks. Financial browser scenarios use a controlled API; authentication scenarios use the real Docker API, an injected wallet provider and real Ed25519 signatures. Checks cover two owners, session restoration, wallet switching, logout and HttpOnly/SameSite=Strict cookies. The adapter also uses real Solana serialization/signatures with injected RPC. These checks do not replace real Phantom extension testing or a funded, finalized Devnet payment. See [QA evidence](docs/PAYMENT_QA.md) and the [manual test guide](docs/PAYMENT_PANEL_MANUAL_TEST.md).
 
-As rotas do painel usam sessão por carteira e proteção de origem. A automação chama `/api/agent-payments` com credencial de agente; o painel pode chamar `/api/payments` com sua sessão, sem guardar essa credencial. A rota antiga de transferência `/api/transactions` continua desabilitada.
+The current payment scope is SOL on Devnet. Pending live validation covers Phantom and funded transfers; an expired transaction with inconclusive history remains `UNKNOWN` and reserved for investigation.
 
-Na configuração local desta sessão, o executor Devnet está habilitado e a chave de criptografia está no arquivo ignorado `backend/.env`, com acesso restrito. Não versionar esse arquivo nem substituir a chave usada pelos cofres existentes. O genesis Devnet foi verificado e não havia pagamentos pendentes ao habilitar. Nenhum cofre foi financiado e nenhuma transferência real foi enviada nesta entrega.
+## In-app documentation
 
-Validação automatizada: PostgreSQL real e RPC injetado, além de serialização/assinaturas reais da SDK Solana. Consulte o guia para comandos, API, estados e teste manual.
+Open **Docs** from the landing page to read the product and API guide. Use **Launch App** to enter the workspace; its **Docs** navigation tab keeps the guide available alongside the dashboard. The same guide links back to the application.
 
-## Pendências para demonstração e publicação
+## Repository documentation
 
-- Validar o fluxo financeiro completo com saldo **de teste** na Devnet e conferir finalização no explorer. Os testes injetados não substituem essa validação.
-- Concluir a validação no navegador do seletor de modo, pedidos manuais, troca de carteira e telas em celular.
-- Preparar hospedagem, gestão de segredos/backup, README de publicação, vídeo e submissão do hackathon.
-- Suporte financeiro atual é SOL. USDC/USDT não foram implementados pelo executor desta entrega.
-- Uma assinatura expirada sem evidência conclusiva continua UNKNOWN e reservada para investigação; o sistema não libera fundos apenas por timeout.
+- [Security architecture and custody boundaries](docs/architecture/SECURITY_ARCHITECTURE.md)
+- [REST API](docs/api/REST_API.md)
+- [Deployment and local demo](docs/DEPLOYMENT.md)
+- [Payment contract](docs/architecture/DEVNET_PAYMENT_PLAN.md)
+- [Manual panel validation](docs/PAYMENT_PANEL_MANUAL_TEST.md)
+- [Product requirements](docs/prd.md)
 
----
-
-## 📚 Documentação
-
-- [Product Requirements Document (PRD)](./docs/prd.md)
-- [Arquitetura do Sistema (ARCHITECTURE.md)](./docs/architecture/ARCHITECTURE.md)
-- [Checklist Backend (Story 01)](./docs/stories/01-backend.md)
-- [Checklist Frontend (Story 02)](./docs/stories/02-frontend.md)
-- [Contrato e plano Devnet](./docs/architecture/DEVNET_PAYMENT_PLAN.md)
-- [API, configuração e teste manual de pagamentos](./docs/PAYMENT_BACKEND.md)
-- [Evidências de QA financeiro](./docs/PAYMENT_QA.md)
+The [backend package](backend/package.json) declares `MIT` in its metadata. This repository currently has no `LICENSE` file; the badge records package metadata and does not assert that a complete license grant has been added.

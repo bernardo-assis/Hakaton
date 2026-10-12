@@ -11,6 +11,8 @@ out/
 
 # Environment variables & secrets
 .env
+.env.demo
+.demo-secrets/
 .env.local
 .env.development.local
 .env.test.local

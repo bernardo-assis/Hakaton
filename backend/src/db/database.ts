@@ -1,22 +1,26 @@
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
+import {config} from '../config/unifiedConfig';
 
 // Carrega as senhas do arquivo .env
 dotenv.config();
 
 // Criamos o "Pool" (um conjunto de cabos que ficam conectados no aquário o tempo todo)
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: config.db.url,
+  ssl: config.db.ssl,
+  connectionTimeoutMillis: 3000,
+  statement_timeout: 3000,
 });
 
 // Mensagem bonitinha para sabermos se deu certo quando ligarmos o servidor
 pool.on('connect', () => {
-  console.log('🔗 [Database] Conectado ao PostgreSQL com sucesso!');
+  console.log('[Database] PostgreSQL connection established');
 });
 
 // Se a luz acabar ou o docker cair, o sistema avisa do erro
 pool.on('error', (err) => {
-  console.error('❌ [Database] Erro fatal na conexão com o banco:', err);
+  console.error('[Database] Connection error', {code:(err as Error & {code?:string}).code});
 });
 
 // Exportamos uma função simples para fazermos as queries (os comandos) depois
