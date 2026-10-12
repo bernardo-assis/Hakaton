@@ -23,7 +23,7 @@ Scope approved by the user: preserve both implementations, deliver repository/AP
 - [x] Vercel frontend root/build/dist and same-origin API proxy configuration prepared; actual backend HTTPS origin pending account connection.
 - [x] Backend deployment manifest and environment templates; never deploy the legacy treasury execution path.
 - [x] Build and validate a fresh database and HTTP flow locally; preserve existing local data.
-- [ ] Publish the validated integration on bernardo in GitHub.
+- [x] Publish the validated integration on bernardo in GitHub: merge9ea171a preserves parents419026d and77057a1; push confirmed.
 - [ ] Connect hosting accounts, create the managed database/backend, record actual API origin and deploy frontend.
 - [ ] Verify real hosted HTTPS login, cookies, CORS, navigation and readiness.
 
