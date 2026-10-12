@@ -25,13 +25,21 @@ flowchart LR
     Devnet -->|Finalized result| Firewall
 ```
 
+## Published demo and user documentation
+
+**Judges: start with the [single-document walkthrough](docs/JUDGES_GUIDE.md).** It explains the product, wallet setup, policy checks, a small approved Devnet payment, troubleshooting and how to record evidence in one place.
+
+The owner reports the application is deployed on a VPS at **https://agentsafe.kernellabs.uk/**. The documentation review on 2026-10-12 uses remote `main` commit `1dd108f5675f982fb5fe70d157f78907ad9f13aa`. A reachable URL does not establish the deployed revision, server configuration or finalized payment acceptance; those require deployment and wallet evidence.
+
+Start with the [Portuguese user guide](docs/USER_GUIDE_PT.md), [published application acceptance walkthrough](docs/PUBLISHED_APP_MANUAL_TEST_PT.md), and [documentation index](docs/README.md). The guide explains each screen, address, payment state and common error.
+
 ## Quick start — three steps
 
 Requires Docker with Compose. The isolated demo stack does not reuse the project's existing PostgreSQL container or volume.
 
-1. Clone the demo branch and enter the repository:
+1. Clone the reviewed main branch and enter the repository:
    ```bash
-   git clone --branch bernardo https://github.com/bernardo-assis/Hakaton.git
+   git clone --branch main https://github.com/bernardo-assis/Hakaton.git
    cd Hakaton
    ```
 2. Build and start the frontend, API and PostgreSQL (configuration is initialized automatically):
@@ -42,15 +50,19 @@ Requires Docker with Compose. The isolated demo stack does not reuse the project
 
 To initialize configuration without starting containers, run `./scripts/demo.sh bootstrap`.
 
-The helper uses `compose.demo.yml`, generates non-secret flags in `.env.demo`, and stores persistent keys and database credentials in the ignored `.demo-secrets/` directory (mode 0700, mounted read-only into containers). Keep the encryption key stable: losing or replacing it makes existing encrypted signers unusable. Never commit real secrets. No public deployment URL is claimed by this repository.
+The helper uses `compose.demo.yml`, generates non-secret flags in `.env.demo`, and stores persistent keys and database credentials in the ignored `.demo-secrets/` directory (mode 0700, mounted read-only into containers). Keep the encryption key stable: losing or replacing it makes existing encrypted signers unusable. Never commit real secrets. The public demo URL is listed above; local demo configuration does not establish how that VPS is configured.
 
 ## Implementation and evidence
 
 Frontend: React 19, TypeScript, Vite and Tailwind CSS. Backend: Node.js, Express, Zod, PostgreSQL and `@solana/web3.js`. Runtime migrations live in `backend/src/db/migrations`; the historical SQLite schema is not the server's persistence layer.
 
-The security regression gate passed **107 backend tests in thirteen suites**, including **65 new adversarial cases**, and the rebuilt demo passed live HTTP and Chromium security checks. The preceding integrated build passed **14 frontend tests**, production builds and browser checks. Financial browser scenarios use a controlled API; authentication scenarios use the real Docker API, an injected wallet provider and real Ed25519 signatures. Checks cover two owners, session restoration, wallet switching, logout and HttpOnly/SameSite=Strict cookies. The adapter also uses real Solana serialization/signatures with injected RPC. These checks do not replace real Phantom extension testing or a funded, finalized Devnet payment. See the [security attack report](docs/security/SECURITY_ATTACK_REPORT.md), [QA evidence](docs/PAYMENT_QA.md) and the [manual test guide](docs/PAYMENT_PANEL_MANUAL_TEST.md).
+Historical QA evidence (2026-10-11): the security regression gate passed **107 backend tests in thirteen suites**, including **65 new adversarial cases**, and the rebuilt demo passed live HTTP and Chromium security checks. The preceding integrated build passed **14 frontend tests**, production builds and browser checks. Financial browser scenarios use a controlled API; authentication scenarios use the real Docker API, an injected wallet provider and real Ed25519 signatures. Checks cover two owners, session restoration, wallet switching, logout and HttpOnly/SameSite=Strict cookies. The adapter also uses real Solana serialization/signatures with injected RPC. These checks do not replace real Phantom extension testing or a funded, finalized Devnet payment. See the [security attack report](docs/security/SECURITY_ATTACK_REPORT.md), [QA evidence](docs/PAYMENT_QA.md) and the [manual test guide](docs/PAYMENT_PANEL_MANUAL_TEST.md).
 
-The current payment scope is SOL on Devnet. Pending live validation covers Phantom and funded transfers; an expired transaction with inconclusive history remains `UNKNOWN` and reserved for investigation.
+**Current review (2026-10-12, main `1dd108f`):** 109 backend tests in 13 suites and 14 frontend tests passed; both production builds and the payment browser regression passed. Payment browser requests used a controlled API and did not send funds. Three isolated PostgreSQL reproductions confirmed the vault-reassignment financial defect described below. Passing existing suites is not complete acceptance. Read the [main/VPS review](docs/MAIN_VPS_REVIEW_2026-10-12.md) and [VPS runbook](docs/VPS_RUNBOOK.md) for findings, evidence and operating checks.
+
+The current payment scope is SOL on Devnet. This review does not mark a real Phantom extension flow or funded transfer as passed without an acceptance record. An expired transaction with inconclusive history remains `UNKNOWN` and reserved for investigation. The reviewed main adds quick agent deployment and moving an agent to a test vault; **create a fresh agent instead of moving one with payment history or unfinished requests**, because financial queries follow the agent’s current vault association. The regular Agent Fleet creation form still requires a valid agent public key; quick deployment creates a test identifier and does not provide an external agent private key or credential.
+
+Dashboard approval/block counters and chart include simulations. Payment history and confirmed spending are separate; an approved simulation or request is not proof of settlement. Observed Phantom wallet registration does not create a payment signer. Generic withdrawals and `POST /api/transactions` remain disabled; the supported executor is `/api/payments` (owner) or `/api/agent-payments` (agent credential).
 
 ## In-app documentation
 

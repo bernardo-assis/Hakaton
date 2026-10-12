@@ -1,79 +1,114 @@
-# Deployment
+# Publicação do AgentSafe
 
-The local Docker demo is ready. Vercel and Render configurations are prepared, but no cloud deployment or public cloud URL has been created. Provider accounts must be connected before those steps can be completed. No wallet funding or real payment was performed during deployment validation.
+Revisão em 12/10/2026 do código de `origin/main`, commit `1dd108f`. O site público é **https://agentsafe.kernellabs.uk/**. O usuário informa que ele está em uma VPS; os testes HTTP confirmam que o domínio responde por HTTPS e que a API de sessão está acessível pelo mesmo domínio. Nesta revisão não houve acesso SSH, alteração da VPS, implantação, assinatura de carteira ou envio de pagamentos.
 
-## Local quickstart
+O código analisado e a versão instalada são evidências diferentes. O servidor não fornece um identificador de commit; portanto, esta revisão não certifica que a imagem publicada corresponde exatamente a `1dd108f`. O horário `Last-Modified` e o nome de um arquivo JavaScript identificam um artefato, mas não substituem a identificação de versão.
 
-Requirements: Docker with Compose v2. Node.js is not required on the host.
+## 1. Como o navegador chega ao aplicativo
+
+O frontend é React com Vite. Sua imagem de produção serve arquivos estáticos em Nginx na porta interna 8080. Requisições para `/api/...` passam pelo Nginx, que encaminha para `backend:3001`. O backend usa Express e PostgreSQL. O executor consulta a Solana Devnet e usa o signer do cofre de teste, separado da carteira Phantom de login.
+
+```text
+Navegador → HTTPS no domínio público → frontend Nginx
+                                     ├── HTML, CSS, JavaScript e imagens
+                                     └── /api → backend Express → PostgreSQL
+                                                              → Solana Devnet
+```
+
+A configuração exata de TLS, redes, serviços e volumes da VPS ainda precisa ser inventariada. A memória da `main` menciona Docker Swarm/Traefik, `network_swarm_public` e `agentsafe_internal`, mas **não existe manifesto Swarm/Traefik versionado nessa revisão**. Esses nomes são relato histórico, não resultado de inspeção do servidor. O [runbook da VPS](VPS_RUNBOOK.md) lista como registrar a instalação real.
+
+## 2. O que foi confirmado no domínio
+
+| Verificação pública | Resultado em 12/10/2026 | O que prova |
+|---|---|---|
+| HTTP `/` | 301 para HTTPS | Redirecionamento do acesso inicial |
+| HTTPS `/` | 200, HTML | Frontend entregue pelo domínio |
+| `/api/auth/session` sem cookie | 200, `authenticated: false` | API de sessão responde sem inventar login |
+| `/healthz` | 200, texto `ok` | Nginx do frontend vivo |
+| `/readyz` | 200, HTML da landing | Fallback SPA; **não verifica banco nem backend** |
+| Cabeçalhos da API de sessão | `no-store`, HSTS, `nosniff`, `DENY` | Defesas HTTP observadas nessa resposta |
+
+A raiz HTML ainda contém `<title>frontend</title>`. O certificado foi aceito normalmente pelo cliente HTTPS; expiração, renovação automática e configuração do emissor não foram inspecionadas. Os testes não comprovam login real pela Phantom, cookie autenticado, pagamento finalizado, restauração de backup ou tolerância a reinício na VPS.
+
+## 3. Arquivos disponíveis no repositório
+
+| Arquivo | Uso |
+|---|---|
+| `backend/Dockerfile` | Node 22 Alpine, build em estágios, dependências de produção, usuário `node`, migrações no startup, health `/readyz` |
+| `frontend/Dockerfile` | Build Vite e Nginx sem privilégio, porta 8080, health `/healthz` |
+| `frontend/deploy/default.conf` | Proxy `/api/` para backend privado e fallback SPA |
+| `compose.demo.yml` | Demo local, banco/API sem porta pública, frontend em loopback, segredos montados, volume próprio |
+| `scripts/demo.sh` | Bootstrap, subir/parar, status e logs da demo |
+| `docker-compose.yml` | Setup antigo PostgreSQL/Adminer com portas 5432/8080 e senha de exemplo; **não usar como instalação pública** |
+| `render.yaml`, `frontend/vercel.template.json` | Alternativas preparadas; não descrevem a VPS atual |
+
+As imagens do demo têm build em estágios. Backend e frontend rodam sem root; o Compose local define filesystem somente leitura, `/tmp` temporário, capabilities removidas e `no-new-privileges`. Isso não prova que a VPS mantém essas opções. O Compose demo não define limites de CPU/memória; registrar e validar esses limites no ambiente público é pendência de operação.
+
+## 4. Configuração do backend
+
+| Variável | Significado e configuração esperada |
+|---|---|
+| `NODE_ENV` | `production` na VPS para cookies Secure e comportamento de produção |
+| `PORT` | Porta interna da API, padrão 3001 |
+| `DATABASE_URL` / `DATABASE_URL_FILE` | Conexão privada PostgreSQL; `_FILE` lê segredo montado e tem precedência |
+| `DATABASE_SSL` | `true` exige TLS com certificado verificado; rede privada Docker difere de banco externo |
+| `AUTH_ALLOWED_ORIGINS` | Origem exata `https://agentsafe.kernellabs.uk`, sem barra/caminho; outras só se usadas |
+| `TRUST_PROXY_HOPS` | Apenas 0 ou 1; confirmar proxy imediato confiável, sem ampliar para cadeia arbitrária |
+| `SOLANA_RPC_URL` | RPC Devnet; executor valida a rede antes de assinar/enviar |
+| `DEVNET_PAYMENTS_ENABLED` | Padrão `false`; `true` ativa execução e recuperação Devnet |
+| `VAULT_SIGNER_ENCRYPTION_KEY` / `_FILE` | Exatamente 32 bytes aleatórios em base64, estáveis, externos ao Git |
+
+Não colocar senha, chave do signer ou token de agente em `VITE_*`, build args, imagens, prints ou commits. A chave mestre cifra os signers armazenados no banco. **Banco e chave precisam ser preservados juntos.** Gerar outra chave no redeploy não recupera os cofres existentes. O bootstrap local preserva os arquivos existentes em `.demo-secrets/`; as permissões locais não representam automaticamente o armazenamento da VPS.
+
+Ativar pagamentos não financia o cofre nem aprova a fila manual. O reconciliador inicia com o processo e roda a cada 15 segundos quando habilitado, podendo reenviar os mesmos bytes de operações previamente autorizadas e ainda incertas. Antes de habilitar uma instalação existente, revisar pedidos e reservas persistidos. Os cofres são exclusivamente Devnet.
+
+## 5. Sessões, proxy e limites HTTP
+
+Manter fetches relativos `/api/...`: o navegador vê frontend/API sob a mesma origem. Mutações do proprietário exigem origem permitida e `X-AgentSafe-CSRF: 1`. Login assina uma mensagem; não entrega a chave da Phantom nem autoriza debitar essa carteira. A sessão usa cookie HttpOnly, SameSite=Strict e Secure em produção.
+
+No Nginx versionado, `X-Forwarded-For` recebe o endereço do proxy imediato e `X-Forwarded-Proto` recebe `$scheme` da conexão interna. Atrás de outro terminador TLS, esse valor pode ser `http` embora o usuário esteja em HTTPS. A configuração decide o cookie Secure por `NODE_ENV`, mas a cadeia de endereço/protocolo deve ser inspecionada. Não confiar indiscriminadamente no cabeçalho recebido do cliente. Se a cadeia agrupa usuários no endereço do proxy, limites por IP podem ser compartilhados.
+
+Os limites do código são por minuto e em memória de cada processo: 240 leituras GET/HEAD, 100 mutações gerais, 60 mutações de autenticação e 30 mutações financeiras. São camadas cumulativas; não um limite distribuído entre réplicas. O polling normal usa orçamento de leitura. Antes de aumentar um limite, conferir polling e IP reconhecido.
+
+## 6. Inicialização, migrações e saúde
+
+A imagem executa `node scripts/start.cjs`: aplica migrações PostgreSQL numeradas e só então carrega o servidor. `npm run migrate` e `npm run start:production` são os comandos equivalentes após build, fora do Docker.
+
+O runner mantém `public.schema_migrations` com SHA-256 e trava consultiva PostgreSQL. Arquivo aplicado ausente ou modificado recusa startup; alterações exigem nova migração numerada. Banco legado completo sem histórico é comparado a um schema de referência antes do baseline; schema parcial é rejeitado. Não executar o schema SQLite histórico sobre PostgreSQL.
+
+No backend, `/healthz` é liveness JSON e `/readyz` faz `SELECT 1`, retornando 503 se o banco não responder. Não testa RPC, saldo, chave do signer nem finalização Solana. O proxy atual publica só `/api`; portanto, `/readyz` no domínio não chega ao backend. Monitorar readiness **dentro da rede privada** até existir roteamento explícito revisado. Uma URL privada protegida com 403 ou fallback HTML com 200 não representa prontidão do banco.
+
+No Swarm, não pressupor a ordem de `depends_on` do Compose local. Falha inicial de DNS/banco deve ser tratada por readiness e política de reinício observada; não é evidência de ausência de cold start. Atualizações podem interromper solicitações, cujo resultado deve ser conciliado pelos mesmos IDs/assinaturas persistidos.
+
+## 7. Rodar a demo local
+
+Requisitos: Docker/Compose v2; Node não é obrigatório no host.
 
 ```sh
 ./scripts/demo.sh bootstrap
 ./scripts/demo.sh up
+./scripts/demo.sh status
 ```
 
-Open **http://localhost:8088**. Use `./scripts/demo.sh status` to inspect the services and `./scripts/demo.sh down` to stop them without deleting the database volume.
-
-The `agentsafe-demo` Compose project has its own PostgreSQL volume and network. It does not expose PostgreSQL or the API on host ports and does not reuse or stop the existing `agentsafe_pg` or Adminer setup. Only the frontend is published, on loopback port 8088. To use another port, set `DEMO_HTTP_PORT` in the ignored `.env.demo` file before starting the project.
-
-Bootstrap creates `.env.demo` containing only demo flags and port settings. Passwords and the stable signer encryption key live in ignored `.demo-secrets/`, whose directory permissions are 0700. Its files are read-only so non-root containers can consume the explicitly mounted Docker secrets. Bootstrap preserves existing files; it never replaces a signer key or database password. Keep that directory with the PostgreSQL backup. Losing or changing its signer key prevents decrypting existing vaults.
-
-Payments are **disabled by default** in this isolated demo. `DEVNET_PAYMENTS_ENABLED=true` is an explicit opt-in for Devnet execution and recovery; changing that flag does not fund wallets or approve pending manual requests. Before enabling an existing installation, inspect its pending transactions because the recovery worker may resume previously authorized signed payments. Existing local development configuration is separate and unchanged.
-
-Both images use multiple build stages. The backend runs as the non-root Node user, includes only production dependencies and compiled application code, and excludes tests and environment files. The frontend runs in unprivileged Nginx. Runtime filesystems are read-only, capabilities are dropped, and writable temporary directories are mounted separately. Secrets are not copied into image layers. The backend pins the RPC websocket UUID dependency for CommonJS SDK compatibility. [Docker multi-stage documentation](https://docs.docker.com/build/building/multi-stage/).
-
-## Startup and PostgreSQL migrations
-
-The backend image starts `node scripts/start.cjs`. Startup runs the numbered PostgreSQL migrations and then starts the HTTP server. `npm run migrate` and `npm run start:production` provide the equivalent commands outside Docker after building the backend.
-
-The runner records migration filenames and SHA-256 checksums in `public.schema_migrations`, holds a PostgreSQL advisory lock during migration, and records each migration in the same transaction as its DDL. Concurrent starts do not apply a migration twice. Missing or edited applied migration files refuse startup. Add a new numbered migration instead of editing one already deployed.
-
-For an existing complete PostgreSQL database without migration history, the runner validates the initial schema against a temporary reference schema, including required columns, defaults, primary/unique/foreign constraints and enums, before recording its baseline. Partial or incompatible schemas are rejected. Existing user rows are preserved. The historical SQLite schema is not used by this runner.
-
-`GET /healthz` is public liveness; `GET /readyz` checks PostgreSQL and returns 503 if unavailable. Neither endpoint exposes database URLs, keys, wallets or balances. Render and Docker use `/readyz` for the backend health check. [Render health checks](https://render.com/docs/health-checks).
-
-## Vercel frontend and Render backend
-
-`render.yaml` prepares a Docker web service and a same-region private PostgreSQL instance. Both select the free plan; no paid service was provisioned. Free Render PostgreSQL expires after 30 days, and free web services may sleep while idle. It is a temporary hackathon option rather than an always-running financial worker. Confirm the selected plans before creating resources; paid changes require separate authorization. [Render free-tier limitations](https://render.com/docs/free).
-
-The blueprint requires protected values for `AUTH_ALLOWED_ORIGINS` and `VAULT_SIGNER_ENCRYPTION_KEY`. The signer value must be **exactly 32 cryptographically generated bytes encoded as base64**, stable across redeploys. The existing bootstrap helper already generates that exact format without printing it. Do not use an arbitrary password or rotate the key while keeping the old database. Configure it through the provider's protected secret settings, never through frontend `VITE_*` variables, Git or build arguments. Payments remain disabled until explicitly enabled.
-
-The database URL is supplied from the blueprint's private database connection. `DATABASE_SSL=false` is only for that same-region private Render connection and the Docker network. External PostgreSQL connections need TLS configured for their provider; this application supports verified TLS with `DATABASE_SSL=true` and does not disable certificate verification. [Render connection guidance](https://render.com/tutorials/postgres-on-render/connection-strings).
-
-Vercel project settings:
-
-- Root directory: `frontend`.
-- Production branch: `bernardo` (the repository's older default branch is not the prepared application).
-- Framework: Vite.
-- Build command: `npm run build`.
-- Output directory: `dist`.
-- API requests remain relative `/api/...`; do not change browser fetches to a direct cross-site backend URL.
-
-After the real backend HTTPS origin exists, generate `frontend/vercel.json` with:
+Acesse **http://localhost:8088**. Para logs ou parada preservando o volume:
 
 ```sh
-node scripts/configure-vercel.cjs https://YOUR_BACKEND_HOST
+./scripts/demo.sh logs
+./scripts/demo.sh down
 ```
 
-This generates a public routing configuration with `/api/:path*` rewritten to the backend's `/api/:path*`, followed by the SPA fallback. It rejects non-HTTPS origins, credentials and extra paths or query strings. `frontend/vercel.template.json` is a template only; its `.invalid` hostname is not a deployment URL. **For a Vercel Git import, the generated `frontend/vercel.json` must be reviewed and committed to `bernardo` before deployment**; Git-based builds cannot see an uncommitted local file. The routing file contains only the public backend origin and is not ignored. The agent will generate and commit it once the connected backend provides its real HTTPS origin. Do not commit the example hostname as a working configuration. [Vercel external rewrites](https://vercel.com/docs/routing/rewrites).
+`DEMO_HTTP_PORT` pode ser configurado em `.env.demo`, ignorado pelo Git. A demo usa projeto `agentsafe-demo`, volume próprio e não substitui `agentsafe_pg`. Pagamentos vêm desativados. A configuração HTTP local não deve ser copiada como configuração HTTPS de produção.
 
-Set the backend's `AUTH_ALLOWED_ORIGINS` to the actual frontend HTTPS origin. Preserve the incoming Origin, cookies and CSRF header through the proxy. The browser then sees API requests under its own origin, allowing the existing HttpOnly, SameSite=Strict session cookies. Production cookies are Secure. Changing to direct Vercel-to-Render browser fetches would break this model.
+## 8. Atualização e continuidade na VPS
 
-`TRUST_PROXY_HOPS` accepts only 0 or 1. Docker Nginx overwrites forwarded address/protocol headers; its API port is private. The Render blueprint trusts only the last terminating proxy, rather than trusting arbitrary forwarded chains. With Vercel and Render stacked, rate limiting may group requests by the untrusted upstream proxy's address. Increasing trust to two hops without restricting direct backend access can permit spoofed addresses. Limits use separate in-memory budgets per IP and per minute: 240 GET/HEAD reads, 100 mutations, 60 authentication mutations, and 30 financial mutations on payment/legacy transaction routes. Normal panel polling does not consume the financial budget. [Express proxy guidance](https://expressjs.com/en/guide/behind-proxies/).
+Antes de atualizar: identificar release instalada, manifesto real, serviços/rede/volume, backup restaurável e mesma chave. Registrar migrations/release e revisar pedidos incertos. Construir imagens de versão identificável; aplicar mudança ao AgentSafe sem reiniciar outros serviços da VPS. Depois validar readiness interna, domínio, login real, persistência e pequena transferência Devnet autorizada com assinatura finalizada. Não criar uma segunda intenção para resolver a primeira incerta.
 
-Cloud HTTPS, forwarded cookie behavior and provider health checks still require validation after accounts are connected. Local success is not evidence that a cloud deployment is live.
+Troca de imagem não desfaz migrações. Rollback precisa de compatibilidade do schema, e restauração de snapshot antigo perde dados posteriores. Não usar `down -v`, apagar volumes, renovar chave ou limpar tabelas para resolver startup.
 
-## Railway alternative
+O procedimento de backup, restauração isolada, investigação de erros e evidências pendentes está em [VPS_RUNBOOK.md](VPS_RUNBOOK.md). O [roteiro de teste do aplicativo](PUBLISHED_APP_MANUAL_TEST_PT.md) cobre uso com Phantom e Devnet.
 
-If Railway is selected instead, use the backend directory as the service root and its Dockerfile, connect a PostgreSQL service, configure the same protected variables and `/readyz` health check, and retain the Vercel same-origin API rewrite. Check the provider's current billing and TLS settings before provisioning. No Railway resource has been created or paid for.
+## 9. Alternativas e evidências históricas
 
-## Validation evidence
+Vercel/Render/Railway são caminhos alternativos, não serviços confirmados na publicação atual. Se selecionados futuramente, revisar planos/custos/TLS e manter API na mesma origem. `scripts/configure-vercel.cjs` aceita origem HTTPS e gera rewrite; não publicar o hostname `.invalid` do template. Nenhuma mudança de hospedagem foi feita nesta revisão.
 
-- The backend and frontend images were built from lockfiles and started against a new isolated PostgreSQL volume.
-- All three Compose services reached healthy state; the frontend and proxied `/api/auth/session` returned HTTP 200.
-- A fixture row persisted across image rebuild/container recreation, and the four migration history records remained unchanged; the exact fixture was then removed. The backend runtime UID is non-root. The real Solana SDK signature/message/genesis tests passed inside the freshly built image using injected RPC; no transaction was sent.
-- Four migration tests passed using separately created fixture databases: fresh/concurrent start, repeat execution, preservation of existing data, rejection of partial schemas and checksum tampering. Fixture databases were deleted by exact generated name.
-- Vercel proxy validation and stable bootstrap key/password tests passed. Parsed YAML tests verified explicit key configuration, private database wiring, free plans and isolated local volumes.
-- Integrated Jest passed 42 tests in 11 suites, including a valid legacy payment body returning 501 without calling the treasury executor and normal polling remaining separate from the financial write budget.
-- Browser validation against the Docker demo passed real Ed25519 login, provider absence/refusal, two-owner isolation, HttpOnly/Strict cookies, session restore, wallet switch and logout, with no browser errors. No funds were involved.
-
-No cloud credentials are embedded in these files. The final production dependency audit reports three moderate affected-package entries and no high or critical advisories; the compatible UUID 11.1.1 correction removed the UUID and RPC Websockets entries. No container operating-system security scan or live cloud deployment is claimed. Dependency advisories and the remaining funded Devnet validation are tracked separately in the project security and QA documents.
+A validação local anterior registrou imagens saudáveis, fixture persistida após recriação, migrações repetíveis, autenticação Ed25519 com provider injetado e testes de API. Essas evidências históricas não certificam VPS, Phantom real ou liquidação Devnet. A revisão de 12/10 complementa com leitura da `main`, HTTP público e inspeção anônima de navegador, sem movimentação de fundos.

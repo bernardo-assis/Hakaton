@@ -1,10 +1,12 @@
 # Pagamentos Devnet — backend
 
+Revisado em 12/10/2026 contra `origin/main` (`1dd108f5675f982fb5fe70d157f78907ad9f13aa`). Evidências locais de 11/10 abaixo são históricas; não comprovam configuração ou pagamentos da VPS. Contrato atual completo em [REST_API.md](api/REST_API.md).
+
 O painel e os agentes usam o mesmo executor. Cofres novos de teste recebem uma carteira separada; a carteira Phantom do responsável continua sendo sua identidade. Cofres antigos que observam a Phantom não recebem uma chave nem têm seu endereço substituído.
 
 ## Configuração
 
-- Aplicar `backend/src/db/migrations/0004_devnet_payments.sql` depois das migrações anteriores. A migração é aditiva, transacional e pode ser repetida; não remove dados. As restrições de valores novos são aplicadas sem tentar corrigir registros antigos silenciosamente.
+- Usar `npm run migrate` ou `npm run start:production` para aplicar as migrações numeradas, incluindo `0004_devnet_payments.sql`, na ordem e com registro/checksum. O SQL de pagamentos é aditivo e não remove dados; não aplicar isoladamente sobre um banco sem migrações anteriores nem editar uma migração já registrada. Restrições novas não corrigem silenciosamente registros antigos.
 - `DEVNET_PAYMENTS_ENABLED=true` habilita o executor e o conciliador. O padrão é desabilitado.
 - `VAULT_SIGNER_ENCRYPTION_KEY` deve conter exatamente 32 bytes em base64. Manter essa mesma chave entre reinícios; perder ou substituir a chave impede usar os cofres existentes. Armazenar fora do Git e dos logs.
 - `SOLANA_RPC_URL` precisa responder com o genesis Devnet esperado. A verificação ocorre antes de preparar ou recuperar pagamentos. Não há suporte a Mainnet.
@@ -37,6 +39,8 @@ Pedido: `{agent_id,idempotency_key,recipient_pubkey,amount_lamports,purpose?:str
 
 ## Controle e recuperação
 
+**Limitação nova de main:** o painel/edição agora permite alterar `agents.vault_id`. Pagamentos derivam o cofre por esse vínculo mutável; testes da revisão reproduziram migração de gasto confirmado, fila manual aprovada com outro signer e envio com vínculo desatualizado após corrida. Manter agente com pedidos no cofre original até corrigir. Critérios/evidências em [main architecture review](handoffs/2026-10-12-main-architecture-review.md).
+
 O mesmo lock PostgreSQL por cofre serializa pagamentos, alteração de modo/política/limites, whitelist e botão de pânico. Ele permanece adquirido entre a gravação definitiva da intenção e o envio ao RPC. Chamadas de rede não ocorrem dentro de `BEGIN`/locks de linhas; a transação curta revalida dados antes de persistir a reserva, bytes assinados e assinatura.
 
 Manual aguarda sem reserva financeira e não vai para a rede. Voltar para automático não libera a fila manual; mudar para manual impede novos envios automáticos. Um envio já iniciado pode concluir e continua sob acompanhamento.
@@ -46,6 +50,8 @@ O processo do servidor concilia ao iniciar e a cada 15 segundos, apenas quando h
 `CONFIRMED` exige **finalização** neste executor. Timeout vira `UNKNOWN` e mantém a reserva. Uma assinatura expirada sem evidência conclusiva permanece UNKNOWN e reservada; requer investigação do operador. Esse comportamento conservador pode reduzir a disponibilidade temporariamente, inclusive quando um pagamento já entrou na rede e a consulta falhou. Não há liberação por timeout nem cancelamento fictício.
 
 ## Validação realizada
+
+Revisão de main em 12/10: 13 suites / 109 testes existentes e build de produção aprovados em banco descartável (relato do QA coordenador). Três provas adicionais com RPC simulado reproduziram regressões da troca de cofre; passar nessas provas significa **bug reproduzido**, não aceite financeiro. O código de reprodução está no snapshot temporário, sem alteração da implementação ou pagamentos na VPS.
 
 - PostgreSQL real: `docker exec agentsafe_backend_local npm test -- --runInBand` — 9 suites / 39 testes aprovados em 2026-10-11.
 - TypeScript: `docker exec agentsafe_backend_local npm run build` — aprovado.

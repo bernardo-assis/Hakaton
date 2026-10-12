@@ -1,5 +1,7 @@
 # REST API
 
+Reviewed against `origin/main` commit `1dd108f5675f982fb5fe70d157f78907ad9f13aa` on 2026-10-12. This reference describes that code, not proof that the VPS runs the same image or that a Devnet transfer has finalized there.
+
 Base path: `/api`. Use the frontend's origin through its API proxy. Responses are JSON:
 
 ```json
@@ -52,11 +54,13 @@ Modes are `AUTOMATIC` and `MANUAL`. Both use the same separate signer. Manual→
 
 ## Agents and machine credentials
 
+New separate vaults explicitly start `AUTOMATIC`, with a 1 SOL cap when omitted; optional vault policies default off. Observed external-wallet vaults remain unsigned/manual. Approval policy applies when principal is **greater than** its threshold, not equal. Default agent single-payment cap equals daily cap; omitted whitelist flag is false. `agent_pubkey` remains required on creation and cannot be edited; it is a public identifier, not a request-signature credential.
+
 | Method | Path | Body / result |
 | --- | --- | --- |
 | GET | `/agents` | Owner agents and budgets |
 | POST | `/agents` | vault_id, name, role, agent_pubkey, daily_cap_lamports; optional single_tx_cap_lamports (defaults daily) and whitelist_enabled; 201 |
-| PATCH | `/agents/:id` | Validated editable agent fields; single cap cannot exceed daily cap |
+| PATCH | `/agents/:id` | Subset of name, role, daily_cap_lamports, single_tx_cap_lamports, status, whitelist_enabled, vault_id; single cap cannot exceed daily cap; target vault must match both owner/user |
 | PATCH | `/agents/:id/whitelist` | `{ "recipients": [{ "recipient_pubkey": "<base58>", "label": "Test recipient" }] }`; replaces list, no duplicates |
 | GET | `/agents/:id/history` | Owner-scoped transactions and audit history |
 | POST | `/agents/panic` | `{}`; freezes only authenticated owner's agents |
@@ -64,6 +68,8 @@ Modes are `AUTOMATIC` and `MANUAL`. Both use the same separate signer. Manual→
 | DELETE | `/agents/:id/credentials/:credentialId` | Revokes only a credential belonging to that owner/agent |
 
 Keep machine credentials in the external agent's secret storage, not the panel's localStorage or source code. Credentials are hashed, agent-specific and scoped to `payments:create`. The panel uses its owner session instead.
+
+**Main review limitation:** changing `vault_id` currently moves all joins used for historical payments, reservations and approval/recovery to the agent's new vault. Do not move an agent with payment history/pending requests until this is repaired. A payment's original vault must be immutable or incompatible moves rejected, with binding revalidated under lock. See [reproduced findings](../handoffs/2026-10-12-main-architecture-review.md). Credentials are bound to the agent, so existing credentials also remain usable after a move.
 
 ## Payments
 
@@ -100,6 +106,8 @@ Machine clients without Origin AND without Cookie can call the exact `/api/agent
 
 ## Dashboard and simulation
 
+Main's dashboard blocked count and seven-day chart aggregate both payment requests and simulations. An APPROVED chart event is a policy decision, not necessarily a finalized transfer. Simulator budget uses UTC calendar day; confirmed-payment budget is rolling 24h.
+
 | Method | Path | Behavior |
 | --- | --- | --- |
 | GET | `/dashboard` | Owner-scoped summary |
@@ -111,6 +119,8 @@ Machine clients without Origin AND without Cookie can call the exact `/api/agent
 Simulation history is not real spending and may use its historical UTC-calendar budget model. Real payments use a rolling 24-hour budget. Faucet errors or provider quotas do not imply a payment occurred. Withdrawals, `POST /transactions`, generic `POST /vaults` and open `/users` registration remain unavailable 501; use the explicit wallet/payment APIs.
 
 ## Errors and recovery
+
+For a **new payment request POST**, policy validation after successful preflight persists a blocked payment and returns 409 on the first call. Repeating the same normalized intention returns that same blocked record with 200; raising a cap does not turn the old intention into a payment. To request a genuinely new payment after correction, use a new intention key only after confirming the previous record is BLOCKED/NOT_SUBMITTED. Transport-uncertain requests must retain their old key. Errors before preflight/authorization may leave no record. This differs from approval of an existing PENDING request: a policy-validation failure during approve rolls back that attempt and leaves the request PENDING, without dispatch. The panel currently renders payment labels without the persisted `error_code` in its history; inspect the initial error or API record for the reason.
 
 | HTTP | Meaning |
 | --- | --- |
@@ -135,4 +145,4 @@ Runtime configuration: DATABASE_URL (or DATABASE_URL_FILE), DATABASE_SSL, PORT, 
 Run `npm run migrate` from `backend/` with DATABASE_URL or DATABASE_URL_FILE configured. `npm run start:production` invokes the startup runner, which applies versioned migrations before launching the built server; build first with `npm run build:production`. Migrations in `backend/src/db/migrations` are recorded with checksums and serialized by an advisory lock; mismatched recorded SQL or an incompatible existing baseline refuses startup. Initial schema, vault policies, wallet authentication and Devnet payment migrations preserve existing records; older observed vaults stay unsigned/manual. Do not assume mounting init SQL reruns migrations on an existing PostgreSQL volume. See [deployment guide](../DEPLOYMENT.md) for executable commands, readiness endpoints and configuration. This API reference describes application contracts, not a published deployment or live-funded payment guarantee.
 
 
-Public deployment probes are outside `/api`: `GET /healthz` returns 200 `{ "status": "ok" }`; `GET /readyz` checks PostgreSQL and returns 200 `{ "status": "ready" }` or 503 `{ "status": "unavailable" }`. They are unauthenticated, no-store and contain no payment/identity data; their envelope intentionally differs from application endpoints. `TRUST_PROXY_HOPS` accepts only 0 (direct) or 1 (one known reverse proxy); never enable a blanket trust-proxy setting.
+**Internal backend probes** are outside `/api`: `GET /healthz` returns 200 `{ "status": "ok" }`; `GET /readyz` checks PostgreSQL and returns 200 `{ "status": "ready" }` or 503 `{ "status": "unavailable" }`. They are unauthenticated, no-store and contain no payment/identity data; their envelope intentionally differs from application endpoints. These contracts apply when reaching the Express backend directly or through explicitly configured proxy routes. In the reviewed public domain, `/healthz` is a frontend Nginx text response and `/readyz` falls back to SPA HTML with HTTP 200; neither proves backend/database readiness. Inspect response body/content type and the routing described in [DEPLOYMENT.md](../DEPLOYMENT.md), rather than treating public HTTP 200 as a database check. `TRUST_PROXY_HOPS` accepts only 0 (direct) or 1 (one known reverse proxy); never enable a blanket trust-proxy setting.

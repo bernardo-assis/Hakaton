@@ -1,0 +1,440 @@
+{
+  "landing-desktop": {
+    "title": "frontend",
+    "width": 1440,
+    "scrollWidth": 1425,
+    "text": "AgentSafe\nSolutions\nFeatures\nTestimonials\nPricing\nDocs\nLaunch App >\nThe future of autonomous security.\n\nTreasury firewall and zero-trust policies for autonomous AI agents.\n\nWe specialize in providing cryptographic vaults and programmable spending guardrails on Solana to protect enterprise treasuries from prompt injections and hallucinations.\n\nLaunch Dashboard ->\nView Documentation\nSOLUTIONS\nAutomate your defense workflows.\nGet Started >\nView Architecture Docs\n\nOur autonomous agents monitor your infrastructure 24/7, instantly neutralizing threats and ensuring continuous compliance without human bottlenecks.\n\nFEATURES\nThe future of finance is here.\n\nWe provide cutting-edge AI tools to optimize your financial performance and secure autonomous execution.\n\nAI Forecasting\nPredictive Analytics\n\nGain foresight into market trends and autonomous fleet telemetry.\n\n01 // PROTOCOL\n→\nPolicy Engine\nAutomated Compliance\n\nEnsure regulatory adherence and enforce mathematical hard caps.\n\n02 // PROTOCOL\n→\nZero-Trust Shield\nFraud Detection\n\nProtect your assets proactively with real-time multi-sig shielding.\n\n03 // PROTOCOL\n→\nSERVICES\nTailored for every autonomous need.\n\nOur security solutions are designed to cater to diverse AI ecosystems and enterprise architectures.\n\nAutonomous Auditing\nReal-time Telemetry\n\nWe provide AI-driven tools to continuously audit agent behavior, transaction logs, and permission scopes in real-time.\n\nSmart Contract Shielding\nZero-Trust Guard\n\nOur AI platforms offer advanced execution analytics to prevent malicious payloads from interacting with your core contracts.\n\nSecurity Consulting\nAdvisory Swarms\n\nWe empower DevSecOps teams with AI tools for vulnerability analysis, threat modeling, and immediate mitigation strategies.\n\nEnterprise Deployments\nHigh Concurrency\n\nOur scalable AI security solutions adapt to the unique architectural challenges of businesses running heavy multi-agent swarms.\n\nTESTIMONIALS\nWhat our clients say.\nJane Doe\nCFO, GLOBAL BANK\n\n“AgentSafe has transformed our operations, bringing unparalleled efficiency and insight to our banking processes.”\n\nCeline Smith\nCEO, INVESTCORP\n\n“We've seen significant improvements in our investment strategies and risk management since partnering with AgentSafe.”\n\nMike Jones\nANALYST, FINCONSULT\n\n“Their AI solutions are practical, data-driven, and immediately actionable for our consulting needs.”\n\nPRICING\nPlans for every scale.\nStarter\n\nPerfect for small financial teams exploring AI.\n\n$199\n/mo\n◆\nUp to 2 users\n◆\nBasic analytics access\n◆\nCore AI tools\n◆\nStandard support\nSign Up >\nProfessional\nMOST POPULAR\n\nIdeal for growing financial institutions.\n\n$499\n/mo\n◆\nUp to 10 users\n◆\nAdvanced analytics access\n◆\nEnhanced AI features\n◆\nPriority support\nContact Sales >\nEnterprise\n\nBest for large organizations with complex needs.\n\n$899\n/mo\n◆\nUnlimited Users\n◆\nComprehensive analytics\n◆\nCustom AI solutions\n◆\nDedicated support\nContact Sales >\nAUTONOMOUS SAFETY\nReady to safeguard your AI agent fleet?\n\nDeploy your first policy vault on Solana Devnet with zero private-key exposure.\n\nGet Started >\nExplore Docs\nAgentSafe\n\nThe military-grade treasury firewall and policy vault protocol designed for autonomous agents operating across Web3 and Solana.\n\nSolana Devnet: Operational\nPROTOCOL\nFeatures\nSolutions\nTestimonials\nPricing Plans\nRESOURCES\nProtocol Documentation\nPolicy Architecture\nSecurity Audit\nSolana Faucet\nCONNECT\nGitHub\n→\nX (Twitter)\n→\nDiscord\n→\nPhantom Wallet\n→\n© 2026 AgentSafe. Built for the Solana Hackathon.\nPrivacy Policy\n•\nTerms of Service\n•\nSecurity Disclosures\nLaunch App\n→",
+    "links": [
+      {
+        "text": "Solutions",
+        "href": "#solutions"
+      },
+      {
+        "text": "Features",
+        "href": "#features"
+      },
+      {
+        "text": "Testimonials",
+        "href": "#testimonials"
+      },
+      {
+        "text": "Pricing",
+        "href": "#pricing"
+      },
+      {
+        "text": "Features",
+        "href": "#features"
+      },
+      {
+        "text": "Solutions",
+        "href": "#solutions"
+      },
+      {
+        "text": "Testimonials",
+        "href": "#testimonials"
+      },
+      {
+        "text": "Pricing Plans",
+        "href": "#pricing"
+      },
+      {
+        "text": "Solana Faucet",
+        "href": "https://faucet.solana.com"
+      },
+      {
+        "text": "GitHub\n→",
+        "href": "https://github.com"
+      },
+      {
+        "text": "X (Twitter)\n→",
+        "href": "https://x.com"
+      },
+      {
+        "text": "Discord\n→",
+        "href": "https://discord.com"
+      },
+      {
+        "text": "Phantom Wallet\n→",
+        "href": "https://phantom.com"
+      },
+      {
+        "text": "Privacy Policy",
+        "href": "#"
+      },
+      {
+        "text": "Terms of Service",
+        "href": "#"
+      },
+      {
+        "text": "Security Disclosures",
+        "href": "#"
+      }
+    ],
+    "buttons": [
+      "Docs",
+      "Launch App >",
+      "Launch Dashboard ->",
+      "View Documentation",
+      "Get Started >",
+      "View Architecture Docs",
+      "Sign Up >",
+      "Contact Sales >",
+      "Contact Sales >",
+      "Get Started >",
+      "Explore Docs",
+      "Protocol Documentation",
+      "Policy Architecture",
+      "Security Audit",
+      "Launch App\n→"
+    ],
+    "overflow": [
+      {
+        "tag": "VIDEO",
+        "text": "",
+        "rect": {
+          "x": -106.875,
+          "width": 1638.75
+        }
+      }
+    ]
+  },
+  "docs-desktop": {
+    "title": "frontend",
+    "width": 1440,
+    "scrollWidth": 1425,
+    "text": "AgentSafe\nLanding\nOverview\nAI Simulator\nAgent Fleet\nVault Budgets\nDocs\nConnect Phantom Wallet\nAGENTSAFE PROTOCOL DOCUMENTATION\nv1.0.0 • Solana Devnet\nDeveloper & Architecture Guide\n\nSecurity policies, payment API endpoints, and the separate Devnet test vault model.\n\nTest Live Simulator\nOpen Dashboard →\nSECTIONS\n1. Protocol Overview\n2. Security Architecture\n3. Policy Engine & Caps\n4. REST API Reference\n5. Agent HTTP Quickstart\n6. Wallet & Test Vault Model\nColosseum Hackathon Note:\nAgentSafe is designed to serve as the critical firewall between LLM autonomous agents and Solana treasuries.\n1. Protocol Overview\n\nAs autonomous AI agents acquire agency to trade, hire external APIs, settle invoices, and execute micro-transactions, giving them raw unrestricted access to Solana private keys introduces fatal financial risk. Prompt injections, reasoning hallucination, or infinite loops can completely drain an organization's treasury in seconds.\n\n01\nTreasury Firewall\n\nEvery payment request is checked against server-enforced limits before it can reach Solana Devnet.\n\n02\nHuman Kill Switch\n\nSupervisors can freeze agents or trigger global panic to block new dispatches. Payments already sent continue to be reconciled.\n\n03\nPayment & Audit History\n\nThe server records approvals, blocks, and payment states. Confirmed transfers can be inspected on Solana Explorer.",
+    "links": [],
+    "buttons": [
+      "Landing",
+      "Overview",
+      "AI Simulator",
+      "Agent Fleet",
+      "Vault Budgets",
+      "Docs",
+      "",
+      "Connect Phantom Wallet",
+      "Test Live Simulator",
+      "Open Dashboard →",
+      "1. Protocol Overview",
+      "2. Security Architecture",
+      "3. Policy Engine & Caps",
+      "4. REST API Reference",
+      "5. Agent HTTP Quickstart",
+      "6. Wallet & Test Vault Model"
+    ],
+    "overflow": []
+  },
+  "docs-mobile": {
+    "title": "frontend",
+    "width": 390,
+    "scrollWidth": 390,
+    "text": "AgentSafe\nLanding\nOverview\nAI Simulator\nAgent Fleet\nVault Budgets\nDocs\nConnect Phantom Wallet\nAGENTSAFE PROTOCOL DOCUMENTATION\nv1.0.0 • Solana Devnet\nDeveloper & Architecture Guide\n\nSecurity policies, payment API endpoints, and the separate Devnet test vault model.\n\nTest Live Simulator\nOpen Dashboard →\nSECTIONS\n1. Protocol Overview\n2. Security Architecture\n3. Policy Engine & Caps\n4. REST API Reference\n5. Agent HTTP Quickstart\n6. Wallet & Test Vault Model\nColosseum Hackathon Note:\nAgentSafe is designed to serve as the critical firewall between LLM autonomous agents and Solana treasuries.\n1. Protocol Overview\n\nAs autonomous AI agents acquire agency to trade, hire external APIs, settle invoices, and execute micro-transactions, giving them raw unrestricted access to Solana private keys introduces fatal financial risk. Prompt injections, reasoning hallucination, or infinite loops can completely drain an organization's treasury in seconds.\n\n01\nTreasury Firewall\n\nEvery payment request is checked against server-enforced limits before it can reach Solana Devnet.\n\n02\nHuman Kill Switch\n\nSupervisors can freeze agents or trigger global panic to block new dispatches. Payments already sent continue to be reconciled.\n\n03\nPayment & Audit History\n\nThe server records approvals, blocks, and payment states. Confirmed transfers can be inspected on Solana Explorer.",
+    "links": [],
+    "buttons": [
+      "Landing",
+      "Overview",
+      "AI Simulator",
+      "Agent Fleet",
+      "Vault Budgets",
+      "Docs",
+      "",
+      "Connect Phantom Wallet",
+      "Test Live Simulator",
+      "Open Dashboard →",
+      "1. Protocol Overview",
+      "2. Security Architecture",
+      "3. Policy Engine & Caps",
+      "4. REST API Reference",
+      "5. Agent HTTP Quickstart",
+      "6. Wallet & Test Vault Model"
+    ],
+    "overflow": [
+      {
+        "tag": "BUTTON",
+        "text": "AI Simulator",
+        "rect": {
+          "x": 334.96875,
+          "width": 107.109375
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Agent Fleet",
+        "rect": {
+          "x": 446.078125,
+          "width": 103.15625
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Vault Budgets",
+        "rect": {
+          "x": 553.234375,
+          "width": 118.484375
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Docs",
+        "rect": {
+          "x": 675.71875,
+          "width": 75.75
+        }
+      },
+      {
+        "tag": "SPAN",
+        "text": "",
+        "rect": {
+          "x": 691.71875,
+          "width": 6
+        }
+      }
+    ]
+  },
+  "landing-mobile": {
+    "title": "frontend",
+    "width": 390,
+    "scrollWidth": 390,
+    "text": "AgentSafe\nThe future of autonomous security.\n\nTreasury firewall and zero-trust policies for autonomous AI agents.\n\nWe specialize in providing cryptographic vaults and programmable spending guardrails on Solana to protect enterprise treasuries from prompt injections and hallucinations.\n\nLaunch Dashboard ->\nView Documentation\nSOLUTIONS\nAutomate your defense workflows.\nGet Started >\nView Architecture Docs\n\nOur autonomous agents monitor your infrastructure 24/7, instantly neutralizing threats and ensuring continuous compliance without human bottlenecks.\n\nFEATURES\nThe future of finance is here.\n\nWe provide cutting-edge AI tools to optimize your financial performance and secure autonomous execution.\n\nAI Forecasting\nPredictive Analytics\n\nGain foresight into market trends and autonomous fleet telemetry.\n\n01 // PROTOCOL\n→\nPolicy Engine\nAutomated Compliance\n\nEnsure regulatory adherence and enforce mathematical hard caps.\n\n02 // PROTOCOL\n→\nZero-Trust Shield\nFraud Detection\n\nProtect your assets proactively with real-time multi-sig shielding.\n\n03 // PROTOCOL\n→\nSERVICES\nTailored for every autonomous need.\n\nOur security solutions are designed to cater to diverse AI ecosystems and enterprise architectures.\n\nAutonomous Auditing\nReal-time Telemetry\n\nWe provide AI-driven tools to continuously audit agent behavior, transaction logs, and permission scopes in real-time.\n\nSmart Contract Shielding\nZero-Trust Guard\n\nOur AI platforms offer advanced execution analytics to prevent malicious payloads from interacting with your core contracts.\n\nSecurity Consulting\nAdvisory Swarms\n\nWe empower DevSecOps teams with AI tools for vulnerability analysis, threat modeling, and immediate mitigation strategies.\n\nEnterprise Deployments\nHigh Concurrency\n\nOur scalable AI security solutions adapt to the unique architectural challenges of businesses running heavy multi-agent swarms.\n\nTESTIMONIALS\nWhat our clients say.\nJane Doe\nCFO, GLOBAL BANK\n\n“AgentSafe has transformed our operations, bringing unparalleled efficiency and insight to our banking processes.”\n\nCeline Smith\nCEO, INVESTCORP\n\n“We've seen significant improvements in our investment strategies and risk management since partnering with AgentSafe.”\n\nMike Jones\nANALYST, FINCONSULT\n\n“Their AI solutions are practical, data-driven, and immediately actionable for our consulting needs.”\n\nPRICING\nPlans for every scale.\nStarter\n\nPerfect for small financial teams exploring AI.\n\n$199\n/mo\n◆\nUp to 2 users\n◆\nBasic analytics access\n◆\nCore AI tools\n◆\nStandard support\nSign Up >\nProfessional\nMOST POPULAR\n\nIdeal for growing financial institutions.\n\n$499\n/mo\n◆\nUp to 10 users\n◆\nAdvanced analytics access\n◆\nEnhanced AI features\n◆\nPriority support\nContact Sales >\nEnterprise\n\nBest for large organizations with complex needs.\n\n$899\n/mo\n◆\nUnlimited Users\n◆\nComprehensive analytics\n◆\nCustom AI solutions\n◆\nDedicated support\nContact Sales >\nAUTONOMOUS SAFETY\nReady to safeguard your AI agent fleet?\n\nDeploy your first policy vault on Solana Devnet with zero private-key exposure.\n\nGet Started >\nExplore Docs\nAgentSafe\n\nThe military-grade treasury firewall and policy vault protocol designed for autonomous agents operating across Web3 and Solana.\n\nSolana Devnet: Operational\nPROTOCOL\nFeatures\nSolutions\nTestimonials\nPricing Plans\nRESOURCES\nProtocol Documentation\nPolicy Architecture\nSecurity Audit\nSolana Faucet\nCONNECT\nGitHub\n→\nX (Twitter)\n→\nDiscord\n→\nPhantom Wallet\n→\n© 2026 AgentSafe. Built for the Solana Hackathon.\nPrivacy Policy\n•\nTerms of Service\n•\nSecurity Disclosures\nLaunch App\n→",
+    "links": [
+      {
+        "text": "Solutions",
+        "href": "#solutions"
+      },
+      {
+        "text": "Features",
+        "href": "#features"
+      },
+      {
+        "text": "Testimonials",
+        "href": "#testimonials"
+      },
+      {
+        "text": "Pricing",
+        "href": "#pricing"
+      },
+      {
+        "text": "Features",
+        "href": "#features"
+      },
+      {
+        "text": "Solutions",
+        "href": "#solutions"
+      },
+      {
+        "text": "Testimonials",
+        "href": "#testimonials"
+      },
+      {
+        "text": "Pricing Plans",
+        "href": "#pricing"
+      },
+      {
+        "text": "Solana Faucet",
+        "href": "https://faucet.solana.com"
+      },
+      {
+        "text": "GitHub\n→",
+        "href": "https://github.com"
+      },
+      {
+        "text": "X (Twitter)\n→",
+        "href": "https://x.com"
+      },
+      {
+        "text": "Discord\n→",
+        "href": "https://discord.com"
+      },
+      {
+        "text": "Phantom Wallet\n→",
+        "href": "https://phantom.com"
+      },
+      {
+        "text": "Privacy Policy",
+        "href": "#"
+      },
+      {
+        "text": "Terms of Service",
+        "href": "#"
+      },
+      {
+        "text": "Security Disclosures",
+        "href": "#"
+      }
+    ],
+    "buttons": [
+      "Docs",
+      "Launch App >",
+      "Launch Dashboard ->",
+      "View Documentation",
+      "Get Started >",
+      "View Architecture Docs",
+      "Sign Up >",
+      "Contact Sales >",
+      "Contact Sales >",
+      "Get Started >",
+      "Explore Docs",
+      "Protocol Documentation",
+      "Policy Architecture",
+      "Security Audit",
+      "Launch App\n→"
+    ],
+    "overflow": [
+      {
+        "tag": "VIDEO",
+        "text": "",
+        "rect": {
+          "x": -29.25,
+          "width": 448.5
+        }
+      },
+      {
+        "tag": "SPAN",
+        "text": "",
+        "rect": {
+          "x": -335.27655029296875,
+          "width": 282.23309326171875
+        }
+      },
+      {
+        "tag": "DIV",
+        "text": "",
+        "rect": {
+          "x": -205,
+          "width": 800
+        }
+      },
+      {
+        "tag": "DIV",
+        "text": "",
+        "rect": {
+          "x": 97.5,
+          "width": 500
+        }
+      },
+      {
+        "tag": "DIV",
+        "text": "",
+        "rect": {
+          "x": -55,
+          "width": 500
+        }
+      },
+      {
+        "tag": "DIV",
+        "text": "",
+        "rect": {
+          "x": -55,
+          "width": 500
+        }
+      },
+      {
+        "tag": "DIV",
+        "text": "",
+        "rect": {
+          "x": -55,
+          "width": 500
+        }
+      },
+      {
+        "tag": "DIV",
+        "text": "",
+        "rect": {
+          "x": -55,
+          "width": 500
+        }
+      },
+      {
+        "tag": "DIV",
+        "text": "",
+        "rect": {
+          "x": -105,
+          "width": 600
+        }
+      }
+    ]
+  },
+  "wallet-gate-mobile": {
+    "title": "frontend",
+    "width": 390,
+    "scrollWidth": 390,
+    "text": "AgentSafe\nLanding\nOverview\nAI Simulator\nAgent Fleet\nVault Budgets\nDocs\nConnect Phantom Wallet\nConnect your wallet to enter\n\nUse Connect Phantom Wallet and sign the message to access your vaults and agents.\n\nThe signature authenticates your wallet; it does not authorize transfers. Data is displayed only after verification.",
+    "links": [],
+    "buttons": [
+      "Landing",
+      "Overview",
+      "AI Simulator",
+      "Agent Fleet",
+      "Vault Budgets",
+      "Docs",
+      "",
+      "Connect Phantom Wallet"
+    ],
+    "overflow": [
+      {
+        "tag": "BUTTON",
+        "text": "AI Simulator",
+        "rect": {
+          "x": 334.96875,
+          "width": 107.109375
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Agent Fleet",
+        "rect": {
+          "x": 446.078125,
+          "width": 103.15625
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Vault Budgets",
+        "rect": {
+          "x": 553.234375,
+          "width": 118.484375
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Docs",
+        "rect": {
+          "x": 675.71875,
+          "width": 75.75
+        }
+      },
+      {
+        "tag": "SPAN",
+        "text": "",
+        "rect": {
+          "x": 691.71875,
+          "width": 6
+        }
+      }
+    ]
+  },
+  "errors": [],
+  "failed": [
+    {
+      "requestId": "98.49",
+      "timestamp": 18987.948205,
+      "type": "Media",
+      "errorText": "net::ERR_ABORTED",
+      "canceled": true
+    },
+    {
+      "requestId": "98.55",
+      "timestamp": 18989.713279,
+      "type": "Media",
+      "errorText": "net::ERR_ABORTED",
+      "canceled": true
+    },
+    {
+      "requestId": "98.116",
+      "timestamp": 19000.859843,
+      "type": "Media",
+      "errorText": "net::ERR_ABORTED",
+      "canceled": true
+    }
+  ]
+}

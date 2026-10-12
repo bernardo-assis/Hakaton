@@ -1,26 +1,51 @@
-# UI API contract
-All endpoints return `{success:true,data:...}`; errors `{success:false,error:string}`. Local prototype has no authentication. No custody transfer/withdrawal permitted.
+# Contrato atual entre interface e API
 
-- GET /api/dashboard: balanceSol (null when RPC unavailable), balanceAvailable, dailyLimitSol, spentTodaySol (CONFIRMED only), activeAgents, blockedTxs, totalAgents, vaultPubkey, vaultId, transactions, chartData.
-- POST /api/dashboard/deposit `{amountSol:number}`: devnet faucet only. Returns signature; errors explicit.
-- POST /api/dashboard/withdraw: 501 unsupported.
-- GET /api/vaults: persisted vault list, caps and confirmed daily spending (lamports strings).
-- POST /api/vaults: existing `{user_id,owner_pubkey,vault_pubkey,key_reference}`.
-- PATCH /api/vaults/:id `{status:'ACTIVE'|'FROZEN'}`.
-- GET /api/agents: existing fields plus spent_today_lamports, transaction_count (lamports strings).
-- POST /api/agents: `{vault_id,name,role,agent_pubkey,daily_cap_lamports,single_tx_cap_lamports?,whitelist_enabled?}`. Lamports nonnegative safe integer or digit string. Public keys valid Solana keys.
-- PATCH /api/agents/:id: subset `{name,role,daily_cap_lamports,single_tx_cap_lamports,status,whitelist_enabled}`; effective single cap <= daily cap.
-- POST /api/agents/panic `{}`: freezes all agents; returns `{count}`.
-- GET /api/agents/:id/history: transaction list plus audit events.
-- GET /api/notifications: audit event list `{id,action,reason,target_id,created_at,...}`. No fake unread counters.
-- POST /api/simulator/evaluate `{agent_id,amount_lamports,recipient_pubkey,purpose?,request_id}`: policy evaluation persisted in audit events; returns `{id,decision:'APPROVED'|'BLOCKED',reason,mode:'SIMULATION',settlement_status:'NOT_SUBMITTED',amount_lamports,agent_id,created_at}`. No actual payment. Repeat request_id replays existing result, conflicting payload 409. Simulated approvals consume simulator daily budget only.
-- GET /api/simulator/history: persisted simulation results newest first.
-- POST /api/transactions: 501 (real transfers require authentication, authorization and safe settlement implementation).
-- POST /api/vaults/local `{owner_pubkey}`: creates/reuses observed wallet vault and local identity. No custody key or authentication; intended only for local demonstration. Returns public vault metadata.
-- PATCH /api/vaults/:id/policies `{pause_on_low_balance,low_balance_threshold_lamports,require_human_approval,approval_threshold_lamports,block_unlisted_recipients}`: all fields required; monetary strings. Simulator blocks with BALANCE_UNAVAILABLE/LOW_BALANCE/APPROVAL_REQUIRED/RECIPIENT_NOT_ALLOWED as appropriate. No approval workflow is simulated.
-- POST /api/vaults/:id/optimize `{}`: returns balance and remaining budget in lamports plus recommendation; performs no transfer.
-- PATCH /api/agents/:id/whitelist `{recipients:[{recipient_pubkey,label}]}` atomically replaces recipients (maximum 100, no duplicates). GET agents includes `recipients`.
-- Simulator budgets use calendar day UTC and are separate from real confirmed spending; simulation never debits balances. UI must label this explicitly.
-- Dashboard chart aggregates all transactions for seven UTC days; history itself is capped at latest 100.
-- Deposit requires amountSol >0 and <=2; optional vault_id (required when multiple vaults). Only official Devnet RPC accepted. Wallet connection is observation, not authorization.
-- GET /api/agents additionally returns `simulated_spent_today_lamports` (decimal string), aggregated over every approved simulation in current UTC calendar day. Simulator budget UI must consume this field, never infer budgets from paginated/history-limited events.
+Atualizado em 12/10/2026 contra `origin/main` (`1dd108f5675f982fb5fe70d157f78907ad9f13aa`). Contrato detalhado: [REST_API.md](../api/REST_API.md). Este arquivo substitui o contrato do protótipo sem autenticação.
+
+## Sessão e formatos
+
+Todos os endpoints de dados do painel exigem sessão por assinatura de carteira; conexão visual da Phantom não basta. A API fornece desafio, confere assinatura Ed25519/origem/cookie temporário e estabelece cookie HttpOnly. Mutações exigem Origin permitido e `X-AgentSafe-CSRF: 1`. Respostas: `{success:true,data:...}`; erros `{success:false,error:string}`. Valores em lamports são strings; balance desconhecido é `null`, nunca zero inventado. No backend Express interno, `/healthz` e `/readyz` são públicos e têm envelope JSON próprio; `/readyz` verifica PostgreSQL. No domínio publicado revisado, `/healthz` responde texto do Nginx frontend e `/readyz` retorna HTML da SPA com HTTP 200: essas respostas não comprovam que o backend ou banco estão prontos. Ver [DEPLOYMENT.md](../DEPLOYMENT.md) para o contexto do proxy.
+
+## Telas e operações
+
+| Tela/ação | API e resultado |
+| --- | --- |
+| Login | `/auth/challenge`, `/auth/verify`, `/auth/session`, `/auth/logout` |
+| Dashboard | GET `/dashboard`: saldo observado de cofres, tetos, gasto confirmado dos agentes, agentes, histórico e gráfico; RPC indisponível mantém saldo desconhecido |
+| Cofre observado | POST `/vaults/local` `{owner_pubkey}`: deve corresponder ao proprietário autenticado; sem signer/custódia da Phantom |
+| Cofre de teste | POST `/vaults/devnet` `{daily_cap_lamports?}`: cria endereço separado com signer cifrado, AUTOMATIC e teto padrão de 1 SOL |
+| Faucet | POST `/dashboard/deposit` `{amountSol,vault_id?}`: >0 e <=2 SOL, lamports exatos, oficial Devnet; escolher cofre se houver mais de um |
+| Cofres | GET `/vaults`; PATCH `/vaults/:id` status; PATCH `/vaults/:id/policies` objeto completo das cinco políticas |
+| Recomendação | POST `/vaults/:id/optimize` `{}`: saldo, orçamento restante, recomendação e `transferred:false`; não move dinheiro |
+| Agentes | GET/POST `/agents`; PATCH `/agents/:id` nome, papel, limites, status, whitelist e `vault_id`; chave pública obrigatória na criação |
+| Lista permitida | PATCH `/agents/:id/whitelist` `{recipients:[{recipient_pubkey,label}]}` substitui lista, até 100 sem duplicatas |
+| Histórico do agente | GET `/agents/:id/history` transações e eventos; GET `/agents` inclui `recipients`, gasto real e `simulated_spent_today_lamports` |
+| Panic | POST `/agents/panic` `{}` congela agentes apenas do proprietário; não desfaz envio existente |
+| Notificações | GET `/notifications` eventos reais, sem contador fictício |
+| Simulador | POST `/simulator/evaluate` `{agent_id,amount_lamports,recipient_pubkey,purpose?,request_id}` e GET `/simulator/history` |
+| Painel financeiro | GET/PATCH `/vaults/:id/payment-config`; POST/GET `/payments`; GET `/payments/:id`; POST `/payments/:id/approve` ou `/reject` |
+| Automação externa | POST `/agent-payments` com Bearer específico; emissão/revogação em `/agents/:id/credentials` |
+
+Mutações/genéricos antigos `POST /transactions`, `POST /vaults`, cadastro `/users` e saques retornam 501. Pagamentos reais de teste usam o executor específico acima, não o signer global legado.
+
+## Estados que a interface precisa explicar
+
+- Simulação retorna `mode:SIMULATION`, `settlement_status:NOT_SUBMITTED`, decisão/reason; grava auditoria e não assina nem transfere. `request_id` repetido reproduz resultado; payload diferente retorna 409.
+- Orçamento simulado soma aprovações no dia UTC. Orçamento real soma janela móvel de 24h mais reservas ainda abertas. Não inferir orçamento pela página limitada de histórico.
+- Dashboard main agrega pedidos e simulações nas contagens/gráfico. APPROVED não significa pago. As métricas de saldo/gasto real continuam separadas.
+- Pedido MANUAL fica `PENDING/NOT_SUBMITTED`, sem reserva até aprovação; AUTOMATIC pode enviar imediatamente. Políticas continuam aplicáveis em ambos.
+- 200 pode conter PENDING, UNKNOWN ou replay de BLOCKED. Confirmado exige `settlement_status:CONFIRMED` e consulta finalizada do executor; assinatura/Explorer link sozinho não basta.
+- UNKNOWN mantém reserva, é reconciliado sem assinatura substituta, e não deve incentivar repetir com outra chave.
+- Painel guarda chave da intenção antes do POST com escopo proprietário/cofre. Ao corrigir regra de pedido bloqueado, replay da mesma intenção permanece bloqueado; só uma nova intenção autorizada pode tentar novamente.
+
+## Mudanças de main que exigem cuidado
+
+`DevnetPayments` oferece copiar endereço, link para faucet oficial, Quick Deploy Test Agent e seleção de agentes de outros cofres. A seleção de outro agente **muda sua associação de cofre por PATCH**, não é uma seleção somente de visualização. Quick Deploy cria identificador público aleatório e agente com limite diário de 5 SOL, individual de 1 SOL e whitelist desligada; não gera IA executando sozinha.
+
+A mudança de cofre está implementada mas apresentou regressões com histórico/fila e concorrência, reproduzidas nesta revisão. Manter agentes com pagamentos no cofre original até corrigir; ver [evidências](../handoffs/2026-10-12-main-architecture-review.md). O histórico financeiro atualmente omite `error_code` na apresentação e pode mostrar apenas “Blocked”; o motivo precisa vir do erro inicial/registro da API. Explicar esse estado no guia e melhorar o feedback no próximo ajuste de UI.
+
+## Limites e atualização
+
+Histórico do painel mostra até 100 pedidos recentes. Fila pendente possui paginação independente por `approval_status=PENDING`, limite até 100 e offset. Simulador/notificações também mostram até 100 eventos, sem alterar agregações completas do orçamento. Pagamentos são atualizados a cada 15 segundos no componente. Leituras/mutações/auth/financeiro têm limiters por IP distintos e cumulativos; detalhes no REST API.
+
+Trocar de carteira/logout deve limpar dados da identidade anterior; componentes usam chaves de sessão distintas. Validar com Phantom real, testes de navegador, desktop/mobile e teclado. Testes com provider injetado não provam a extensão real ou liquidação na VPS.
