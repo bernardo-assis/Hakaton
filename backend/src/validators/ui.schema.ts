@@ -26,6 +26,7 @@ export const editAgentSchema = z
     single_tx_cap_lamports: moneySchema.optional(),
     status: z.enum(["ACTIVE", "FROZEN"]).optional(),
     whitelist_enabled: z.boolean().optional(),
+    vault_id: idSchema.optional(),
   })
   .strict()
   .refine((v) => Object.keys(v).length > 0);

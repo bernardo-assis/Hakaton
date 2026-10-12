@@ -100,14 +100,35 @@ export class UiRepository {
       blocked: Number(
         (
           await query(
-            "SELECT COUNT(*) count FROM transactions WHERE decision='BLOCKED' AND EXISTS(SELECT 1 FROM agents a JOIN vaults v ON v.id=a.vault_id WHERE a.id=transactions.agent_id AND v.user_id=$1 AND v.owner_pubkey=$2)",
+            `SELECT (
+              (SELECT COUNT(*) FROM transactions WHERE decision='BLOCKED' AND EXISTS(SELECT 1 FROM agents a JOIN vaults v ON v.id=a.vault_id WHERE a.id=transactions.agent_id AND v.user_id=$1 AND v.owner_pubkey=$2))
+              +
+              (SELECT COUNT(*) FROM audit_events WHERE action='SIMULATION' AND after_state->'result'->>'decision'='BLOCKED' AND EXISTS(SELECT 1 FROM vaults WHERE id=audit_events.vault_id AND user_id=$1 AND owner_pubkey=$2))
+            ) count`,
             this.scope,
           )
         ).rows[0].count,
       ),
       chart: (
         await query(
-          "SELECT (created_at AT TIME ZONE 'UTC')::date::text date,COUNT(*) FILTER(WHERE decision='APPROVED')::int approved,COUNT(*) FILTER(WHERE decision='BLOCKED')::int blocked FROM transactions WHERE created_at >= CURRENT_TIMESTAMP - INTERVAL '7 days' AND EXISTS(SELECT 1 FROM agents a JOIN vaults v ON v.id=a.vault_id WHERE a.id=transactions.agent_id AND v.user_id=$1 AND v.owner_pubkey=$2) GROUP BY 1",
+          `WITH all_events AS (
+            SELECT (created_at AT TIME ZONE 'UTC')::date dt, decision::text decision
+            FROM transactions
+            WHERE created_at >= CURRENT_TIMESTAMP - INTERVAL '7 days'
+              AND EXISTS(SELECT 1 FROM agents a JOIN vaults v ON v.id=a.vault_id WHERE a.id=transactions.agent_id AND v.user_id=$1 AND v.owner_pubkey=$2)
+            UNION ALL
+            SELECT (created_at AT TIME ZONE 'UTC')::date dt, (after_state->'result'->>'decision')::text decision
+            FROM audit_events
+            WHERE action='SIMULATION'
+              AND created_at >= CURRENT_TIMESTAMP - INTERVAL '7 days'
+              AND EXISTS(SELECT 1 FROM vaults WHERE id=audit_events.vault_id AND user_id=$1 AND owner_pubkey=$2)
+          )
+          SELECT dt::text date,
+                 COUNT(*) FILTER(WHERE decision='APPROVED')::int approved,
+                 COUNT(*) FILTER(WHERE decision='BLOCKED')::int blocked
+          FROM all_events
+          GROUP BY 1
+          ORDER BY 1`,
           this.scope,
         )
       ).rows,
@@ -158,6 +179,18 @@ export class UiRepository {
         )
       ).rows[0];
       if (!old) throw Object.assign(new Error("Not found"), { status: 404 });
+      if (kind === "agents" && input.vault_id) {
+        const targetVault = (
+          await c.query(
+            "SELECT id FROM vaults WHERE id=$1 AND user_id=$2 AND owner_pubkey=$3",
+            [input.vault_id, ...this.scope],
+          )
+        ).rows[0];
+        if (!targetVault) {
+          throw Object.assign(new Error("Vault not found"), { status: 404 });
+        }
+        await c.query("SELECT pg_advisory_xact_lock(hashtext($1))", [input.vault_id]);
+      }
       if (
         kind === "agents" &&
         BigInt(

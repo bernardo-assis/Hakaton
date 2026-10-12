@@ -7,11 +7,34 @@ import type { Payment, PaymentConfig } from '../lib/payments';
 type TestVault = Vault & {
     signer_ready?: boolean;
 };
+const BS58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+function encodeBase58(bytes: Uint8Array): string {
+    const digits = [0];
+    for (let i = 0; i < bytes.length; i++) {
+        for (let j = 0; j < digits.length; j++) digits[j] <<= 8;
+        digits[0] += bytes[i];
+        let carry = 0;
+        for (let j = 0; j < digits.length; j++) {
+            digits[j] += carry;
+            carry = (digits[j] / 58) | 0;
+            digits[j] %= 58;
+        }
+        while (carry) {
+            digits.push(carry % 58);
+            carry = (carry / 58) | 0;
+        }
+    }
+    for (let i = 0; i < bytes.length && bytes[i] === 0; i++) {
+        digits.push(0);
+    }
+    return digits.reverse().map(d => BS58_ALPHABET[d]).join('');
+}
 const field = 'w-full min-w-0 bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] px-3 py-2 text-[13px]';
 const button = 'bg-[#064E3B] text-white px-4 py-2 rounded-full text-[13px] font-semibold disabled:opacity-50';
 export function DevnetPayments() {
     const [vaults, setVaults] = useState<TestVault[]>([]), [agents, setAgents] = useState<Agent[]>([]), [selected, setSelected] = useState(''), [config, setConfig] = useState<PaymentConfig | null>(null), [payments, setPayments] = useState<Payment[]>([]), [pending, setPending] = useState<Payment[]>([]);
     const [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState(''), [message, setMessage] = useState(''), [agent, setAgent] = useState(''), [recipient, setRecipient] = useState(''), [amount, setAmount] = useState(''), [purpose, setPurpose] = useState(''), [cap, setCap] = useState('1');
+    const [copied, setCopied] = useState(false);
     const capDirty = useRef(false);
     const pendingDepth = useRef(100);
     const [pendingOffset, setPendingOffset] = useState(0), [hasMorePending, setHasMorePending] = useState(false);
@@ -144,9 +167,71 @@ export function DevnetPayments() {
         await load();
         setMessage(approve ? 'Approval recorded. Follow the network result.' : 'Request rejected.');
     });
+    const copyAddress = async (addr: string) => {
+        try {
+            if (navigator?.clipboard?.writeText) {
+                await navigator.clipboard.writeText(addr);
+            } else {
+                const el = document.createElement('textarea');
+                el.value = addr;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+            }
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch {
+            // ignore
+        }
+    };
+    const quickDeploy = () => act(async () => {
+        if (!selected) return;
+        const bytes = crypto.getRandomValues(new Uint8Array(32));
+        const pubkey = encodeBase58(bytes);
+        const randomNum = Math.floor(100 + Math.random() * 900);
+        const name = `Test Agent ${randomNum}`;
+        const created = await request<Agent>('/agents', {
+            method: 'POST',
+            body: JSON.stringify({
+                name,
+                role: 'Devnet Automated Tester',
+                agent_pubkey: pubkey,
+                vault_id: selected,
+                daily_cap_lamports: toLamports('5'),
+                single_tx_cap_lamports: toLamports('1'),
+                whitelist_enabled: false,
+            }),
+        });
+        setAgent(created.id);
+        await load(selected);
+        setMessage(`Agent ${name} linked to this test vault!`);
+    });
+    const handleAgentChange = (agentId: string) => {
+        if (!agentId) {
+            setAgent('');
+            return;
+        }
+        const target = agents.find(a => a.id === agentId);
+        if (target && target.vault_id !== selected) {
+            void act(async () => {
+                await request<Agent>(`/agents/${target.id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ vault_id: selected }),
+                });
+                setAgent(target.id);
+                await load(selected);
+                setMessage(`Agent ${target.name} linked to this test vault!`);
+            });
+        } else {
+            setAgent(agentId);
+        }
+    };
     const vault = vaults.find(v => v.id === selected);
     const disabled = busy || loading;
     const enabled = config?.payments_enabled !== false;
+    const currentVaultAgents = agents.filter(a => a.vault_id === selected);
+    const otherAgents = agents.filter(a => a.vault_id !== selected);
     return <section aria-label="Devnet Payments" className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100 mb-8 min-w-0">
  <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
     <div>
@@ -169,7 +254,45 @@ export function DevnetPayments() {
                 void load(e.target.value);
             }}>{vaults.map(v => <option key={v.id} value={v.id}>{v.vault_pubkey.slice(0, 8)}…</option>)}</select>
         </label>
-        <div className="text-[13px] min-w-0">Devnet SOL deposit address<p className="break-all text-[#777D85] mt-2">{vault.vault_pubkey}</p>
+        <div className="text-[13px] min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <span>Devnet SOL deposit address</span>
+            <button
+              type="button"
+              onClick={() => void copyAddress(vault.vault_pubkey)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[12px] font-medium rounded-[8px] bg-[#F6F7F7] hover:bg-[#E8EAEC] text-[#111827] border border-[#E8EAEC] transition-all cursor-pointer"
+              title="Copy address"
+            >
+              {copied ? (
+                <>
+                  <svg className="w-3.5 h-3.5 text-[#24865E]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-[#24865E] font-semibold">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-3.5 h-3.5 text-[#777D85]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <span>Copy</span>
+                </>
+              )}
+            </button>
+          </div>
+          <p className="break-all font-mono text-[12px] bg-[#F6F7F7] border border-[#E8EAEC] rounded-[10px] p-2 text-[#4B5563] mt-2 select-all">
+            {vault.vault_pubkey}
+          </p>
+          <div className="mt-2">
+            <a
+              href="https://faucet.solana.com"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-[12px] text-[#064E3B] hover:text-[#043729] font-medium underline transition-colors"
+            >
+              Get test SOL from faucet.solana.com ↗
+            </a>
+          </div>
         </div>
         </div>
  {config && <>
@@ -197,9 +320,61 @@ export function DevnetPayments() {
                     e.preventDefault();
                     void submit();
                 }} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <label className="text-[13px]">Payment agent<select required aria-label="Payment agent" className={field} value={agent} onChange={e => setAgent(e.target.value)}>
-            <option value="">Select</option>{agents.filter(a => a.vault_id === selected).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select>
-            </label>
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-[13px] font-medium text-[#111827]">Payment agent</label>
+                <button
+                  type="button"
+                  className="text-[11px] font-semibold text-[#064E3B] hover:text-[#043729] bg-[#E8F5E9] hover:bg-[#C8E6C9] px-2.5 py-1 rounded-[8px] transition-colors disabled:opacity-50 cursor-pointer"
+                  disabled={disabled || !selected}
+                  onClick={() => void quickDeploy()}
+                  title="Deploy a test agent to this vault in 1 click"
+                >
+                  ⚡ Quick Deploy Test Agent
+                </button>
+              </div>
+              <select
+                required
+                aria-label="Payment agent"
+                className={field}
+                value={agent}
+                disabled={disabled}
+                onChange={e => handleAgentChange(e.target.value)}
+              >
+                <option value="">{currentVaultAgents.length ? 'Select payment agent' : 'Select agent (transfers to this vault)'}</option>
+                {currentVaultAgents.length > 0 && (
+                  <optgroup label="Agents in this vault">
+                    {currentVaultAgents.map(a => (
+                      <option key={a.id} value={a.id}>
+                        {a.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+                {otherAgents.length > 0 && (
+                  <optgroup label="Other agents (transfer to this vault)">
+                    {otherAgents.map(a => (
+                      <option key={a.id} value={a.id}>
+                        {a.name} (Transfer to this vault)
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+              </select>
+              {currentVaultAgents.length === 0 && (
+                <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[12px]">
+                  <span className="text-[#777D85]">
+                    {otherAgents.length ? 'No agent in this vault yet. Select one above to transfer, or:' : 'No agents available.'}
+                  </span>
+                  <a
+                    href="/agents"
+                    className="text-[#064E3B] hover:text-[#043729] underline transition-colors"
+                  >
+                    Open Agent Fleet ↗
+                  </a>
+                </div>
+              )}
+            </div>
             <label className="text-[13px]">Devnet recipient<input required aria-label="Devnet recipient" className={field} value={recipient} onChange={e => setRecipient(e.target.value)}/>
             </label>
             <label className="text-[13px]">Payment amount (SOL)<input required aria-label="Payment amount (SOL)" inputMode="decimal" className={field} value={amount} onChange={e => setAmount(e.target.value)}/>

@@ -110,6 +110,7 @@ export function AgentFleet() {
       const body = {
         name: form.name.trim(),
         role: form.role.trim(),
+        vault_id: form.vault,
         daily_cap_lamports: daily,
         single_tx_cap_lamports: single,
         whitelist_enabled: form.whitelist,
@@ -123,7 +124,6 @@ export function AgentFleet() {
               ? body
               : {
                   ...body,
-                  vault_id: form.vault,
                   agent_pubkey: form.pubkey.trim(),
                 },
           ),
@@ -596,7 +596,6 @@ export function AgentFleet() {
               <label className="text-[#111827] text-[13px] font-medium">
                 Treasury Vault
                 <select
-                  disabled={!!editing}
                   value={form.vault}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, vault: e.target.value }))
