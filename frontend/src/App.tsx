@@ -1,12 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import Lenis from "lenis";
-import { WalletAuthProvider, useWalletAuth } from "./components/WalletAuth";
-import { Header } from "./components/Header";
-import { Dashboard } from "./pages/Dashboard";
-import { AgentFleet } from "./pages/AgentFleet";
-import { Simulator } from "./pages/Simulator";
-import { VaultBudgets } from "./pages/VaultBudgets";
-import { Docs } from "./pages/Docs";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Hero } from "./components/Hero";
 import { AboutProject } from "./components/AboutProject";
 import { Solutions } from "./components/Solutions";
@@ -16,71 +11,14 @@ import { Testimonials } from "./components/Testimonials";
 import { Pricing } from "./components/Pricing";
 import { Footer } from "./components/Footer";
 
-function AuthenticatedApp({
-  initialPage = "dashboard",
-  onBackToLanding,
-}: {
-  initialPage?: string;
-  onBackToLanding?: () => void;
-}) {
-  const auth = useWalletAuth();
-  const [currentPage, setCurrentPage] = useState(initialPage);
+gsap.registerPlugin(ScrollTrigger);
 
-  const handleNavigate = (page: string) => {
-    if (page === "landing" && onBackToLanding) {
-      onBackToLanding();
-    } else {
-      setCurrentPage(page);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-[#F3F4F6] font-inter pb-12">
-      <Header
-        key={`header-${auth.generation}`}
-        currentPage={currentPage}
-        onNavigate={handleNavigate}
-      />
-      {currentPage === "docs" ? (
-        <Docs onNavigate={handleNavigate} />
-      ) : auth.session ? (
-        <div key={`content-${auth.generation}`}>
-          {currentPage === "dashboard" && (
-            <Dashboard onNavigate={handleNavigate} />
-          )}
-          {currentPage === "fleet" && <AgentFleet />}
-          {currentPage === "simulator" && <Simulator />}
-          {currentPage === "vault" && <VaultBudgets />}
-        </div>
-      ) : (
-        <main className="max-w-[1280px] mx-auto w-full px-6 mt-8 pb-12">
-          <div className="bg-white rounded-[22px] p-6 shadow-sm border border-gray-100">
-            <h1 className="text-[#111827] text-[24px] font-medium mb-3">
-              Connect your wallet to enter
-            </h1>
-            <p role="status" className="text-[#777D85] text-[13px]">
-              {auth.status === "checking"
-                ? "Verifying your session..."
-                : auth.status === "signing"
-                  ? "Confirm the message signature in Phantom."
-                  : auth.status === "revoking"
-                    ? "Closing previous session..."
-                    : "Use Connect Phantom Wallet and sign the message to access your vaults and agents."}
-            </p>
-            <p className="text-[#777D85] text-[12px] mt-3">
-              The signature authenticates your wallet; it does not authorize transfers.
-              Data is displayed only after verification.
-            </p>
-          </div>
-        </main>
-      )}
-    </div>
-  );
-}
+const AuthenticatedApp = lazy(() => import("./components/AuthenticatedApp"));
 
 function App() {
   const [currentPage, setCurrentPage] = useState("landing");
   const [appSection, setAppSection] = useState("dashboard");
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const launchApp = (section: string = "dashboard") => {
     setAppSection(section);
@@ -101,16 +39,44 @@ function App() {
       smoothWheel: true,
     });
 
-    let animationFrameId: number;
+    lenis.on("scroll", ScrollTrigger.update);
+
+    let animationFrameId: number | null = null;
+    let isRunning = true;
+
     function raf(time: number) {
+      if (!isRunning) return;
       lenis.raf(time);
       animationFrameId = requestAnimationFrame(raf);
     }
 
     animationFrameId = requestAnimationFrame(raf);
 
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        isRunning = false;
+        if (animationFrameId !== null) {
+          cancelAnimationFrame(animationFrameId);
+          animationFrameId = null;
+        }
+        videoRef.current?.pause();
+      } else {
+        if (!isRunning) {
+          isRunning = true;
+          animationFrameId = requestAnimationFrame(raf);
+        }
+        videoRef.current?.play().catch(() => {});
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      isRunning = false;
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+      }
       lenis.destroy();
     };
   }, [currentPage]);
@@ -123,13 +89,14 @@ function App() {
           {/* Fundo de Vídeo (Google Flow / Veo 3.1) - Fixo para todo o site */}
           <div className="fixed inset-0 w-full h-full z-0 pointer-events-none">
             <video
+              ref={videoRef}
               autoPlay
               loop
               muted
               playsInline
               className="w-full h-full object-cover opacity-90 scale-[1.15]"
             >
-              <source src="/videos/hero-bg-pingpong.mp4?v=5" type="video/mp4" />
+              <source src="/videos/hero-bg-pingpong-opt.mp4" type="video/mp4" />
             </video>
           </div>
 
@@ -152,12 +119,18 @@ function App() {
           </button>
         </div>
       ) : (
-        <WalletAuthProvider>
+        <Suspense
+          fallback={
+            <div className="min-h-screen bg-[#F3F4F6] flex items-center justify-center">
+              <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          }
+        >
           <AuthenticatedApp
             initialPage={appSection}
             onBackToLanding={() => setCurrentPage("landing")}
           />
-        </WalletAuthProvider>
+        </Suspense>
       )}
     </>
   );

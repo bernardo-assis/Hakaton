@@ -93,10 +93,10 @@ export function Hero({ onLaunchApp, onOpenDocs }: HeroProps = {}) {
 
             {/* Overlapping Avatars */}
             <div className="flex -space-x-3 ml-0 sm:ml-2">
-              <img src="/images/avatar-1.png" alt="User 1" className="w-[36px] h-[36px] rounded-full border-2 border-[#0C1411] object-cover" />
-              <img src="/images/avatar-2.png" alt="User 2" className="w-[36px] h-[36px] rounded-full border-2 border-[#0C1411] object-cover" />
-              <img src="/images/avatar-3.png" alt="User 3" className="w-[36px] h-[36px] rounded-full border-2 border-[#0C1411] object-cover" />
-              <img src="/images/avatar-4.png" alt="User 4" className="w-[36px] h-[36px] rounded-full border-2 border-[#0C1411] object-cover" />
+              <img src="/images/avatar-1.webp" alt="User 1" width="36" height="36" decoding="async" className="w-[36px] h-[36px] rounded-full border-2 border-[#0C1411] object-cover" />
+              <img src="/images/avatar-2.webp" alt="User 2" width="36" height="36" decoding="async" className="w-[36px] h-[36px] rounded-full border-2 border-[#0C1411] object-cover" />
+              <img src="/images/avatar-3.webp" alt="User 3" width="36" height="36" decoding="async" className="w-[36px] h-[36px] rounded-full border-2 border-[#0C1411] object-cover" />
+              <img src="/images/avatar-4.webp" alt="User 4" width="36" height="36" decoding="async" className="w-[36px] h-[36px] rounded-full border-2 border-[#0C1411] object-cover" />
             </div>
           </div>
         </div>

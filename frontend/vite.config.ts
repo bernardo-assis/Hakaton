@@ -4,6 +4,27 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return {
     plugins: [react()],
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            const normalized = id.replace(/\\/g, "/");
+            if (
+              normalized.includes("/node_modules/react/") ||
+              normalized.includes("/node_modules/react-dom/")
+            ) {
+              return "vendor-react";
+            }
+            if (
+              normalized.includes("/node_modules/gsap/") ||
+              normalized.includes("/node_modules/lenis/")
+            ) {
+              return "vendor-motion";
+            }
+          },
+        },
+      },
+    },
     server: {
       host: "0.0.0.0",
       proxy: {

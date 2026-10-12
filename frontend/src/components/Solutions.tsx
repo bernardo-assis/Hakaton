@@ -130,9 +130,11 @@ export function Solutions({ onLaunchApp, onOpenDocs }: SolutionsProps = {}) {
             {/* Camada sutil interativa no hover */}
             <div className="absolute inset-0 bg-black/0 hover:bg-black/5 transition-colors duration-500 z-10 pointer-events-none" />
             <img
-              src="/images/dashboard-mockup.png"
+              src="/images/dashboard-mockup.webp"
               alt="AgentSafe Dashboard"
               className="w-full h-auto object-cover"
+              loading="lazy"
+              decoding="async"
             />
           </div>
         </div>

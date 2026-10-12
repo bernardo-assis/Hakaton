@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -8,27 +8,26 @@ export function Features() {
   const sectionRef = useRef<HTMLElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
   const orbRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [mousePos, setMousePos] = useState<Record<number, { x: number; y: number } | null>>({});
 
   const features = [
     {
       title: "Predictive Analytics",
       description: "Gain foresight into market trends and autonomous fleet telemetry.",
-      image: "/images/feature-predictive.jpg",
+      image: "/images/feature-predictive.webp",
       badge: "AI Forecasting",
       spotlightColor: "radial-gradient(circle, #38BDF8 0%, transparent 70%)",
     },
     {
       title: "Automated Compliance",
       description: "Ensure regulatory adherence and enforce mathematical hard caps.",
-      image: "/images/feature-compliance.jpg",
+      image: "/images/feature-compliance.webp",
       badge: "Policy Engine",
       spotlightColor: "radial-gradient(circle, #B6F03F 0%, transparent 70%)",
     },
     {
       title: "Fraud Detection",
       description: "Protect your assets proactively with real-time multi-sig shielding.",
-      image: "/images/feature-fraud.jpg",
+      image: "/images/feature-fraud.webp",
       badge: "Zero-Trust Shield",
       spotlightColor: "radial-gradient(circle, #10B981 0%, transparent 70%)",
     },
@@ -74,7 +73,7 @@ export function Features() {
     return () => ctx.revert();
   }, []);
 
-  // 3. Mouse Magnetic 3D Tilt Handlers
+  // 3. Mouse Magnetic 3D Tilt Handlers com CSS Custom Properties (Zero React re-renders)
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>, idx: number) => {
     const card = cardsRef.current[idx];
     if (!card) return;
@@ -98,7 +97,9 @@ export function Features() {
       ease: "power1.out",
     });
 
-    setMousePos((prev) => ({ ...prev, [idx]: { x, y } }));
+    card.style.setProperty("--mouse-x", `${x}px`);
+    card.style.setProperty("--mouse-y", `${y}px`);
+    card.style.setProperty("--spotlight-opacity", "0.4");
   };
 
   const handleMouseLeave = (idx: number) => {
@@ -112,7 +113,7 @@ export function Features() {
       ease: "power2.out",
     });
 
-    setMousePos((prev) => ({ ...prev, [idx]: null }));
+    card.style.setProperty("--spotlight-opacity", "0");
   };
 
   return (
@@ -155,17 +156,16 @@ export function Features() {
             onMouseLeave={() => handleMouseLeave(idx)}
             className="group relative bg-[#090D17]/85 backdrop-blur-xl border border-white/10 hover:border-[#B6F03F]/40 rounded-[24px] p-6 lg:p-7 flex flex-col justify-between transition-colors duration-300 hover:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] cursor-pointer overflow-hidden will-change-transform"
           >
-            {/* Spotlight Dinâmico de Luz que segue o mouse */}
-            {mousePos[idx] && (
-              <div
-                className="absolute pointer-events-none rounded-full w-[280px] h-[280px] -translate-x-1/2 -translate-y-1/2 blur-[80px] opacity-40 transition-opacity duration-300"
-                style={{
-                  top: mousePos[idx]?.y,
-                  left: mousePos[idx]?.x,
-                  background: item.spotlightColor,
-                }}
-              />
-            )}
+            {/* Spotlight Dinâmico de Luz via CSS Custom Properties */}
+            <div
+              className="absolute pointer-events-none rounded-full w-[280px] h-[280px] -translate-x-1/2 -translate-y-1/2 blur-[80px] transition-opacity duration-300"
+              style={{
+                top: "var(--mouse-y, -9999px)",
+                left: "var(--mouse-x, -9999px)",
+                opacity: "var(--spotlight-opacity, 0)",
+                background: item.spotlightColor,
+              }}
+            />
 
             {/* Container da Imagem 3D Holográfica com Flutuação Zero-G */}
             <div className="relative w-full aspect-square rounded-[18px] overflow-hidden bg-black/60 border border-white/5 mb-6 shadow-inner flex items-center justify-center">
@@ -180,6 +180,7 @@ export function Features() {
                   alt={item.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                   loading="lazy"
+                  decoding="async"
                 />
               </div>
 

@@ -11,10 +11,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Hide Spline Logo Watermark */
-spline-viewer::part(logo) {
-  display: none !important;
-}
 
 @keyframes shimmer {
   0%, 70% {
